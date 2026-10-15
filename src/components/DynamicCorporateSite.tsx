@@ -42,14 +42,17 @@ interface SectorConfig {
 
 function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const name = info.n;
+  const isSoupPlace = /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|lokanta)/i.test(
+    `${info.n} ${info.q}`
+  );
 
   if (info.s === 'restaurant') {
     return {
-      eyebrow: 'GELENEKSEL LEZZET & RESTORAN',
+      eyebrow: isSoupPlace ? 'GELENEKSEL ÇORBA & LEZZET MERKEZİ' : 'GELENEKSEL LEZZET & RESTORAN',
       navActionLabel: 'Rezervasyon & Sipariş',
       servicesNavLabel: 'Menümüz',
       galleryNavLabel: 'Mekanımız',
-      heroSubtitle: `${name} olarak günlük taze malzemelerle hazırlanan çorba çeşitlerimiz, geleneksel ana yemeklerimiz ve hijyenik mutfağımızla misafirlerimize gerçek lezzet deneyimi sunuyoruz.`,
+      heroSubtitle: `${name} olarak günlük taze malzemelerle hazırlanan sıcak çorba çeşitlerimiz, geleneksel ana yemeklerimiz ve hijyenik mutfağımızla misafirlerimize gerçek lezzet deneyimi sunuyoruz.`,
       aboutTitle: 'Usta Ellerden Çıkan Geleneksel ve Taze Lezzetler',
       aboutP1: `${name}, özenle seçilen doğal malzemeleri geleneksel tariflerle buluşturarak her gün taze üretim yapmaktadır. Kemik suyuna hazırlanan şifalı çorbalarımızdan ızgara ve yöresel yemeklerimize kadar tüm menümüz usta aşçılarımız tarafından hazırlanır.`,
       aboutP2: 'Ferah salonumuz, güler yüzlü servis ekibimiz ve yüksek hijyen standartlarımızla hem ailelerin hem de lezzet tutkunlarının güvenle tercih ettiği buluşma noktasıyız.',
@@ -63,17 +66,19 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroLine: 'bg-amber-500',
       heroEyebrow: 'text-amber-400',
       accentText: 'text-amber-700',
-      videoSrc: '/videos/restaurant.mp4',
-      posterSrc: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1400&q=80',
+      videoSrc: isSoupPlace ? '/videos/soup.mp4' : '/videos/restaurant.mp4',
+      posterSrc: isSoupPlace
+        ? 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1400&q=85'
+        : 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1400&q=85',
       pillars: [
         { num: '01', title: 'Günlük Taze Hazırlık', desc: 'Tüm çorba ve yemeklerimiz her sabah taze et, kemik suyu ve doğal yöresel malzemelerle günlük olarak hazırlanır.' },
         { num: '02', title: 'Geleneksel Usta Tarifleri', desc: 'Yılların tecrübesiyle korunan orijinal reçeteler ve odun/taş ocağı lezzetiyle pişirilen özel menü.' },
         { num: '03', title: 'Tam Hijyen & Kalite', desc: 'Mutfağımızda ve servis alanımızda gıda güvenliği ile hijyen kuralları en üst seviyede uygulanır.' },
         { num: '04', title: 'Hızlı Servis & Sıcak Sunum', desc: 'Hem salon servisimizde hem de paket siparişlerde bekletmeden, sıcak ve bol porsiyonlu sunum.' },
       ],
-      servicesSectionTitle: 'Öne Çıkan Lezzetlerimiz ve Menü Gruplarımız',
+      servicesSectionTitle: 'Öne Çıkan Çorba, Izgara ve Menü Gruplarımız',
       services: [
-        { num: '01', title: 'Günün Özel Çorba Çeşitleri', desc: 'Kemik suyuna hazırlanan beyran, kelle paça, ayak paça, işkembe, mercimek ve yöresel Maraş tarhana çorbaları.', detail: 'Doğal Kemik Suyu • Bol Malzeme • Sıcak Sunum' },
+        { num: '01', title: 'Günün Özel Çorba Çeşitleri', desc: 'Kemik suyuna hazırlanan beyran, kelle paça, ayak paça, işkembe, mercimek ve yöresel Maraş tarhana çorbaları.', detail: 'Doğal Kemik Suyu • Bol Malzeme • Sıcak Kase Sunum' },
         { num: '02', title: 'Yöresel & Geleneksel Ana Yemekler', desc: 'Usta ellerde hazırlanan güveç, kavurma, haşlama ve günlük değişen geleneksel tencere yemekleri.', detail: 'Yöresel Tarifler • Günlük Üretim • Doğal Lezzet' },
         { num: '03', title: 'Izgara & Kebap Çeşitleri', desc: 'Özel dinlendirilmiş etlerden hazırlanan ızgara köfte, şiş ve kebap çeşitlerimiz.', detail: 'Seçkin Et Kalitesi • Usta Pişirim • Zengin Garnitür' },
         { num: '04', title: 'Taze Salata, Meze & İkramlar', desc: 'Yemeklerinizin yanında taze mevsim yeşillikleri, közlenmiş biber, sarımsak-sos ve fırından sıcak ekmek ikramı.', detail: 'Mevsim Yeşillikleri • Özel Soslar • Sıcak Lavaş/Pide' },
@@ -81,16 +86,32 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { num: '06', title: 'Paket Servis & Grup Ağırlama', desc: 'Aile yemekleri, iş toplantıları ve bulunduğunuz konuma hızlı sıcak paket servis imkanı.', detail: 'Aile Salonu • Hızlı Paket • Gece & Gündüz Açık' },
       ],
       reviews: [
-        { author: 'Ahmet Y.', role: 'Google Yorumu', group: 'Çorba & Yöresel Lezzetler', text: 'Çorbalarının lezzeti ve kıvamı gerçekten harika. Porsiyonlar oldukça doyurucu, mekan tertemiz ve çalışanlar çok ilgili.' },
+        { author: 'Ahmet Y.', role: 'Google Yorumu', group: 'Çorba & Yöresel Lezzetler', text: 'Çorbalarının lezzeti ve kıvamı gerçekten harika. Kaseler oldukça doyurucu, mekan tertemiz ve çalışanlar çok ilgili.' },
         { author: 'Selim K.', role: 'Google Yorumu', group: 'Aile Salonu & Servis', text: 'Ailecek uğradığımız, ikramları bol ve servisi çok hızlı bir mekan. Özellikle kemik suyuna yapılan çorbalarını herkese tavsiye ederim.' },
         { author: 'Burak T.', role: 'Google Yorumu', group: 'Gece & Gündüz Sıcak Çorba', text: 'Günün hangi saatinde giderseniz gidin aynı tazelikte ve sıcaklıkta servis yapıyorlar. Fiyat-performans olarak bölgenin en iyisi.' },
         { author: 'Mustafa D.', role: 'Google Yorumu', group: 'Mutfak & Hijyen', text: 'Esnaflıkları, güler yüzlü karşılamaları ve mutfak temizliği 10 numara. Yıllardır kalitesini hiç bozmayan nadir yerlerden.' },
       ],
       gallery: [
-        { src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=80', title: 'Ferah ve Konforlu Salonumuz', subtitle: info.a },
-        { src: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1000&q=80', title: 'Günlük Taze Çorba ve Sıcak Mutfağımız', subtitle: 'Geleneksel tariflerle hazırlanan doğal lezzetler' },
-        { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80', title: 'Izgara ve Yöresel Ana Yemeklerimiz', subtitle: 'Usta aşçılarımızdan bol porsiyonlu sunumlar' },
-        { src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=80', title: 'Aile ve Misafir Ağırlama Alanımız', subtitle: 'Hijyenik, nezih ve hızlı servis anlayışı' },
+        {
+          src: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1000&q=85',
+          title: 'Günlük Taze Kaynayan Şifalı Çorbalarımız',
+          subtitle: 'Kemik suyuna hazırlanan geleneksel sıcak çorba kaselerimiz',
+        },
+        {
+          src: 'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?auto=format&fit=crop&w=1000&q=85',
+          title: 'Özel Baharat ve Soslarla Zenginleştirilmiş Sunum',
+          subtitle: 'Tereyağlı, baharatlı ve bol malzemeli yöresel çorba çeşitleri',
+        },
+        {
+          src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85',
+          title: 'Izgara ve Yöresel Ana Yemeklerimiz',
+          subtitle: 'Usta aşçılarımızdan bol porsiyonlu sıcak sunumlar',
+        },
+        {
+          src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85',
+          title: 'Ferah ve Hijyenik Aile Salonumuz',
+          subtitle: info.a,
+        },
       ],
     };
   }
@@ -102,8 +123,8 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       servicesNavLabel: 'Tedaviler',
       galleryNavLabel: 'Kliniğimiz',
       heroSubtitle: `${name} olarak modern görüntüleme teknolojileri, steril klinik altyapımız ve uzman hekim kadromuzla sağlıklı ve estetik gülüşler için güvenilir tedavi çözümleri sunuyoruz.`,
-      aboutTitle: 'Hijyenik, Konforlu ve Modern Klinik Standartları',
-      aboutP1: `${name}, hasta konforunu ve uluslararası sterilizasyon protokollerini merkeze alarak koruyucu ve tedavi edici sağlık hizmetleri sunmaktadır.`,
+      aboutTitle: 'Hijyenik, Konforlu ve Modern Diş Kliniği Standartları',
+      aboutP1: `${name}, hasta konforunu ve uluslararası sterilizasyon protokollerini merkeze alarak koruyucu ve tedavi edici ağız ve diş sağlığı hizmetleri sunmaktadır.`,
       aboutP2: 'Dijital teşhis yöntemlerimiz ve kişiye özel tedavi planlamamızla tüm süreçleri şeffaf, ağrısız ve güven veren bir yaklaşımla yürütüyoruz.',
       hours: 'Pazartesi – Cumartesi: 09:00 – 19:00',
       isLightHeader: true,
@@ -117,19 +138,19 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroEyebrow: 'text-teal-300',
       accentText: 'text-teal-600',
       videoSrc: '/videos/dental.mp4',
-      posterSrc: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1400&q=80',
+      posterSrc: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1400&q=85',
       pillars: [
         { num: '01', title: 'Dijital Teşhis & Planlama', desc: 'Modern görüntüleme cihazları ile hızlı, doğru teşhis ve kişiye özel tedavi planlaması.' },
         { num: '02', title: 'Üst Düzey Sterilizasyon', desc: 'Tüm klinik ekipmanlarımızda uluslararası hijyen ve otoklav sterilizasyon standartları.' },
         { num: '03', title: 'Uzman Hekim Kadrosu', desc: 'Estetik, cerrahi ve koruyucu tedavilerde deneyimli ve güler yüzlü yaklaşım.' },
         { num: '04', title: 'Konforlu & Ağrısız Süreç', desc: 'Hasta memnuniyetini ve konforunu ön planda tutan modern klinik ortamı.' },
       ],
-      servicesSectionTitle: 'Uyguladığımız Başlıca Tedavi ve Hizmetler',
+      servicesSectionTitle: 'Uyguladığımız Başlıca Diş Tedavileri',
       services: [
         { num: '01', title: 'İmplant & Cerrahi Uygulamalar', desc: 'Eksik dişlerin fonksiyonel ve estetik olarak tamamlanması için garantili dental implant tedavileri.', detail: 'Dijital Planlama • Steril Cerrahi • Kalıcı Çözüm' },
         { num: '02', title: 'Gülüş Tasarımı & Zirkonyum', desc: 'Doğal diş estetiğine en yakın ışık geçirgenliğine sahip zirkonyum ve lamina porselen uygulamaları.', detail: 'Zirkonyum • E-Max Lamina • Estetik Tasarım' },
         { num: '03', title: 'Diş Beyazlatma & Diş Eti Bakımı', desc: 'Diş taşı temizliği (detertraj) ve klinik tipi lazer diş beyazlatma işlemleri.', detail: 'Ofis Tipi Beyazlatma • Sağlıklı Diş Eti • Ferah Gülüş' },
-        { num: '04', title: 'Kanal Tedavisi & Dolgu', desc: 'Doğal dişlerin korunmasını sağlayan modern endodontik kanal tedavisi ve estetik kompozit dolgular.', detail: 'Ağrısız Uygulama • Estetik Dolgu • Diş Koruma' },
+        { num: '04', title: 'Kanal Tedavisi & Estetik Dolgu', desc: 'Doğal dişlerin korunmasını sağlayan modern endodontik kanal tedavisi ve estetik kompozit dolgular.', detail: 'Ağrısız Uygulama • Estetik Dolgu • Diş Koruma' },
         { num: '05', title: 'Ortodonti & Şeffaf Plak', desc: 'Diş çapraşıklıklarının tel tedavisi veya telsiz şeffaf plaklarla konforlu şekilde düzeltilmesi.', detail: 'Şeffaf Plak • Ortodonti • Düzenli Takip' },
         { num: '06', title: 'Çocuk Diş Hekimliği & Kontroller', desc: 'Çocuklara özel koruyucu uygulamalar ve düzenli periyodik ağız-diş muayeneleri.', detail: 'Koruyucu Hekimlik • Çocuk Dostu • Periyodik Muayene' },
       ],
@@ -140,10 +161,10 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Hakan M.', role: 'Google Yorumu', group: 'Kanal Tedavisi', text: 'Şiddetli diş ağrısıyla gittim ve aynı gün içinde sağlığıma kavuştum. Ellerinize sağlık.' },
       ],
       gallery: [
-        { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=80', title: 'Modern Muayene ve Tedavi Ünitelerimiz', subtitle: info.a },
-        { src: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1000&q=80', title: 'Sterilizasyon ve Dijital Donanım', subtitle: 'Uluslararası hijyen standartlarında klinik altyapı' },
-        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=80', title: 'Estetik ve Koruyucu Hekimlik', subtitle: 'Kişiye özel tedavi ve gülüş planlaması' },
-        { src: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=80', title: 'Hasta Kabul ve Dinlenme Alanımız', subtitle: 'Ferah ve konforlu bekleme salonumuz' },
+        { src: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1000&q=85', title: 'Modern Diş Muayene ve Tedavi Ünitelerimiz', subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=85', title: 'Estetik Diş Hekimliği ve Gülüş Tasarımı', subtitle: 'Zirkonyum, implant ve koruyucu diş tedavileri' },
+        { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=85', title: 'Sterilizasyon ve Dijital Donanım', subtitle: 'Uluslararası hijyen standartlarında klinik altyapı' },
+        { src: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=85', title: 'Hasta Kabul ve Dinlenme Alanımız', subtitle: 'Ferah ve konforlu bekleme salonumuz' },
       ],
     };
   }
@@ -221,7 +242,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroEyebrow: 'text-red-400',
       accentText: 'text-red-700',
       videoSrc: '/videos/industrial.mp4',
-      posterSrc: '/vw/vw-service.jpg',
+      posterSrc: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1400&q=85',
       pillars: [
         { num: '01', title: 'Standartlara Uygun Üretim', desc: 'Kalite standartlarına uygun hammadde ve modern üretim parkuruyla yüksek dayanımlı imalat.' },
         { num: '02', title: 'Yüksek Verimlilik', desc: 'Uzun yıllar güvenli kullanım sağlayan mühendislik ve kalite kontrol süreçleri.' },
@@ -244,17 +265,17 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Hasan D.', role: 'Google Yorumu', group: 'Bayi & İş Ortağı', text: 'Satış sonrasında da her zaman ürünlerinin arkasında duran güvenilir bir firma.' },
       ],
       gallery: [
-        { src: '/vw/vw-service.jpg', title: 'Üretim ve İmalat Hattımız', subtitle: info.a },
-        { src: '/vw/spare-parts.jpg', title: 'Stok ve Sevkiyat Hazırlık Alanı', subtitle: 'Toptan ve perakende siparişler için güçlü stok' },
-        { src: '/vw/office-lounge.png', title: 'Kurumsal İdari Ofis & Satış', subtitle: 'Bayi ve müşteri koordinasyon merkezi' },
-        { src: '/vw/waiting-room.png', title: 'Misafir Ağırlama Salonu', subtitle: 'Fabrika ve mağaza müşteri kabul alanımız' },
+        { src: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1000&q=85', title: 'Üretim ve İmalat Hattımız', subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1000&q=85', title: 'Mühendislik ve Kalite Kontrol Süreçleri', subtitle: 'Yüksek dayanımlı malzeme ve hassas işçilik' },
+        { src: 'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=1000&q=85', title: 'Stok ve Sevkiyat Hazırlık Alanı', subtitle: 'Toptan ve perakende siparişler için güçlü stok' },
+        { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: 'Kurumsal İdari Ofis & Satış Merkezi', subtitle: 'Bayi ve müşteri koordinasyon merkezi' },
       ],
     };
   }
 
   // Default: Automotive / Auto Electric / VAG / Corporate Service
   return {
-    eyebrow: info.s === 'vag_automotive' ? 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ' : 'KURUMSAL HİZMET & TEKNİK SERVİS MERKEZİ',
+    eyebrow: info.s === 'vag_automotive' ? 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ' : 'OTOMOTİV & TEKNİK SERVİS MERKEZİ',
     navActionLabel: 'Randevu Al',
     servicesNavLabel: 'Hizmetler',
     galleryNavLabel: 'Galeri',
