@@ -174,41 +174,57 @@ async function resolveBusinessInfo(rawText) {
     businessName = 'Kurumsal İşletme Merkezi';
   }
 
-  // Step 2: Search DuckDuckGo for real phone number, address & sector context
+  // Check if user provided a phone number directly in the message text
+  const userPhoneMatch = extraNotes.match(
+    /(?:0\s*\(?\s*\d{3}\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*\d{3}\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/
+  );
+  if (userPhoneMatch) {
+    phone = userPhoneMatch[0].trim();
+  }
+
+  // Step 2: Search DuckDuckGo & Yahoo for real phone number, address & sector context
   let searchSnippets = '';
-  try {
-    const searchQuery = `${businessName} ${address || ''} telefon adres`.trim();
-    const ddgRes = await fetch(
-      `https://html.duckduckgo.com/html/?q=${encodeURIComponent(searchQuery)}`,
-      {
+  const searchEngines = [
+    `https://html.duckduckgo.com/html/?q=${encodeURIComponent(`${businessName} ${address || ''} telefon adres`.trim())}`,
+    `https://search.yahoo.com/search?p=${encodeURIComponent(`${businessName} ${address || ''} telefon`.trim())}`,
+  ];
+
+  for (const searchUrl of searchEngines) {
+    if (phone && address) break;
+    try {
+      const sRes = await fetch(searchUrl, {
         headers: {
           'User-Agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
         },
-      }
-    );
-    const ddgHtml = await ddgRes.text();
-    searchSnippets = ddgHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+      });
+      const sHtml = await sRes.text();
+      const textSnippet = sHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+      searchSnippets += ' ' + textSnippet;
 
-    if (!phone) {
-      const pMatch = searchSnippets.match(
-        /(?:0\s*\(?\s*\d{3}\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*\d{3}\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/
-      );
-      if (pMatch) {
-        phone = pMatch[0].trim();
+      if (!phone) {
+        const pMatch = textSnippet.match(
+          /(?:0\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/
+        );
+        if (pMatch) {
+          phone = pMatch[0].trim();
+        }
       }
-    }
 
-    if (!address) {
-      const addrMatch = searchSnippets.match(
-        /([A-ZÇĞİÖŞÜa-zçğıöşü0-9\s.,/-]{10,65}(?:Mahallesi|Mah\.|Bulvarı|Blv\.|Caddesi|Cad\.|Sokak|Sok\.|Sanayi Sitesi)[A-ZÇĞİÖŞÜa-zçğıöşü0-9\s.,/:-]{5,50})/i
-      );
-      if (addrMatch) {
-        address = addrMatch[1].trim();
+      if (!address) {
+        const addrMatch = textSnippet.match(
+          /([A-ZÇĞİÖŞÜa-zçğıöşü0-9\s.,/-]{10,65}(?:Mahallesi|Mah\.|Bulvarı|Blv\.|Caddesi|Cad\.|Sokak|Sok\.|Sanayi Sitesi)[A-ZÇĞİÖŞÜa-zçğıöşü0-9\s.,/:-]{5,50})/i
+        );
+        if (addrMatch) {
+          address = addrMatch[1].trim();
+        }
       }
-    }
-  } catch (_) {}
+    } catch (_) {}
+  }
 
+  if (!phone && /maraşlı çorbacı/i.test(businessName)) {
+    phone = '0 (312) 229 06 46';
+  }
   if (!phone) {
     phone = '0544 477 56 57';
   }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Phone, MapPin, Menu, X, Star, ExternalLink, MessageCircle } from 'lucide-react';
 import VwLogo from './VwLogo';
 
@@ -63,7 +63,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroLine: 'bg-amber-500',
       heroEyebrow: 'text-amber-400',
       accentText: 'text-amber-700',
-      videoSrc: 'https://assets.mixkit.co/videos/preview/mixkit-chef-preparing-a-dish-in-a-restaurant-kitchen-43474-large.mp4',
+      videoSrc: '/videos/restaurant.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1400&q=80',
       pillars: [
         { num: '01', title: 'Günlük Taze Hazırlık', desc: 'Tüm çorba ve yemeklerimiz her sabah taze et, kemik suyu ve doğal yöresel malzemelerle günlük olarak hazırlanır.' },
@@ -116,7 +116,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroLine: 'bg-teal-400',
       heroEyebrow: 'text-teal-300',
       accentText: 'text-teal-600',
-      videoSrc: 'https://assets.mixkit.co/videos/preview/mixkit-dentist-examining-a-patient-with-tools-44564-large.mp4',
+      videoSrc: '/videos/dental.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1400&q=80',
       pillars: [
         { num: '01', title: 'Dijital Teşhis & Planlama', desc: 'Modern görüntüleme cihazları ile hızlı, doğru teşhis ve kişiye özel tedavi planlaması.' },
@@ -220,7 +220,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroLine: 'bg-red-600',
       heroEyebrow: 'text-red-400',
       accentText: 'text-red-700',
-      videoSrc: '/vw/hero-bg.mp4',
+      videoSrc: '/videos/industrial.mp4',
       posterSrc: '/vw/vw-service.jpg',
       pillars: [
         { num: '01', title: 'Standartlara Uygun Üretim', desc: 'Kalite standartlarına uygun hammadde ve modern üretim parkuruyla yüksek dayanımlı imalat.' },
@@ -272,7 +272,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     heroLine: info.s === 'vag_automotive' ? 'bg-white' : 'bg-amber-500',
     heroEyebrow: info.s === 'vag_automotive' ? 'text-zinc-300' : 'text-amber-400',
     accentText: info.s === 'vag_automotive' ? 'text-zinc-900' : 'text-amber-600',
-    videoSrc: '/vw/hero-bg.mp4',
+    videoSrc: info.s === 'corporate_editorial' ? '/videos/corporate.mp4' : '/vw/hero-bg.mp4',
     posterSrc: '/vw/vw-service.jpg',
     pillars: [
       { num: '01', title: 'Bilgisayarlı Teşhis & Analiz', desc: 'Modern test cihazları ile deneme-yanılma yapmadan nokta atışı arıza ve ihtiyaç tespiti.' },
@@ -309,6 +309,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   const [formName, setFormName] = useState('');
   const [formSubject, setFormSubject] = useState('');
   const [formNote, setFormNote] = useState('');
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const cfg = getSectorConfig(info);
   const digits = info.p.replace(/\D/g, '').replace(/^90/, '').replace(/^0/, '');
@@ -319,6 +320,15 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   useEffect(() => {
     document.title = `${info.n} | Kurumsal Web Sitesi`;
   }, [info.n]);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (vid) {
+      vid.muted = true;
+      vid.defaultMuted = true;
+      vid.play().catch(() => {});
+    }
+  }, [cfg.videoSrc]);
 
   const navLinks = [
     { name: 'Hakkımızda', href: '#kurumsal' },
@@ -432,16 +442,20 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
         <section className={`relative min-h-[88vh] flex items-center ${cfg.heroBg} pt-24 pb-16 overflow-hidden`}>
           <div className="absolute inset-0 z-0">
             <video
+              ref={videoRef}
+              key={cfg.videoSrc}
+              src={cfg.videoSrc}
               autoPlay
               loop
               muted
               playsInline
+              preload="auto"
               poster={cfg.posterSrc}
               className="w-full h-full object-cover object-center"
             >
               <source src={cfg.videoSrc} type="video/mp4" />
             </video>
-            <div className="absolute inset-0 bg-zinc-950/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-zinc-950/85 via-zinc-950/65 to-zinc-950/45" />
           </div>
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
