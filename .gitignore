@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
 
 # Editor directories and files
 .vscode/*
@@ -26,3 +28,7 @@ dist-ssr
 # Scratch & previews
 preview_*.png
 screenshot.png
+
+# Local Telegram Automation scripts & secrets
+automation/
+Baslat-Telegram-Otomasyon.bat
