@@ -10,21 +10,21 @@ const ReviewRiver: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400 mb-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400 mb-3">
               MÜŞTERİ YORUMLARI
             </p>
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-              Servisimizi Tercih Eden Araç Sahipleri
+              Bektaş Oto’yu Tercih Eden Araç Sahipleri
             </h2>
           </div>
           <a
-            href="https://maps.app.goo.gl/kLAzCUYKyzsqo8X88"
+            href="https://maps.app.goo.gl/TKhWHqJnwCV54U2J9"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium text-white border border-white/15 transition-colors self-start sm:self-auto whitespace-nowrap"
           >
             <span>Google Haritalar’da Gör</span>
-            <ExternalLink className="w-4 h-4 text-zinc-300" />
+            <ExternalLink className="w-4 h-4 text-amber-400" />
           </a>
         </div>
       </div>
@@ -50,7 +50,7 @@ const ReviewRiver: React.FC = () => {
 
               <div className="flex items-center justify-between pt-4 border-t border-white/10">
                 <span className="font-semibold text-sm text-white">{review.author}</span>
-                <span className="text-xs text-zinc-400">{review.productGroup}</span>
+                <span className="text-xs text-amber-400">{review.productGroup}</span>
               </div>
             </div>
           ))}

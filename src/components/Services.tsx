@@ -4,39 +4,39 @@ const Services: React.FC = () => {
   const services = [
     {
       num: '01',
-      title: 'Periyodik Bakım & Yağ Değişimi',
-      desc: 'VW 504.00 / 507.00 normlarına uygun motor yağları ve orijinal filtre setleri ile periyodik bakım, sıvı kontrolleri ve servis aralığı sıfırlama.',
-      detail: 'Motor Yağı • Hava, Polen, Yakıt Filtresi • Genel Kontrol',
+      title: 'Dijital & Analog Takograf Servisi',
+      desc: 'Ticari kamyon, tır ve otobüsler için dijital takograf montajı, periyodik muayene, kalibrasyon, hız sınırlayıcı ve sensör kontrolleri.',
+      detail: 'Dijital Takograf • Kalibrasyon • Muayene & Belgelendirme',
     },
     {
       num: '02',
-      title: 'DSG Şanzıman, Kavrama & Mekatronik',
-      desc: '7 ileri kuru tip (DQ200) ve ıslak tip DSG şanzımanlarda kavrama-volan değişimi, mekatronik basınç tüpü/kart onarımı ve bilgisayarlı temel ayar.',
-      detail: 'LUK Kavrama Seti • Mekatronik Onarımı • DSG Kalibrasyon',
+      title: 'Marş & Şarj Dinamosu Bakımı',
+      desc: 'Marş basmama veya şarj lambası uyarılarında dinamo sökümü, kollektör, kömür, diyot tablası, konjektör ve rulman değişimi.',
+      detail: 'Marş Motoru • Alternatör • Konjektör & Rulman',
     },
     {
       num: '03',
-      title: 'ODIS Bilgisayarlı Arıza Tespiti',
-      desc: 'Orijinal VAG diyagnostik cihazı ile arıza kodu analizi, DPF partikül filtresi rejenerasyonu, EGR, enjektör ve sensör ölçümleri.',
-      detail: 'ODIS Teşhis • DPF / EGR Çözümleri • Elektronik Kodlama',
+      title: 'Akü Satışı, Değişimi & Kaçak Testi',
+      desc: 'Start-Stop (AGM/EFB), binek ve ağır vasıta akü satışı; dijital test cihazı ile akü ömür ölçümü ve araç içi elektrik kaçağı tespiti.',
+      detail: 'Garantili Akü • Start-Stop • Kaçak Akım Ölçümü',
     },
     {
       num: '04',
-      title: 'TSI / TDI Motor & Triger Bakımı',
-      desc: 'Triger kayışı ve zincir seti değişimi, devirdaim su pompası, yağ soğutucu, turbo revizyonu ve komple motor mekanik yenileme işlemleri.',
-      detail: 'Triger & Devirdaim • Turbo & Enjektör • Motor Revizyon',
+      title: 'Oto Elektrik Tesisat & Aydınlatma',
+      desc: 'Far, stop, sinyal, sigorta kutusu, röle, silecek motoru, cam kriko elektroniği ve kopuk/kısa devre kablo tesisatı onarımları.',
+      detail: 'Kablo Tesisatı • Far & Aydınlatma • Sigorta & Röle',
     },
     {
       num: '05',
-      title: 'Fren, Süspansiyon & Ön Takım',
-      desc: 'Fren diski ve balata değişimi, amortisör, salıncak burçları, Z-rot, aks kafası ve direksiyon kutusu boşluk/ses arızalarının giderilmesi.',
-      detail: 'Fren Disk & Balata • Amortisör • Ön Takım Aksamı',
+      title: 'Taksimetre Montaj & Ayar Hizmetleri',
+      desc: 'Ticari taksiler için taksimetre montajı, tarife güncellemesi, bağlantı kontrolü ve arıza onarım işlemleri.',
+      detail: 'Taksimetre Montajı • Tarife Ayarı • Periyodik Kontrol',
     },
     {
       num: '06',
-      title: 'Ticari Araç (Caddy, Transporter, Crafter)',
-      desc: 'Volkswagen Ticari araçların ağır hizmet periyodik bakımları, baskı-balata, çift kütleli volan ve yürür aksam onarımları.',
-      detail: 'VW Caddy • Transporter T5 / T6 • Crafter Servisi',
+      title: 'Bilgisayarlı Elektronik Arıza Tespiti',
+      desc: 'Motor, ABS, Airbag ve konfor elektroniği arıza lambalarının diyagnostik cihaz ile okunması, sensör kontrolü ve arıza giderimi.',
+      detail: 'Diyagnostik Cihaz • Sensör Testi • Elektronik Onarım',
     },
   ];
 
@@ -44,11 +44,11 @@ const Services: React.FC = () => {
     <section id="hizmetler" className="py-20 bg-zinc-50 border-t border-zinc-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600 mb-3">
             SERVİS HİZMETLERİMİZ
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight">
-            Atölyemizde Yapılan Başlıca İşlemler
+            Oto Elektrik, Akü ve Takograf Çözümlerimiz
           </h2>
         </div>
 
@@ -59,7 +59,7 @@ const Services: React.FC = () => {
               className="bg-white rounded-lg p-7 border border-zinc-200 flex flex-col justify-between"
             >
               <div>
-                <span className="block text-xs font-mono font-bold text-zinc-400 mb-4">
+                <span className="block text-xs font-mono font-bold text-amber-600 mb-4">
                   {service.num}
                 </span>
                 <h3 className="text-lg font-bold text-zinc-900 mb-3">{service.title}</h3>

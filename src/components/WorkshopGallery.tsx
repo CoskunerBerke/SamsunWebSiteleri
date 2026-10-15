@@ -4,23 +4,23 @@ const WorkshopGallery: React.FC = () => {
   const photos = [
     {
       src: '/vw/vw-service.jpg',
-      title: 'Mekanik Bakım & Arıza Tespit Atölyesi',
-      subtitle: '19 Mayıs Sanayi Sitesi 59. Sokak No:38 Tekkeköy / Samsun',
+      title: 'Oto Elektrik & Dijital Takograf Atölyesi',
+      subtitle: 'İlkadım Sanayi Sitesi 51. Sokak No:58 Tekkeköy / Samsun',
     },
     {
       src: '/vw/spare-parts.jpg',
-      title: 'Orijinal & OEM Yedek Parça Stoğu',
-      subtitle: 'Volkswagen, Audi, Seat ve Škoda yedek parça temini',
+      title: 'Akü, Dinamo & Elektrik Yedek Parça Stoğu',
+      subtitle: 'Binek ve ağır vasıta aküleri, marş-şarj dinamo parçaları',
     },
     {
       src: '/vw/office-lounge.png',
-      title: 'Servis Kabul & Müşteri Danışma',
-      subtitle: 'İşlem öncesi detaylı arıza ve maliyet bilgilendirmesi',
+      title: 'Takograf Kalibrasyon & Belgelendirme Ofisi',
+      subtitle: 'Hızlı kayıt, kalibrasyon işlemi ve müşteri danışma',
     },
     {
       src: '/vw/waiting-room.png',
       title: 'Müşteri Bekleme Salonu',
-      subtitle: 'Aracınızın bakımı yapılırken dinlenebileceğiniz alanımız',
+      subtitle: 'Aracınızın işlemleri yapılırken dinlenebileceğiniz alanımız',
     },
   ];
 
@@ -28,7 +28,7 @@ const WorkshopGallery: React.FC = () => {
     <section id="galeri" className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600 mb-3">
             ATÖLYEMİZ
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight">

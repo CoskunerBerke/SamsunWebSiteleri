@@ -23,52 +23,52 @@ const Hero: React.FC = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="max-w-3xl">
           <div className="flex items-center gap-3 mb-5">
-            <span className="w-8 h-[2px] bg-white" />
-            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-300">
-              19 MAYIS SANAYİ SİTESİ • TEKKEKÖY / SAMSUN
+            <span className="w-8 h-[2px] bg-amber-500" />
+            <span className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">
+              İLKADIM SANAYİ SİTESİ • TEKKEKÖY / SAMSUN
             </span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] mb-6">
-            Volkswagen, Audi, Seat ve Škoda Özel Servisi.
+            Bektaş Oto Elektrik, Akü ve Dijital Takograf Servisi.
           </h1>
 
           <p className="text-base sm:text-lg text-zinc-300 leading-relaxed mb-9 max-w-2xl">
-            Samsun Tekkeköy’de VAG grubu binek ve ticari araçlar için bilgisayarlı arıza tespiti,
-            DSG şanzıman onarımı, periyodik bakım ve orijinal yedek parça hizmeti veriyoruz.
+            Samsun Tekkeköy İlkadım Sanayi Sitesi’nde binek, ticari ve ağır vasıta araçlar için
+            oto elektrik onarımı, marş ve şarj dinamosu revizyonu, garantili akü satışı, dijital
+            takograf ve taksimetre servis hizmeti sunuyoruz.
           </p>
 
           <div className="flex flex-wrap items-center gap-3.5 mb-12">
             <a
-              href="tel:+905444775657"
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-lg bg-white hover:bg-zinc-200 text-zinc-950 font-semibold text-sm sm:text-base transition-colors"
+              href="tel:+903622666670"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-sm sm:text-base transition-colors"
             >
               <Phone className="w-4 h-4" />
-              <span>0544 477 56 57</span>
+              <span>0362 266 66 70</span>
             </a>
 
             <a
-              href="https://wa.me/905444775657?text=Merhaba,%20servis%20randevusu%20ve%20bilgi%20almak%20istiyorum."
-              target="_blank"
-              rel="noopener noreferrer"
+              href="tel:+905057727033"
               className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-white font-medium text-sm sm:text-base border border-white/20 transition-colors"
             >
-              <span>WhatsApp Servis Hattı</span>
+              <Phone className="w-4 h-4 text-amber-400" />
+              <span>GSM: 0505 772 70 33</span>
             </a>
 
             <a
-              href="https://maps.app.goo.gl/kLAzCUYKyzsqo8X88"
+              href="https://maps.app.goo.gl/TKhWHqJnwCV54U2J9"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-5 py-3.5 rounded-lg text-zinc-200 hover:text-white font-medium text-sm sm:text-base transition-colors"
             >
-              <MapPin className="w-4 h-4" />
+              <MapPin className="w-4 h-4 text-amber-400" />
               <span>Haritada Yol Tarifi</span>
             </a>
           </div>
 
           <div className="border-t border-white/15 pt-5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 text-xs sm:text-sm text-zinc-400">
-            <span>Adres: Şabanoğlu Mah. 19 Mayıs Sanayi Sitesi 59. Sokak No:38 Tekkeköy / Samsun</span>
+            <span>Adres: İstiklal Mah. (Kutlukent) İlkadım Sanayi Sitesi 51. Sokak No:58 Tekkeköy / Samsun</span>
             <span className="hidden sm:inline">•</span>
             <span>Pazartesi – Cumartesi: 08:00 – 19:00</span>
           </div>

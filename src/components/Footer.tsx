@@ -1,5 +1,5 @@
 import React from 'react';
-import VwLogo from './VwLogo';
+import { Zap } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -7,25 +7,27 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <VwLogo className="w-8 h-8 shrink-0" />
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center text-zinc-950 shrink-0">
+              <Zap className="w-4 h-4 fill-zinc-950" />
+            </div>
             <div>
               <span className="block text-white font-bold text-sm">
-                SAMSUN VOLKSWAGEN ÖZEL SERVİS
+                BEKTAŞ OTO ELEKTRİK & TAKOGRAF SERVİSİ
               </span>
               <span className="block text-xs text-zinc-400">
-                Volkswagen • Audi • Seat • Škoda Özel Bakım, Onarım & Yedek Parça
+                Oto Elektrik • Akü Satışı • Dijital Takograf & Taksimetre Servisi
               </span>
             </div>
           </div>
 
           <div className="text-sm text-zinc-300">
-            Şabanoğlu Mah. 19 Mayıs Sanayi Sitesi 59. Sokak No:38 Tekkeköy / Samsun • 0544 477 56 57
+            İlkadım Sanayi Sitesi 51. Sokak No:58 Tekkeköy / Samsun • 0362 266 66 70 / 0505 772 70 33
           </div>
         </div>
 
         <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
-          <p>© {new Date().getFullYear()} Samsun Volkswagen Özel Servis. Tüm hakları saklıdır.</p>
-          <p>Bağımsız özel servis hizmeti sunulmaktadır.</p>
+          <p>© {new Date().getFullYear()} Bektaş Oto Elektrik & Takograf Servisi. Tüm hakları saklıdır.</p>
+          <p>Tekkeköy / Samsun</p>
         </div>
       </div>
     </footer>

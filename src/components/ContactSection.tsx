@@ -7,11 +7,11 @@ const ContactSection: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const message = `Merhaba Samsun Volkswagen Özel Servis, ben ${name || 'Müşteriniz'}. Aracım: ${
+    const message = `Merhaba Bektaş Oto Elektrik, ben ${name || 'Müşteriniz'}. Aracım: ${
       carModel || 'Belirtilmedi'
-    }. Talebim: ${note || 'Servis randevusu almak istiyorum.'}`;
+    }. Talebim: ${note || 'Servis / takograf randevusu almak istiyorum.'}`;
     window.open(
-      `https://wa.me/905444775657?text=${encodeURIComponent(message)}`,
+      `https://wa.me/905057727033?text=${encodeURIComponent(message)}`,
       '_blank',
       'noopener,noreferrer'
     );
@@ -21,7 +21,7 @@ const ContactSection: React.FC = () => {
     <section id="iletisim" className="py-20 bg-zinc-50 border-t border-zinc-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-2xl mb-12">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500 mb-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-600 mb-3">
             İLETİŞİM & KONUM
           </p>
           <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight">
@@ -35,13 +35,19 @@ const ContactSection: React.FC = () => {
             <div className="divide-y divide-zinc-200">
               <div className="pb-5">
                 <span className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  TELEFON & WHATSAPP
+                  TELEFON & WHATSAPP HATLARI
                 </span>
                 <a
-                  href="tel:+905444775657"
-                  className="text-2xl font-bold text-zinc-900 hover:text-zinc-700 transition-colors mt-1 block"
+                  href="tel:+903622666670"
+                  className="text-2xl font-bold text-zinc-900 hover:text-amber-600 transition-colors mt-1 block"
                 >
-                  0544 477 56 57
+                  0362 266 66 70
+                </a>
+                <a
+                  href="tel:+905057727033"
+                  className="text-lg font-semibold text-amber-600 hover:text-amber-500 transition-colors mt-1 block"
+                >
+                  GSM / WhatsApp: 0505 772 70 33
                 </a>
               </div>
 
@@ -50,7 +56,7 @@ const ContactSection: React.FC = () => {
                   ADRES
                 </span>
                 <p className="text-base font-semibold text-zinc-900 mt-1">
-                  Şabanoğlu Mah., 19 Mayıs Sanayi Sitesi, 59. Sokak No: 38, Tekkeköy / Samsun
+                  İstiklal Mah. (Kutlukent), İlkadım Sanayi Sitesi, 51. Sokak No: 58–60, Tekkeköy / Samsun
                 </p>
               </div>
 
@@ -67,7 +73,7 @@ const ContactSection: React.FC = () => {
 
             <div className="pt-6 mt-6 border-t border-zinc-200 flex flex-wrap gap-3">
               <a
-                href="https://maps.app.goo.gl/kLAzCUYKyzsqo8X88"
+                href="https://maps.app.goo.gl/TKhWHqJnwCV54U2J9"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors"
@@ -79,15 +85,15 @@ const ContactSection: React.FC = () => {
 
           {/* Right: Clean 3-Field Form */}
           <div className="bg-white rounded-lg p-7 sm:p-8 border border-zinc-200">
-            <h3 className="text-lg font-bold text-zinc-900 mb-1">Servis & Fiyat Talebi</h3>
+            <h3 className="text-lg font-bold text-zinc-900 mb-1">Servis & Takograf Randevu Talebi</h3>
             <p className="text-sm text-zinc-600 mb-6">
-              Formu doldurduğunuzda talebiniz doğrudan WhatsApp hattımıza iletilir.
+              Formu doldurduğunuzda talebiniz doğrudan WhatsApp hattımıza (0505 772 70 33) iletilir.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-                  Adınız Soyadınız
+                  Adınız Soyadınız / Firma
                 </label>
                 <input
                   type="text"
@@ -101,35 +107,35 @@ const ContactSection: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-                  Araç Marka & Modeli
+                  Araç Marka / Modeli
                 </label>
                 <input
                   type="text"
                   required
                   value={carModel}
                   onChange={(e) => setCarModel(e.target.value)}
-                  placeholder="Örn: Passat 1.6 TDI DSG, Golf, Caddy"
+                  placeholder="Örn: Ford Cargo / Mercedes Actros / Binek Araç"
                   className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-zinc-900"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-1.5">
-                  Yapılacak İşlem veya Şikayetiniz
+                  Yapılacak İşlem
                 </label>
                 <textarea
                   rows={3}
                   required
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Bakım veya arıza detayını kısaca yazınız..."
+                  placeholder="Örn: Dijital takograf kalibrasyonu, akü değişimi, marş/şarj dinamosu bakımı..."
                   className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 text-zinc-900 text-sm focus:outline-none focus:border-zinc-900"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 px-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-sm transition-colors"
+                className="w-full py-3 px-6 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-semibold text-sm transition-colors"
               >
                 WhatsApp ile Gönder
               </button>
@@ -140,8 +146,8 @@ const ContactSection: React.FC = () => {
         {/* Embedded Google Map */}
         <div className="rounded-lg overflow-hidden border border-zinc-200 bg-white h-[360px]">
           <iframe
-            title="Samsun Volkswagen Özel Servis Konumu"
-            src="https://maps.google.com/maps?q=41.237462,36.419101&t=&z=16&ie=UTF8&iwloc=&output=embed"
+            title="Bektaş Oto Elektrik ve Takograf Servisi Konumu"
+            src="https://maps.google.com/maps?q=41.2414799,36.4143233&t=&z=16&ie=UTF8&iwloc=&output=embed"
             width="100%"
             height="100%"
             style={{ border: 0 }}
