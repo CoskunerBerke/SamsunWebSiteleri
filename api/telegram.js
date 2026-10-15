@@ -53,23 +53,44 @@ function unescapeHtml(str) {
 }
 
 function detectSector(combinedText) {
-  const t = combinedText.toLowerCase();
+  const t = combinedText.toLocaleLowerCase('tr-TR');
   if (
-    /(çorba|corba|maraş|maras|restoran|restaurant|lokanta|kebap|pide|lahmacun|kafe|cafe|kahve|fırın|pastane|yemek|et |balık|balik|döner|doner|köfte|kofte|izgara|ızgara|mutfak|lezzet|soup|steak|burger|pizza)/.test(
+    /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu mamül|unlu mamul|pastane|baklava|künefe|kunefe|kruvasan|ekmek|katmer|gözleme|gozleme|mantı|manti)/.test(
       t
     )
   ) {
-    return 'restaurant';
+    return 'bakery_breakfast';
   }
   if (
-    /(diş|dis|dental|dent|klinik|poliklinik|sağlık|saglik|medikal|estetik|doktor|hekim|eczane|optik|hastane|psikolog|fizyoterapi|güzellik|guzellik|epilasyon)/.test(
+    /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|ezogelin|sulu yemek|ev yemekleri|lokanta)/.test(
+      t
+    )
+  ) {
+    return 'soup_restaurant';
+  }
+  if (
+    /(kafe|cafe|kahve|coffee|espresso|latte|bistro|dondurma|waffle|çikolata|cikolata|nargile|çay evi|cay bahcesi|tatlı|tatli)/.test(
+      t
+    )
+  ) {
+    return 'cafe_dessert';
+  }
+  if (
+    /(restoran|restaurant|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et |balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni)/.test(
+      t
+    )
+  ) {
+    return 'grill_restaurant';
+  }
+  if (
+    /(diş|dis|dental|dent|klinik|poliklinik|sağlık|saglik|medikal|estetik|doktor|hekim|eczane|optik|hastane|psikolog|fizyoterapi|veteriner)/.test(
       t
     )
   ) {
     return 'dental_medical';
   }
   if (
-    /(çamaşır|camasir|bulaşık|bulasik|buzdolabı|buzdolabi|klima|kombi|süpürge|supurge|ev aletleri|elektrikli cihaz|beyaz eşya|beyaz esya|arzum|fantom|philips|beko|arçelik|arcelik|bosch|siemens|tefal|braun|delonghi|rowenta|korkmaz|fakir)/.test(
+    /(çamaşır|camasir|bulaşık|bulasik|buzdolabı|buzdolabi|klima|kombi|süpürge|supurge|ev aletleri|elektrikli cihaz|beyaz eşya|beyaz esya|arzum|fantom|philips|beko|arçelik|arcelik|bosch|siemens|tefal|braun|delonghi|rowenta|korkmaz|fakir|teknik servis|tamir servisi)/.test(
       t
     )
   ) {
@@ -82,28 +103,29 @@ function detectSector(combinedText) {
     return 'vag_automotive';
   }
   if (
-    /(soba|kuzine|şömine|somine|döküm|dokum|metal|makina|makine|üretim|uretim|fabrika|kazan|plastik|ambalaj|mobilya|orman)/.test(
+    /(soba|kuzine|şömine|somine|döküm|dokum|metal|makina|makine|üretim|uretim|fabrika|kazan|plastik|ambalaj|mermer|demir doğrama)/.test(
       t
     ) &&
     !/(oto|araba|lastik|kaporta|şanzıman)/.test(t)
   ) {
     return 'industrial_heating';
   }
-  if (/(oto |otomotiv|araba|araç|arac|lastik|kaporta|şanzıman|sanziman|motor yenileme|oto elektrik|oto tamir|oto bakım|rot balans)/.test(t)) {
-    return 'auto_service';
-  }
   if (
-    /(giyim|tekstil|moda|konfeksiyon|mimar|inşaat|insaat|yapı|yapi|emlak|gayrimenkul|hukuk|avukat|danışmanlık|muhasebe|sigorta)/.test(
+    /(oto |otomotiv|araba|araç|arac|lastik|kaporta|şanzıman|sanziman|motor yenileme|oto elektrik|oto tamir|oto bakım|rot balans|ekspertiz|oto yıkama)/.test(
       t
     )
   ) {
-    return 'corporate_editorial';
+    return 'auto_service';
   }
-  return 'appliance_service';
+  return 'corporate_editorial';
 }
 
 function getSectorLabel(sector) {
   const labels = {
+    bakery_breakfast: 'BÖREKÇİ, FIRIN & KAHVALTI TEMASI (Sıcak Altın Kehribar & Koyu Antrasit)',
+    soup_restaurant: 'ÇORBACI & GELENEKSEL LOKANTA TEMASI (Sıcak Kehribar & Koyu Antrasit)',
+    cafe_dessert: 'KAFE, KAHVE & TATLI TEMASI (Espresso & Altın Kehribar)',
+    grill_restaurant: 'RESTORAN, KEBAP & IZGARA TEMASI (Sıcak Kehribar & Koyu Antrasit)',
     restaurant: 'RESTORAN & GASTRONOMİ TEMASI (Sıcak Kehribar & Koyu Antrasit)',
     dental_medical: 'SAĞLIK & DİŞ KLİNİĞİ TEMASI (Ferah Beyaz & Medikal Turkuaz)',
     appliance_service: 'TEKNİK SERVİS & ELEKTRİKLİ CİHAZ TEMASI (Kurumsal Antrasit & Kehribar)',
@@ -113,7 +135,7 @@ function getSectorLabel(sector) {
     corporate_editorial: 'KURUMSAL EDİTORYAL TEMA (Antrasit & Kırık Beyaz)',
     auto_service: 'OTOMOTİV & TEKNİK SERVİS TEMASI (Koyu Antrasit & Kehribar)',
   };
-  return labels[sector] || labels.appliance_service;
+  return labels[sector] || labels.corporate_editorial;
 }
 
 async function extractWebsiteOrInstagramPhotos(siteUrl) {
@@ -169,7 +191,6 @@ async function resolveBusinessInfo(rawText) {
 
   if (inputUrl) {
     try {
-      // Follow redirects with Google Maps consent bypass cookies
       const res1 = await fetch(inputUrl, {
         redirect: 'follow',
         headers: GMAPS_HEADERS,
@@ -177,7 +198,6 @@ async function resolveBusinessInfo(rawText) {
       const finalUrl = res1.url || inputUrl;
       let pageHtml = await res1.text();
 
-      // If Google Maps redirected to /maps?q=...&ftid=..., request /maps/place/<q>/data=!4m2!3m1!1s<ftid> to get the preload preview link
       if (!pageHtml.includes('/maps/preview/place')) {
         try {
           const uObj = new URL(finalUrl);
@@ -201,7 +221,6 @@ async function resolveBusinessInfo(rawText) {
         } catch (_) {}
       }
 
-      // Extract /maps/preview/place preload link from HTML
       const previewMatch = pageHtml.match(/href="(\/maps\/preview\/place\?[^"]+)"/);
       if (previewMatch) {
         const previewUrl = 'https://www.google.com' + unescapeHtml(previewMatch[1]);
@@ -230,7 +249,6 @@ async function resolveBusinessInfo(rawText) {
               website = d[7][0].trim();
             }
 
-            // Extract official place photos from d[51][0]
             if (Array.isArray(d[51]) && Array.isArray(d[51][0])) {
               for (const pItem of d[51][0]) {
                 try {
@@ -244,7 +262,6 @@ async function resolveBusinessInfo(rawText) {
               }
             }
 
-            // Also extract any additional grass-cs / gps-cs-s / AF1Qip photos from rawJsonText
             const extraPhotoMatches = rawJsonText.match(
               /https:\/\/lh[35]\.googleusercontent\.com\/(?:grass-cs|gps-cs-s|p)\/[A-Za-z0-9_=-]+/g
             );
@@ -255,7 +272,6 @@ async function resolveBusinessInfo(rawText) {
               }
             }
 
-            // Extract real 4-5 star Google reviews from d[175][9][0][0]
             if (Array.isArray(d[175]?.[9]?.[0]?.[0])) {
               for (const revWrap of d[175][9][0][0]) {
                 try {
@@ -278,7 +294,6 @@ async function resolveBusinessInfo(rawText) {
         }
       }
 
-      // Fallback URL parsing if preview/place wasn't present
       const decoded = decodeURIComponent(finalUrl.replace(/\+/g, ' '));
       if (!businessName) {
         const placeMatch = decoded.match(/\/maps\/place\/([^/@?]+)/i);
@@ -293,7 +308,6 @@ async function resolveBusinessInfo(rawText) {
         }
       }
 
-      // If inputUrl is a direct website or Instagram link (not Google Maps)
       if (!inputUrl.includes('google.com') && !inputUrl.includes('goo.gl')) {
         pageText = pageHtml.replace(/<[^>]+>/g, ' ');
         const ogTitle = pageHtml.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i);
@@ -310,7 +324,6 @@ async function resolveBusinessInfo(rawText) {
     } catch (_) {}
   }
 
-  // If the Google Maps listing had an external website or Instagram link, or user included a second link
   if (website && photos.length < 4) {
     const webPhotos = await extractWebsiteOrInstagramPhotos(website);
     for (const wp of webPhotos) {
@@ -318,7 +331,6 @@ async function resolveBusinessInfo(rawText) {
     }
   }
 
-  // Check if user provided a phone number directly in the message text
   const userPhoneMatch = extraNotes.match(
     /(?:0\s*\(?\s*\d{3}\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*\d{3}\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/
   );
@@ -333,7 +345,6 @@ async function resolveBusinessInfo(rawText) {
     businessName = 'Kurumsal İşletme Merkezi';
   }
 
-  // Search fallback only if phone or address is still missing
   let searchSnippets = '';
   if (!phone || !address) {
     const searchEngines = [
@@ -390,7 +401,6 @@ async function resolveBusinessInfo(rawText) {
     `${businessName} ${categoryText} ${address} ${extraNotes} ${pageText} ${searchSnippets}`
   );
 
-  // Convert raw photo URLs into proxied URLs on our own domain so they never fail CORS/IP checks in the browser
   const proxiedPhotos = photos
     .slice(0, 6)
     .map((pUrl) => `/api/telegram?img=${encodeURIComponent(pUrl)}`);
@@ -411,7 +421,6 @@ async function resolveBusinessInfo(rawText) {
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
-  // 1. GET /api/telegram?img=<encoded_url> -> Streams real Google Maps / Instagram photo with 7-day CDN cache
   if (req.method === 'GET' && req.query?.img) {
     try {
       const targetImg = req.query.img;
@@ -434,7 +443,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. GET /api/telegram?place=<encoded_url> -> Live JSON enrichment for DynamicCorporateSite.tsx
   if (req.method === 'GET' && req.query?.place) {
     try {
       const info = await resolveBusinessInfo(req.query.place);
@@ -449,7 +457,6 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, status: 'Telegram Webhook & Place API Aktif (7/24 Anlik)' });
   }
 
-  // 3. POST /api/telegram -> Instant Telegram Bot Webhook
   try {
     const update = req.body;
     const msg = update?.message || update?.edited_message;
@@ -463,7 +470,7 @@ export default async function handler(req, res) {
     if (text === '/start' || text.toLowerCase() === 'merhaba') {
       await sendTelegram(
         chatId,
-        '⚡ 7/24 Anlık Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; Google Haritalar üzerindeki gerçek fotoğraflarını, gerçek telefonunu, adresini ve yorumlarını çekerek saniyeler içinde kurumsal web sitesini hazırlayıp canlı Vercel linkini göndereyim.'
+        '⚡ 7/24 Anlık Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; Google Haritalar üzerindeki gerçek fotoğraflarını, gerçek telefonunu, adresini, özel logosunu ve yorumlarını çekerek saniyeler içinde kurumsal web sitesini hazırlayıp canlı Vercel linkini göndereyim.'
       );
       return res.status(200).json({ ok: true });
     }
@@ -478,13 +485,12 @@ export default async function handler(req, res) {
 
     await sendTelegram(
       chatId,
-      '⏳ İşletmenin Google Maps fotoğrafları, telefon numarası, adresi ve müşteri yorumları çekiliyor; kurumsal web sitesi hazırlanıyor...'
+      '⏳ İşletmenin Google Maps fotoğrafları, sektörel içerikleri, özel kurumsal logosu ve iletişim bilgileri hazırlanıyor...'
     );
 
     const fullInfo = await resolveBusinessInfo(text);
     const slug = slugify(fullInfo.n);
 
-    // Keep URL payload compact while passing core fields; DynamicCorporateSite fetches full photos & reviews via /api/telegram?place=
     const compactPayload = {
       n: fullInfo.n,
       a: fullInfo.a,

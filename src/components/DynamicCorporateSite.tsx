@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Phone, MapPin, Menu, X, Star, ExternalLink } from 'lucide-react';
-import VwLogo from './VwLogo';
+import BrandLogo from './BrandLogo';
 
 export interface DynamicSiteInfo {
   n: string; // Business Name
@@ -45,23 +45,149 @@ interface SectorConfig {
 
 function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const name = info.n;
-  const catLabel = info.c ? info.c.toUpperCase() : '';
-  const isSoupPlace = /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|lokanta)/i.test(
-    `${info.n} ${info.c || ''} ${info.q}`
-  );
+  const catLabel = info.c ? info.c.toLocaleUpperCase('tr-TR') : '';
+  const combinedText = `${info.n} ${info.c || ''} ${info.q}`.toLocaleLowerCase('tr-TR');
 
-  if (info.s === 'restaurant') {
+  const isBakery =
+    info.s === 'bakery_breakfast' ||
+    /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu|pastane|baklava|künefe|gözleme|mantı|ekmek)/i.test(
+      combinedText
+    );
+  const isCafe =
+    !isBakery &&
+    (info.s === 'cafe_dessert' ||
+      /(kafe|cafe|kahve|coffee|espresso|tatlı|tatli|pasta|waffle|dondurma|çikolata|cikolata)/i.test(combinedText));
+  const isSoupPlace =
+    !isBakery &&
+    !isCafe &&
+    (info.s === 'soup_restaurant' ||
+      /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|kelle)/i.test(combinedText));
+
+  // 1. BÖREKÇİ / KAHVALTI SALONU / FIRIN / UNLU MAMULLER
+  if (isBakery) {
     return {
-      eyebrow: catLabel || (isSoupPlace ? 'GELENEKSEL ÇORBA & LEZZET MERKEZİ' : 'GELENEKSEL LEZZET & RESTORAN'),
+      eyebrow: catLabel || 'TAZE BÖREK, KAHVALTI & UNLU MAMULLER',
+      navActionLabel: 'Sipariş & İletişim',
+      servicesNavLabel: 'Lezzetler',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak her sabah ilk ışıklarla birlikte günlük açılan çıtır börek çeşitlerimiz, sıcak poğaçalarımız, zengin kahvaltı lezzetlerimiz ve taze demleme çayımızla misafirlerimizi ağırlıyoruz.`,
+      aboutTitle: 'Usta Ellerden Günlük Açılan Sıcak Börek ve Kahvaltı Lezzetleri',
+      aboutP1: `${name}, geleneksel el açması börek ustalığını birinci sınıf tereyağı, doğal peynir, taze kıyma ve özenle seçilen un kalitesiyle buluşturarak her gün taze üretim yapmaktadır.`,
+      aboutP2:
+        'Sabahın erken saatlerinden itibaren fırından sıcak çıkan su böreği, kol böreği, serpme ve sıcak kahvaltı çeşitlerimizle hem salonumuzda hem de paket ve tepsi siparişlerinizde aynı tazeliği sunuyoruz.',
+      hours: 'Her Gün: 05:30 – 21:00',
+      headerBg: 'bg-stone-950/95 border-white/10',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-stone-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-600 hover:bg-amber-500 text-white',
+      heroBg: 'bg-stone-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-700',
+      videoSrc: '/videos/bakery.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1400&q=85',
+      pillars: [
+        { num: '01', title: 'El Açması & Günlük Üretim', desc: 'Tüm börek ve unlu mamullerimiz her sabah günlük olarak açılır ve fırından sıcak servis edilir.' },
+        { num: '02', title: 'Doğal İç Harç & Tereyağı', desc: 'Yöresel peynir, taze çekilmiş dana kıyma, ıspanak ve gerçek tereyağı ile hazırlanan geleneksel tarifler.' },
+        { num: '03', title: 'Zengin Sıcak Kahvaltı', desc: 'Sıcak börek tabakları, kahvaltı çeşitleri ve tavşan kanı demleme çayla güne lezzetli başlangıç.' },
+        { num: '04', title: 'Tepsi & Paket Siparişi', desc: 'Özel günleriniz, misafir ağırlamalarınız ve iş yerleriniz için sıcak tepsi börek ve hızlı paket imkanı.' },
+      ],
+      servicesSectionTitle: 'Günlük Taze Börek ve Kahvaltı Menümüz',
+      services: [
+        { num: '01', title: 'El Açması Su Böreği & Kol Böreği', desc: 'Bol peynirli ve tereyağlı su böreği ile kıymalı, peynirli, patatesli ve ıspanaklı çıtır kol böreği çeşitlerimiz.', detail: 'El Açması Hamur • Gerçek Tereyağı • Sıcak Servis' },
+        { num: '02', title: 'Kürt Böreği & Karaköy Böreği', desc: 'Üzerine pudra şekeri serpilerek veya sade olarak sıcak servis edilen geleneksel sade ve kıymalı böreklerimiz.', detail: 'Çıtır Dokulu • Günlük Fırından • Geleneksel Tarif' },
+        { num: '03', title: 'Kahvaltı Tabağı & Sıcak Sunumlar', desc: 'Doğal peynir ve zeytin çeşitleri, söğüş, bal-tereyağı, sahanda yumurta ve sıcak börek eşliğinde kahvaltı.', detail: 'Zengin Kahvaltı • Doğal Ürünler • Taze Demleme Çay' },
+        { num: '04', title: 'Günlük Sıcak Poğaça, Açma & Simit', desc: 'Sabah fırından yeni çıkmış yumuşacık tereyağlı açma, çeşit çeşit poğaça ve çıtır simit alternatifleri.', detail: 'Sabah Sıcak Çıkış • Bol Malzemeli • Günlük Üretim' },
+        { num: '05', title: 'Özel Gün & Davetlere Tepsi Siparişi', desc: 'Misafirleriniz, toplantılarınız ve özel davetleriniz için istediğiniz saatte fırından sıcak teslim tepsi börekler.', detail: 'Tam Tepsi Üretim • Zamanında Teslim • Özel Hazırlık' },
+        { num: '06', title: 'Taş Fırın & Geleneksel Lezzetler', desc: 'Usta ellerde hazırlanan kır pidesi, gözleme ve çay saatlerinize eşlik eden taze tatlı-tuzlu unlu mamuller.', detail: 'Usta İşçilik • Hijyenik Mutfak • Paket Servis' },
+      ],
+      reviews: [
+        { author: 'Yusuf K.', role: 'Google Yorumu', group: 'El Açması Börek & Kahvaltı', text: 'Sabahları fırından yeni çıkmış sıcak börekleri gerçekten efsane. Hamuru incecik, iç malzemesi bol ve hiç mideyi rahatsız etmiyor.' },
+        { author: 'Merve T.', role: 'Google Yorumu', group: 'Su Böreği & Çay', text: 'Ailecek kahvaltı için uğradık, su böreği ve kıymalı kol böreği harikaydı. Mekan tertemiz, çalışanlar çok güler yüzlü.' },
+        { author: 'Hakan B.', role: 'Google Yorumu', group: 'Tepsi Börek Siparişi', text: 'Misafirlerimiz için tepsiyle börek sipariş ettik, tam saatinde sıcacık ve çıtır çıtır teslim ettiler. Herkese tavsiye ederim.' },
+        { author: 'Sinan D.', role: 'Google Yorumu', group: 'Sabah Kahvaltısı', text: 'Bölgede gerçek el açması börek yiyebileceğiniz en kaliteli ve hijyenik adres. Çayı her zaman taze.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1000&q=85', title: `${name} Günlük Sıcak Börek & Fırın`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1000&q=85', title: `${name} El Açması Hamur & Unlu Mamuller`, subtitle: 'Her sabah taze açılan çıtır lezzetler' },
+        { src: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?auto=format&fit=crop&w=1000&q=85', title: `${name} Zengin Kahvaltı & Sıcak Sunum`, subtitle: 'Taze demleme çay eşliğinde kahvaltı keyfi' },
+        { src: 'https://images.unsplash.com/photo-1517433670267-08bbd4be890f?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 2. KAFE / KAHVE / TATLI / PASTANE
+  if (isCafe) {
+    return {
+      eyebrow: catLabel || 'KAFE, KAHVE & TATLI MERKEZİ',
+      navActionLabel: 'İletişim & Konum',
+      servicesNavLabel: 'Menümüz',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak taze kavrulmuş kahve çekirdeklerimiz, günlük hazırlanan özel tatlılarımız ve konforlu atmosferimizle keyifli buluşmalarınıza ev sahipliği yapıyoruz.`,
+      aboutTitle: 'Özel Kahve Çekirdekleri ve Günlük Taze Tatlılar',
+      aboutP1: `${name}, nitelikli kahve kültürünü ve günlük taze pastacılık ürünlerini ferah ve samimi bir mekan tasarımıyla bir araya getirmektedir.`,
+      aboutP2:
+        'Deneyimli baristalarımızın hazırladığı sıcak ve soğuk kahve çeşitlerimiz, taze demleme çayımız ve usta ellerden çıkan tatlılarımızla günün her saati yanınızdayız.',
+      hours: 'Her Gün: 08:00 – 23:30',
+      headerBg: 'bg-stone-950/95 border-white/10',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-stone-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-600 hover:bg-amber-500 text-white',
+      heroBg: 'bg-stone-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-700',
+      videoSrc: '/videos/cafe.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1400&q=85',
+      pillars: [
+        { num: '01', title: 'Taze Kavrulmuş Kahve', desc: 'Seçkin kahve çekirdeklerinden anında öğütülerek hazırlanan espresso ve demleme kahveler.' },
+        { num: '02', title: 'Günlük Taze Tatlılar', desc: 'Her gün taze malzemelerle üretilen pasta, cheesecake, sütlü ve çikolatalı tatlı çeşitleri.' },
+        { num: '03', title: 'Ferah & Konforlu Ortam', desc: 'Arkadaşlarınızla ve ailenizle keyifle vakit geçirebileceğiniz özenli iç ve dış mekan.' },
+        { num: '04', title: 'Güler Yüzlü Sunum', desc: 'Hızlı servis, hijyenik hazırlık ve misafir memnuniyeti odaklı hizmet anlayışı.' },
+      ],
+      servicesSectionTitle: 'Kahve, Tatlı ve İçecek Menümüz',
+      services: [
+        { num: '01', title: 'Espresso Bazlı Sıcak Kahveler', desc: 'Latte, Cappuccino, Americano, Flat White, Mocha ve geleneksel közde/kumda Türk kahvesi.', detail: 'Taze Çekirdek • Usta Barista • İdeal Kıvam' },
+        { num: '02', title: 'Günlük Pasta & Tatlı Çeşitleri', desc: 'San Sebastian cheesecake, tiramisu, magnolia, kruvasan ve günlük özel dilim pastalar.', detail: 'Günlük Üretim • Doğal Malzeme • Taze Sunum' },
+        { num: '03', title: 'Soğuk Kahveler & Ev Yapımı İçecekler', desc: 'Iced Latte, Cold Brew, Frappe, taze meyveli frozen, smoothie ve ev yapımı limonata.', detail: 'Ferahlatıcı Lezzet • Doğal Meyve • Buzlu Sunum' },
+        { num: '04', title: 'Kahvaltı & Sıcak Atıştırmalıklar', desc: 'Sandviç çeşitleri, bazlama tost, kruvasan tabakları ve güne zinde başlatan kahvaltılıklar.', detail: 'Sıcak Hazırlık • Doyurucu Porsiyon • Taze Ekmek' },
+        { num: '05', title: 'Bitki Çayları & Taze Demleme Çay', desc: 'Özel harman yaprak çaylardan demlenen taze çay ve doğal kış/bitki çayı alternatifleri.', detail: 'Taze Demleme • Doğal Bitkiler • Sıcak İkram' },
+        { num: '06', title: 'Grup Buluşmaları & Paket Servis', desc: 'Özel kutlamalar, arkadaş buluşmaları ve paket kahve-tatlı siparişleri için hızlı servis.', detail: 'Konforlu Salon • Paket Servis • Yüksek Hijyen' },
+      ],
+      reviews: [
+        { author: 'Selin Y.', role: 'Google Yorumu', group: 'Kahve & Tatlı', text: 'Kahveleri çok lezzetli, tatlıları her zaman taze. Ortamı çok ferah ve çalışanlar son derece ilgili.' },
+        { author: 'Mert K.', role: 'Google Yorumu', group: 'Mekan & Atmosfer', text: 'Arkadaşlarla oturup sohbet etmek için bölgedeki en nezih ve temiz mekanlardan biri.' },
+        { author: 'Zeynep A.', role: 'Google Yorumu', group: 'Taze Pasta & Türk Kahvesi', text: 'Sunumları çok şık, fiyatları makul ve hizmet kalitesi gerçekten çok yüksek.' },
+        { author: 'Caner T.', role: 'Google Yorumu', group: 'Soğuk İçecekler & Servis', text: 'Yaz kış uğradığımız, kalitesini hiç bozmayan harika bir işletme.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=85', title: `${name} Mekan & Atmosfer`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=85', title: `${name} Nitelikli Kahve Sunumu`, subtitle: 'Taze öğütülmüş kahve çeşitlerimiz' },
+        { src: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1000&q=85', title: `${name} Günlük Taze Tatlılar`, subtitle: 'Özel tariflerle hazırlanan tatlı ve pastalar' },
+        { src: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1000&q=85', title: `${name} Misafir ağırlama Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 3. ÇORBACI / GELENEKSEL LOKANTA / IZGARA & KEBAP RESTORANI
+  if (info.s === 'restaurant' || info.s === 'soup_restaurant' || info.s === 'grill_restaurant') {
+    return {
+      eyebrow: catLabel || (isSoupPlace ? 'GELENEKSEL ÇORBA & LEZZET MERKEZİ' : 'RESTORAN, IZGARA & YÖRESEL LEZZETLER'),
       navActionLabel: 'Rezervasyon & Sipariş',
       servicesNavLabel: 'Menümüz',
       galleryNavLabel: 'Mekanımız',
-      heroSubtitle: `${name} olarak günlük taze malzemelerle hazırlanan sıcak çorba çeşitlerimiz, geleneksel ana yemeklerimiz ve hijyenik mutfağımızla misafirlerimize gerçek lezzet deneyimi sunuyoruz.`,
+      heroSubtitle: isSoupPlace
+        ? `${name} olarak günlük taze kemik suyuna hazırlanan şifalı çorba çeşitlerimiz, yöresel sıcak yemeklerimiz ve hijyenik mutfağımızla misafirlerimize gerçek lezzet deneyimi sunuyoruz.`
+        : `${name} olarak özenle seçilen taze et ve doğal malzemelerle hazırlanan ızgara çeşitlerimiz, taş fırın lezzetlerimiz ve zengin mutfağımızla misafirlerimizi ağırlıyoruz.`,
       aboutTitle: 'Usta Ellerden Çıkan Geleneksel ve Taze Lezzetler',
-      aboutP1: `${name}, özenle seçilen doğal malzemeleri geleneksel tariflerle buluşturarak her gün taze üretim yapmaktadır. Kemik suyuna hazırlanan şifalı çorbalarımızdan ızgara ve yöresel yemeklerimize kadar tüm menümüz usta aşçılarımız tarafından hazırlanır.`,
+      aboutP1: isSoupPlace
+        ? `${name}, doğal malzemeleri geleneksel tariflerle buluşturarak her gün taze üretim yapmaktadır. Kemik suyuna hazırlanan çorbalarımızdan yöresel ana yemeklerimize kadar tüm menümüz usta aşçılarımız tarafından hazırlanır.`
+        : `${name}, birinci sınıf malzeme kalitesini usta aşçılık geleneğiyle buluşturarak her gün taze hazırlık yapmaktadır. Izgara, kebap, pide ve günlük ana yemeklerimiz siparişinizle birlikte sıcak olarak sunulur.`,
       aboutP2:
-        'Ferah salonumuz, güler yüzlü servis ekibimiz ve yüksek hijyen standartlarımızla hem ailelerin hem de lezzet tutkunlarının güvenle tercih ettiği buluşma noktasıyız.',
-      hours: 'Her Gün: 06:00 – 02:00',
+        'Ferah aile salonumuz, güler yüzlü servis ekibimiz ve yüksek hijyen standartlarımızla hem ailelerin hem de lezzet tutkunlarının güvenle tercih ettiği buluşma noktasıyız.',
+      hours: 'Her Gün: 07:00 – 01:00',
       headerBg: 'bg-stone-950/95 border-white/10',
       headerText: 'text-white',
       headerSub: 'text-amber-400',
@@ -76,35 +202,47 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         ? 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1400&q=85'
         : 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1400&q=85',
       pillars: [
-        { num: '01', title: 'Günlük Taze Hazırlık', desc: 'Tüm çorba ve yemeklerimiz her sabah taze et, kemik suyu ve doğal yöresel malzemelerle günlük olarak hazırlanır.' },
-        { num: '02', title: 'Geleneksel Usta Tarifleri', desc: 'Yılların tecrübesiyle korunan orijinal reçeteler ve odun/taş ocağı lezzetiyle pişirilen özel menü.' },
+        { num: '01', title: 'Günlük Taze Hazırlık', desc: 'Tüm menümüz her sabah taze et, doğal sebzeler ve yöresel malzemelerle günlük olarak hazırlanır.' },
+        { num: '02', title: 'Geleneksel Usta Tarifleri', desc: 'Yılların tecrübesiyle korunan orijinal reçeteler ve usta ellerde pişirilen özel lezzetler.' },
         { num: '03', title: 'Tam Hijyen & Kalite', desc: 'Mutfağımızda ve servis alanımızda gıda güvenliği ile hijyen kuralları en üst seviyede uygulanır.' },
-        { num: '04', title: 'Hızlı Servis & Sıcak Sunum', desc: 'Hem salon servisimizde hem de paket siparişlerde bekletmeden, sıcak ve bol porsiyonlu sunum.' },
+        { num: '04', title: 'Hızlı Servis & Bol İkram', desc: 'Hem salon servisimizde hem de paket siparişlerde bekletmeden, sıcak ve zengin ikramlı sunum.' },
       ],
-      servicesSectionTitle: 'Öne Çıkan Çorba, Izgara ve Menü Gruplarımız',
-      services: [
-        { num: '01', title: 'Günün Özel Çorba Çeşitleri', desc: 'Kemik suyuna hazırlanan beyran, kelle paça, ayak paça, işkembe, mercimek ve yöresel Maraş tarhana çorbaları.', detail: 'Doğal Kemik Suyu • Bol Malzeme • Sıcak Kase Sunum' },
-        { num: '02', title: 'Yöresel & Geleneksel Ana Yemekler', desc: 'Usta ellerde hazırlanan güveç, kavurma, haşlama ve günlük değişen geleneksel tencere yemekleri.', detail: 'Yöresel Tarifler • Günlük Üretim • Doğal Lezzet' },
-        { num: '03', title: 'Izgara & Kebap Çeşitleri', desc: 'Özel dinlendirilmiş etlerden hazırlanan ızgara köfte, şiş ve kebap çeşitlerimiz.', detail: 'Seçkin Et Kalitesi • Usta Pişirim • Zengin Garnitür' },
-        { num: '04', title: 'Taze Salata, Meze & İkramlar', desc: 'Yemeklerinizin yanında taze mevsim yeşillikleri, közlenmiş biber, sarımsak-sos ve fırından sıcak ekmek ikramı.', detail: 'Mevsim Yeşillikleri • Özel Soslar • Sıcak Lavaş/Pide' },
-        { num: '05', title: 'Geleneksel Tatlılar & İçecekler', desc: 'Yemek sonrası fırın sütlaç, künefe, kadayıf çeşitleri, yayık ayranı ve taze demleme çay.', detail: 'Fırın Sütlaç • Tatlı Çeşitleri • Demleme Çay' },
-        { num: '06', title: 'Paket Servis & Grup Ağırlama', desc: 'Aile yemekleri, iş toplantıları ve bulunduğunuz konuma hızlı sıcak paket servis imkanı.', detail: 'Aile Salonu • Hızlı Paket • Gece & Gündüz Açık' },
-      ],
+      servicesSectionTitle: isSoupPlace
+        ? 'Öne Çıkan Çorba ve Yöresel Yemek Gruplarımız'
+        : 'Öne Çıkan Izgara, Ana Yemek ve Menü Gruplarımız',
+      services: isSoupPlace
+        ? [
+            { num: '01', title: 'Günün Özel Çorba Çeşitleri', desc: 'Kemik suyuna hazırlanan beyran, kelle paça, ayak paça, işkembe, mercimek ve yöresel tarhana çorbaları.', detail: 'Doğal Kemik Suyu • Bol Malzeme • Sıcak Kase Sunum' },
+            { num: '02', title: 'Yöresel & Geleneksel Ana Yemekler', desc: 'Usta ellerde hazırlanan güveç, kavurma, haşlama ve günlük değişen geleneksel tencere yemekleri.', detail: 'Yöresel Tarifler • Günlük Üretim • Doğal Lezzet' },
+            { num: '03', title: 'Izgara & Kebap Çeşitleri', desc: 'Özel dinlendirilmiş etlerden hazırlanan ızgara köfte, şiş ve kebap çeşitlerimiz.', detail: 'Seçkin Et Kalitesi • Usta Pişirim • Zengin Garnitür' },
+            { num: '04', title: 'Taze Salata, Meze & İkramlar', desc: 'Yemeklerinizin yanında taze mevsim yeşillikleri, közlenmiş biber, sarımsak-sos ve fırından sıcak ekmek ikramı.', detail: 'Mevsim Yeşillikleri • Özel Soslar • Sıcak Pide' },
+            { num: '05', title: 'Geleneksel Tatlılar & İçecekler', desc: 'Yemek sonrası fırın sütlaç, künefe, kadayıf çeşitleri, yayık ayranı ve taze demleme çay.', detail: 'Fırın Sütlaç • Tatlı Çeşitleri • Demleme Çay' },
+            { num: '06', title: 'Paket Servis & Grup Ağırlama', desc: 'Aile yemekleri, iş toplantıları ve bulunduğunuz konuma hızlı sıcak paket servis imkanı.', detail: 'Aile Salonu • Hızlı Paket • Gece & Gündüz Açık' },
+          ]
+        : [
+            { num: '01', title: 'Izgara & Kebap Çeşitleri', desc: 'Özel zırh kıyması kebaplar, ızgara köfte, kuzu şiş, tavuk şiş ve karışık ızgara tabaklarımız.', detail: 'Seçkin Et Kalitesi • Odun Ateşi • Sıcak Sunum' },
+            { num: '02', title: 'Taş Fırın Pide & Lahmacun', desc: 'İncecik çıtır hamur üzerine hazırlanan kıymalı, kuşbaşılı, kaşarlı pide ve taş fırın lahmacun.', detail: 'Taş Fırın • Günlük Hamur • Bol Malzeme' },
+            { num: '03', title: 'Günün Sıcak Çorbaları & Başlangıçlar', desc: 'Yemek öncesi sıcak süzme mercimek, ezogelin ve geleneksel çorba çeşitlerimiz.', detail: 'Günlük Taze • Doğal Tereyağlı • Sıcak Başlangıç' },
+            { num: '04', title: 'Zengin Meze, Salata & İkramlar', desc: 'Siparişlerinizin yanında ücretsiz sunulan mevsim salata, ezme, közlenmiş biber ve sıcak lavaş ikramı.', detail: 'Bol İkram • Taze Yeşillik • Sıcak Lavaş' },
+            { num: '05', title: 'Tatlılar & Soğuk-Sıcak İçecekler', desc: 'Künefe, fırın sütlaç, baklava çeşitleri, bol köpüklü ayran ve yemek sonrası demleme çay.', detail: 'Geleneksel Tatlılar • Bol Köpüklü Ayran • Çay İkramı' },
+            { num: '06', title: 'Aile Salonu & Hızlı Paket Servis', desc: 'Geniş aile salonumuzda konforlu ağırlama, toplu yemek organizasyonları ve adrese sıcak paket servis.', detail: 'Aile Salonu • Hızlı Paket • Grup Rezervasyonu' },
+          ],
       reviews: [
-        { author: 'Ahmet Y.', role: 'Google Yorumu', group: 'Çorba & Yöresel Lezzetler', text: 'Çorbalarının lezzeti ve kıvamı gerçekten harika. Kaseler oldukça doyurucu, mekan tertemiz ve çalışanlar çok ilgili.' },
-        { author: 'Selim K.', role: 'Google Yorumu', group: 'Aile Salonu & Servis', text: 'Ailecek uğradığımız, ikramları bol ve servisi çok hızlı bir mekan. Özellikle kemik suyuna yapılan çorbalarını herkese tavsiye ederim.' },
-        { author: 'Burak T.', role: 'Google Yorumu', group: 'Gece & Gündüz Sıcak Çorba', text: 'Günün hangi saatinde giderseniz gidin aynı tazelikte ve sıcaklıkta servis yapıyorlar. Fiyat-performans olarak bölgenin en iyisi.' },
+        { author: 'Ahmet Y.', role: 'Google Yorumu', group: 'Lezzet & Porsiyon', text: 'Yemeklerin lezzeti ve porsiyonların doyuruculuğu gerçekten harika. Mekan tertemiz ve çalışanlar çok ilgili.' },
+        { author: 'Selim K.', role: 'Google Yorumu', group: 'Aile Salonu & Servis', text: 'Ailecek uğradığımız, ikramları bol ve servisi çok hızlı bir mekan. Herkese gönül rahatlığıyla tavsiye ederim.' },
+        { author: 'Burak T.', role: 'Google Yorumu', group: 'Taze Malzeme & Sıcak Sunum', text: 'Ne zaman gitsek aynı tazelikte ve sıcaklıkta servis yapıyorlar. Fiyat-performans olarak bölgenin en iyisi.' },
         { author: 'Mustafa D.', role: 'Google Yorumu', group: 'Mutfak & Hijyen', text: 'Esnaflıkları, güler yüzlü karşılamaları ve mutfak temizliği 10 numara. Yıllardır kalitesini hiç bozmayan nadir yerlerden.' },
       ],
       gallery: [
         { src: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1000&q=85', title: `${name} Lezzet Sunumu`, subtitle: info.a },
-        { src: 'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?auto=format&fit=crop&w=1000&q=85', title: `${name} Özel Menü & Çorba Çeşitleri`, subtitle: 'Günlük taze ve doğal malzemelerle hazırlanan lezzetler' },
-        { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85', title: `${name} Sıcak Mutfak & Izgara`, subtitle: 'Usta aşçılarımızdan bol porsiyonlu sıcak sunumlar' },
+        { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85', title: `${name} Sıcak Mutfak & Özel Menü`, subtitle: 'Günlük taze ve doğal malzemelerle hazırlanan lezzetler' },
+        { src: 'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?auto=format&fit=crop&w=1000&q=85', title: `${name} Usta İşçilik & Zengin İkramlar`, subtitle: 'Usta aşçılarımızdan bol porsiyonlu sıcak sunumlar' },
         { src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: info.a },
       ],
     };
   }
 
+  // 4. DİŞ KLİNİĞİ / SAĞLIK / ESTETİK / MEDİKAL
   if (info.s === 'dental_medical') {
     return {
       eyebrow: catLabel || 'AĞIZ VE DİŞ SAĞLIĞI / KLİNİK MERKEZİ',
@@ -158,6 +296,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
+  // 5. EV ALETLERİ / BEYAZ EŞYA / KLİMA / ELEKTRONİK TEKNİK SERVİS
   if (info.s === 'appliance_service') {
     return {
       eyebrow: catLabel || 'YETKİLİ & ÖZEL TEKNİK SERVİS MERKEZİ',
@@ -213,6 +352,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
+  // 6. MERCEDES / LÜKS OTOMOTİV SERVİSİ
   if (info.s === 'mercedes_luxury') {
     return {
       eyebrow: catLabel || 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ',
@@ -265,6 +405,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
+  // 7. SANAYİ / ÜRETİM / ISITMA / METAL / İMALAT
   if (info.s === 'industrial_heating') {
     return {
       eyebrow: catLabel || 'ÜRETİM, SANAYİ & TOPTAN SATIŞ MERKEZİ',
@@ -317,7 +458,62 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
-  // Default: Automotive / Auto Electric / VAG / Corporate Service
+  // 8. GENEL KURUMSAL İŞLETME / MAĞAZA / KUAFÖR / EMLAK / OFİS / HİZMET
+  if (info.s === 'corporate_editorial') {
+    const cleanCategory = info.c || 'Kurumsal Hizmet ve Çözüm';
+    return {
+      eyebrow: catLabel || 'KURUMSAL İŞLETME & HİZMET MERKEZİ',
+      navActionLabel: 'İletişim & Randevu',
+      servicesNavLabel: 'Hizmetler',
+      galleryNavLabel: 'Galeri',
+      heroSubtitle: `${name} olarak ${cleanCategory.toLocaleLowerCase('tr-TR')} alanında deneyimli ekibimiz, kaliteli ürün/hizmet standartlarımız ve müşteri memnuniyeti odaklı yaklaşımımızla yanınızdayız.`,
+      aboutTitle: `${name} Kurumsal Hizmet ve Kalite Standartları`,
+      aboutP1: `${name}, ${cleanCategory.toLocaleLowerCase('tr-TR')} sektöründeki tecrübesi ve profesyonel kadrosuyla müşterilerine güvenilir, şeffaf ve yüksek standartlarda hizmet sunmaktadır.`,
+      aboutP2:
+        'Güler yüzlü iletişim, doğru bilgilendirme ve titiz uygulama ilkelerimizle her zaman beklentilerinizin üzerinde bir deneyim sağlamayı hedefliyoruz.',
+      hours: 'Pazartesi – Cumartesi: 09:00 – 19:30',
+      headerBg: 'bg-zinc-950/95 border-white/10',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-white',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/corporate.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=85',
+      pillars: [
+        { num: '01', title: 'Uzman & Deneyimli Ekip', desc: `${cleanCategory} alanında bilgi birikimi yüksek, güler yüzlü ve profesyonel kadro.` },
+        { num: '02', title: 'Kaliteli Ürün & Uygulama', desc: 'Tüm hizmet ve ürün gruplarımızda birinci sınıf malzeme ve titiz işçilik standardı.' },
+        { num: '03', title: 'Şeffaf & Güvenilir Süreç', desc: 'İhtiyacınıza en uygun çözümlerin açık, dürüst ve net fiyatlandırma ile sunulması.' },
+        { num: '04', title: 'Yüksek Müşteri Memnuniyeti', desc: 'Satış ve uygulama sonrasında da kesintisiz destek ve uzun vadeli güven ilişkisi.' },
+      ],
+      servicesSectionTitle: `${name} Başlıca Hizmet ve Çözüm Alanlarımız`,
+      services: [
+        { num: '01', title: `${cleanCategory} Uygulamaları`, desc: `${name} bünyesinde standartlara uygun, titiz ve müşteri beklentilerine özel profesyonel hizmet.`, detail: 'Profesyonel Yaklaşım • Kaliteli Hizmet • Tam Memnuniyet' },
+        { num: '02', title: 'Kişiye & Kuruma Özel Çözümler', desc: 'İhtiyaç analizine dayalı, size veya işletmenize en uygun ürün ve uygulama planlaması.', detail: 'İhtiyaç Analizi • Özel Planlama • Doğru Çözüm' },
+        { num: '03', title: 'Danışmanlık & Bilgilendirme', desc: 'Süreç öncesinde tüm alternatiflerin ve detayların uzman ekibimizce şeffaf şekilde paylaşılması.', detail: 'Uzman Görüşü • Şeffaf Bilgi • Güvenilir Rehberlik' },
+        { num: '04', title: 'Zengin Ürün & Hizmet Çeşitliliği', desc: 'Farklı beklenti ve bütçelere hitap eden güncel, kaliteli ve garantili seçenekler.', detail: 'Güncel Portföy • Kalite Garantisi • Uygun Seçenekler' },
+        { num: '05', title: 'Hızlı Randevu & Zamanında Teslim', desc: 'Vaktinize değer veren planlı çalışma sistemi ve söz verilen sürede eksiksiz tamamlanan işlemler.', detail: 'Planlı Süreç • Zamanında Teslim • Hızlı İletişim' },
+        { num: '06', title: 'Uygulama Sonrası Destek', desc: 'Hizmet veya ürün teslimi sonrasında da her türlü soru ve talebiniz için doğrudan ulaşılabilirlik.', detail: 'Sürekli Destek • Kurumsal Güvence • Güler Yüzlü Hizmet' },
+      ],
+      reviews: [
+        { author: 'Emre K.', role: 'Google Yorumu', group: cleanCategory, text: 'İlk andan itibaren çok ilgili ve güler yüzlü davrandılar. İşlerini gerçekten titizlikle yapıyorlar.' },
+        { author: 'Ayşe T.', role: 'Google Yorumu', group: 'Müşteri Memnuniyeti', text: 'Hem kalitesi hem de dürüst yaklaşımları ile güven veren örnek bir işletme. Herkese tavsiye ederim.' },
+        { author: 'Burak S.', role: 'Google Yorumu', group: 'Profesyonel Hizmet', text: 'Beklentimizin çok üzerinde bir hizmet aldık, zamanında ve eksiksiz yardımcı oldular.' },
+        { author: 'Elif D.', role: 'Google Yorumu', group: cleanCategory, text: 'Temiz, düzenli ve işinin ehli bir ekip. Gönül rahatlığıyla tercih edebilirsiniz.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: `${name} Hizmet & Misafir Alanı`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1000&q=85', title: `${name} Kurumsal Çalışma Ortamı`, subtitle: cleanCategory },
+        { src: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1000&q=85', title: `${name} Müşteri Kabul & Danışma`, subtitle: 'Şeffaf ve güvenilir hizmet anlayışı' },
+        { src: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85', title: `${name} Kurumsal Merkez`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 9. DEFAULT: OTOMOTİV / OTO ELEKTRİK / VAG / OTO SERVİS
   return {
     eyebrow:
       catLabel ||
@@ -339,7 +535,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     heroLine: info.s === 'vag_automotive' ? 'bg-white' : 'bg-amber-500',
     heroEyebrow: info.s === 'vag_automotive' ? 'text-zinc-300' : 'text-amber-400',
     accentText: info.s === 'vag_automotive' ? 'text-zinc-900' : 'text-amber-600',
-    videoSrc: info.s === 'corporate_editorial' ? '/videos/corporate.mp4' : '/vw/hero-bg.mp4',
+    videoSrc: '/vw/hero-bg.mp4',
     posterSrc: '/vw/vw-service.jpg',
     pillars: [
       { num: '01', title: 'Bilgisayarlı Teşhis & Analiz', desc: 'Modern test cihazları ile deneme-yanılma yapmadan nokta atışı arıza ve ihtiyaç tespiti.' },
@@ -473,17 +669,22 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 overflow-x-hidden">
-      {/* 1. Single-Line Bug-Free Navbar */}
-      <header className={`fixed top-0 left-0 right-0 z-50 ${cfg.headerBg} backdrop-blur-md border-b py-4`}>
+      {/* 1. Single-Line Bug-Free Navbar with Bespoke Brand Logo */}
+      <header className={`fixed top-0 left-0 right-0 z-50 ${cfg.headerBg} backdrop-blur-md border-b py-3.5`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-6">
-            <a href="#" className="flex items-center gap-3 shrink-0">
-              {liveInfo.s === 'vag_automotive' && <VwLogo className="w-9 h-9 shrink-0" />}
+            <a href="#" className="flex items-center gap-3.5 shrink-0 group">
+              <BrandLogo
+                name={liveInfo.n}
+                sector={liveInfo.s}
+                category={liveInfo.c}
+                size="md"
+              />
               <div className="whitespace-nowrap">
                 <span className={`block ${cfg.headerText} font-bold text-base tracking-tight leading-none`}>
-                  {liveInfo.n.toUpperCase()}
+                  {liveInfo.n.toLocaleUpperCase('tr-TR')}
                 </span>
-                <span className={`block ${cfg.headerSub} text-[11px] font-medium tracking-widest uppercase mt-1 max-w-[260px] sm:max-w-[360px] truncate`}>
+                <span className={`block ${cfg.headerSub} text-[11px] font-medium tracking-widest uppercase mt-1 max-w-[230px] sm:max-w-[340px] truncate`}>
                   {cfg.eyebrow}
                 </span>
               </div>
@@ -583,11 +784,19 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="max-w-3xl">
-              <div className="flex items-center gap-3 mb-5">
-                <span className={`w-8 h-[2px] ${cfg.heroLine} shrink-0`} />
-                <span className={`text-xs font-semibold uppercase tracking-[0.2em] ${cfg.heroEyebrow}`}>
-                  {cfg.eyebrow}
-                </span>
+              <div className="flex items-center gap-4 mb-6">
+                <BrandLogo
+                  name={liveInfo.n}
+                  sector={liveInfo.s}
+                  category={liveInfo.c}
+                  size="lg"
+                />
+                <div className="flex items-center gap-3">
+                  <span className={`w-8 h-[2px] ${cfg.heroLine} shrink-0`} />
+                  <span className={`text-xs font-semibold uppercase tracking-[0.2em] ${cfg.heroEyebrow}`}>
+                    {cfg.eyebrow}
+                  </span>
+                </div>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] mb-6">
@@ -673,7 +882,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mb-12">
               <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${cfg.accentText} mb-3`}>
-                {cfg.servicesNavLabel.toUpperCase()}
+                {cfg.servicesNavLabel.toLocaleUpperCase('tr-TR')}
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight">
                 {cfg.servicesSectionTitle}
@@ -759,7 +968,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="max-w-2xl mb-12">
               <p className={`text-xs font-semibold uppercase tracking-[0.2em] ${cfg.accentText} mb-3`}>
-                {cfg.galleryNavLabel.toUpperCase()}
+                {cfg.galleryNavLabel.toLocaleUpperCase('tr-TR')}
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight">
                 {liveInfo.n} Görselleri
@@ -912,13 +1121,21 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
         </section>
       </main>
 
-      {/* Footer */}
+      {/* Footer with Brand Logo */}
       <footer className="bg-zinc-950 text-zinc-400 py-12 pb-24 sm:pb-12 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-white/10">
-            <div>
-              <span className="block text-white font-bold text-sm">{liveInfo.n.toUpperCase()}</span>
-              <span className="block text-xs text-zinc-400 mt-1">{cfg.eyebrow}</span>
+            <div className="flex items-center gap-3.5">
+              <BrandLogo
+                name={liveInfo.n}
+                sector={liveInfo.s}
+                category={liveInfo.c}
+                size="md"
+              />
+              <div>
+                <span className="block text-white font-bold text-sm">{liveInfo.n.toLocaleUpperCase('tr-TR')}</span>
+                <span className="block text-xs text-zinc-400 mt-1">{cfg.eyebrow}</span>
+              </div>
             </div>
             <div className="text-sm text-zinc-300">
               {liveInfo.a} • {liveInfo.p}
