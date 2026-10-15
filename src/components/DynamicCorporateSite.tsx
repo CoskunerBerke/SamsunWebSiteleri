@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, MapPin, Menu, X, Star, ExternalLink, MessageCircle } from 'lucide-react';
+import { Phone, MapPin, Menu, X, Star, ExternalLink } from 'lucide-react';
 import VwLogo from './VwLogo';
 
 export interface DynamicSiteInfo {
   n: string; // Business Name
   a: string; // Address
   p: string; // Phone Display
+  c?: string; // Real Google Maps Categories
   s: string; // Sector key
   q: string; // Map query
   u: string; // Original URL
+  photos?: string[]; // Real Google Maps / Instagram photos
+  reviews?: { author: string; role: string; group: string; text: string }[]; // Real Google Maps reviews
 }
 
 interface SectorConfig {
@@ -42,20 +45,22 @@ interface SectorConfig {
 
 function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const name = info.n;
+  const catLabel = info.c ? info.c.toUpperCase() : '';
   const isSoupPlace = /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|lokanta)/i.test(
-    `${info.n} ${info.q}`
+    `${info.n} ${info.c || ''} ${info.q}`
   );
 
   if (info.s === 'restaurant') {
     return {
-      eyebrow: isSoupPlace ? 'GELENEKSEL ÇORBA & LEZZET MERKEZİ' : 'GELENEKSEL LEZZET & RESTORAN',
+      eyebrow: catLabel || (isSoupPlace ? 'GELENEKSEL ÇORBA & LEZZET MERKEZİ' : 'GELENEKSEL LEZZET & RESTORAN'),
       navActionLabel: 'Rezervasyon & Sipariş',
       servicesNavLabel: 'Menümüz',
       galleryNavLabel: 'Mekanımız',
       heroSubtitle: `${name} olarak günlük taze malzemelerle hazırlanan sıcak çorba çeşitlerimiz, geleneksel ana yemeklerimiz ve hijyenik mutfağımızla misafirlerimize gerçek lezzet deneyimi sunuyoruz.`,
       aboutTitle: 'Usta Ellerden Çıkan Geleneksel ve Taze Lezzetler',
       aboutP1: `${name}, özenle seçilen doğal malzemeleri geleneksel tariflerle buluşturarak her gün taze üretim yapmaktadır. Kemik suyuna hazırlanan şifalı çorbalarımızdan ızgara ve yöresel yemeklerimize kadar tüm menümüz usta aşçılarımız tarafından hazırlanır.`,
-      aboutP2: 'Ferah salonumuz, güler yüzlü servis ekibimiz ve yüksek hijyen standartlarımızla hem ailelerin hem de lezzet tutkunlarının güvenle tercih ettiği buluşma noktasıyız.',
+      aboutP2:
+        'Ferah salonumuz, güler yüzlü servis ekibimiz ve yüksek hijyen standartlarımızla hem ailelerin hem de lezzet tutkunlarının güvenle tercih ettiği buluşma noktasıyız.',
       hours: 'Her Gün: 06:00 – 02:00',
       headerBg: 'bg-stone-950/95 border-white/10',
       headerText: 'text-white',
@@ -92,33 +97,17 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Mustafa D.', role: 'Google Yorumu', group: 'Mutfak & Hijyen', text: 'Esnaflıkları, güler yüzlü karşılamaları ve mutfak temizliği 10 numara. Yıllardır kalitesini hiç bozmayan nadir yerlerden.' },
       ],
       gallery: [
-        {
-          src: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1000&q=85',
-          title: 'Günlük Taze Kaynayan Şifalı Çorbalarımız',
-          subtitle: 'Kemik suyuna hazırlanan geleneksel sıcak çorba kaselerimiz',
-        },
-        {
-          src: 'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?auto=format&fit=crop&w=1000&q=85',
-          title: 'Özel Baharat ve Soslarla Zenginleştirilmiş Sunum',
-          subtitle: 'Tereyağlı, baharatlı ve bol malzemeli yöresel çorba çeşitleri',
-        },
-        {
-          src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85',
-          title: 'Izgara ve Yöresel Ana Yemeklerimiz',
-          subtitle: 'Usta aşçılarımızdan bol porsiyonlu sıcak sunumlar',
-        },
-        {
-          src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85',
-          title: 'Ferah ve Hijyenik Aile Salonumuz',
-          subtitle: info.a,
-        },
+        { src: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1000&q=85', title: `${name} Lezzet Sunumu`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?auto=format&fit=crop&w=1000&q=85', title: `${name} Özel Menü & Çorba Çeşitleri`, subtitle: 'Günlük taze ve doğal malzemelerle hazırlanan lezzetler' },
+        { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85', title: `${name} Sıcak Mutfak & Izgara`, subtitle: 'Usta aşçılarımızdan bol porsiyonlu sıcak sunumlar' },
+        { src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: info.a },
       ],
     };
   }
 
   if (info.s === 'dental_medical') {
     return {
-      eyebrow: 'AĞIZ VE DİŞ SAĞLIĞI / KLİNİK MERKEZİ',
+      eyebrow: catLabel || 'AĞIZ VE DİŞ SAĞLIĞI / KLİNİK MERKEZİ',
       navActionLabel: 'Randevu Al',
       servicesNavLabel: 'Tedaviler',
       galleryNavLabel: 'Kliniğimiz',
@@ -161,17 +150,72 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Hakan M.', role: 'Google Yorumu', group: 'Kanal Tedavisi', text: 'Şiddetli diş ağrısıyla gittim ve aynı gün içinde sağlığıma kavuştum. Ellerinize sağlık.' },
       ],
       gallery: [
-        { src: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1000&q=85', title: 'Modern Diş Muayene ve Tedavi Ünitelerimiz', subtitle: info.a },
-        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=85', title: 'Estetik Diş Hekimliği ve Gülüş Tasarımı', subtitle: 'Zirkonyum, implant ve koruyucu diş tedavileri' },
-        { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=85', title: 'Sterilizasyon ve Dijital Donanım', subtitle: 'Uluslararası hijyen standartlarında klinik altyapı' },
-        { src: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=85', title: 'Hasta Kabul ve Dinlenme Alanımız', subtitle: 'Ferah ve konforlu bekleme salonumuz' },
+        { src: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1000&q=85', title: `${name} Muayene ve Tedavi Ünitesi`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?auto=format&fit=crop&w=1000&q=85', title: `${name} Estetik Diş Hekimliği`, subtitle: 'Zirkonyum, implant ve koruyucu diş tedavileri' },
+        { src: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1000&q=85', title: `${name} Sterilizasyon & Donanım`, subtitle: 'Uluslararası hijyen standartlarında klinik altyapı' },
+        { src: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1000&q=85', title: `${name} Hasta Kabul Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  if (info.s === 'appliance_service') {
+    return {
+      eyebrow: catLabel || 'YETKİLİ & ÖZEL TEKNİK SERVİS MERKEZİ',
+      navActionLabel: 'Servis Kaydı',
+      servicesNavLabel: 'Hizmetler',
+      galleryNavLabel: 'Servisimiz',
+      heroSubtitle: `${name} olarak ${
+        info.c || 'küçük ev aletleri, beyaz eşya, klima ve elektrikli cihaz'
+      } alanında arıza tespiti, garantili bakım-onarım ve orijinal yedek parça temini hizmeti sunuyoruz.`,
+      aboutTitle: `${name} Garantili Tamir, Bakım ve Yedek Parça Merkezi`,
+      aboutP1: `${name}, deneyimli teknisyen kadrosu ve zengin orijinal yedek parça stoğu ile elektrikli ev aletleri, süpürge, çay-kahve makineleri, ütü, beyaz eşya ve iklimlendirme cihazlarının bakım ve onarımını titizlikle gerçekleştirmektedir.`,
+      aboutP2:
+        'Hızlı arıza tespiti, şeffaf fiyatlandırma ve orijinal yedek parça güvencesiyle cihazlarınızı ilk günkü performansına kavuşturuyoruz.',
+      hours: 'Pazartesi – Cumartesi: 08:30 – 19:00',
+      headerBg: 'bg-zinc-950/95 border-white/10',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-white',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/corporate.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1400&q=85',
+      pillars: [
+        { num: '01', title: 'Hızlı Arıza Tespiti', desc: 'Cihazlarınızdaki elektronik, motor ve mekanik arızaların uzman teknisyenlerimizce hızlı ve doğru tespiti.' },
+        { num: '02', title: 'Orijinal Yedek Parça', desc: 'Önde gelen tüm ev aletleri ve beyaz eşya markalarına uyumlu zengin orijinal yedek parça ve aksesuar stoğu.' },
+        { num: '03', title: 'Yetkili & Uzman Kadro', desc: 'Garantili işçilik ve standartlara uygun onarım prosedürleriyle uzun ömürlü cihaz kullanımı.' },
+        { num: '04', title: 'Aynı Gün Çözüm Odaklı', desc: 'Onayınız sonrasında bekletmeden hızlı parça değişimi, test ve zamanında teslimat.' },
+      ],
+      servicesSectionTitle: 'Sunduğumuz Teknik Servis ve Yedek Parça Hizmetleri',
+      services: [
+        { num: '01', title: 'Küçük Ev Aletleri Bakım & Onarımı', desc: 'Elektrikli süpürge, robot süpürge, kahve ve çay makineleri, blender, mikser, tost makinesi ve ütü onarımı.', detail: 'Motor & Kart Onarımı • Orijinal Parça • Hızlı Teslim' },
+        { num: '02', title: 'Çamaşır, Kurutma & Beyaz Eşya Servisi', desc: 'Çamaşır makinesi, kurutma makinesi ve bulaşık makinelerinde pompa, rezistans, rulman ve elektronik kart tamiri.', detail: 'Yerinde & Atölye Servis • Garantili İşçilik • Test' },
+        { num: '03', title: 'Klima & İklimlendirme Bakım Servisi', desc: 'Klima periyodik bakımı, gaz dolumu, iç-dış ünite temizliği ve elektronik arıza onarım işlemleri.', detail: 'Periyodik Bakım • Performans Testi • Hijyenik Temizlik' },
+        { num: '04', title: 'Orijinal Yedek Parça & Aksesuar Satışı', desc: 'Süpürge hortumu, başlık, filtre, toz torbası, hazne, rezistans ve tüm orijinal aksesuarların doğrudan temini.', detail: 'Stoktan Teslim • Tam Uyum • Orijinal Ürün' },
+        { num: '05', title: 'Elektronik Kart & Motor Revizyonu', desc: 'Cihazların elektronik güç/kontrol kartlarının onarımı ve yüksek devirli motor değişim işlemleri.', detail: 'Hassas Ölçüm • Garantili Parça • Uzun Ömür' },
+        { num: '06', title: 'Periyodik Kontrol & Teknik Danışma', desc: 'Cihazlarınızın ömrünü uzatan bakım uygulamaları ve parça uyumluluk desteği.', detail: 'Şeffaf Bilgi • Uygun Maliyet • Müşteri Memnuniyeti' },
+      ],
+      reviews: [
+        { author: 'Cengiz T.', role: 'Google Yorumu', group: 'Yetkili Teknik Servis', text: 'Uzun zamandır gittiğim servis olup her seferinde çok yardımcı olmaktadırlar. Kendilerine çok teşekkür ederim.' },
+        { author: 'Mehmet Ö.', role: 'Google Yorumu', group: 'Yedek Parça & Tamir', text: 'Süpürge parça değişimi için gittim, 10 dakikada orijinal parçayla hallettiler. Çok teşekkür ederim.' },
+        { author: 'Kadir A.', role: 'Google Yorumu', group: 'Ev Aletleri Onarımı', text: 'Güler yüzlü esnaflık, arızayı hemen tespit edip uygun fiyata garantili şekilde tamir ettiler.' },
+        { author: 'Ayşe K.', role: 'Google Yorumu', group: 'Teknik Servis', text: 'Aradığım yedek parçayı stoktan hemen verdiler, işçilikleri ve ilgileri çok güven verici.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1000&q=85', title: `${name} Servis Merkezi`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=1000&q=85', title: `${name} Teknik Onarım & Test`, subtitle: 'Uzman teknisyen kadromuz ve modern test ekipmanlarımız' },
+        { src: 'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=1000&q=85', title: `${name} Orijinal Yedek Parça Stoğu`, subtitle: 'Tüm modellere uyumlu zengin yedek parça ve aksesuar çeşidi' },
+        { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: `${name} Müşteri Kabul & Danışma`, subtitle: info.a },
       ],
     };
   }
 
   if (info.s === 'mercedes_luxury') {
     return {
-      eyebrow: 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ',
+      eyebrow: catLabel || 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ',
       navActionLabel: 'Randevu Al',
       servicesNavLabel: 'Hizmetler',
       galleryNavLabel: 'Atölye',
@@ -213,17 +257,17 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Hüseyin A.', role: 'Google Yorumu', group: 'Yedek Parça & Bakım', text: 'Orijinal parçalarla gözünüzün önünde tertemiz bakım yapıyorlar. İlgi ve alakaları için teşekkürler.' },
       ],
       gallery: [
-        { src: '/vw/vw-service.jpg', title: 'Mekanik Bakım & Arıza Tespit Atölyesi', subtitle: info.a },
-        { src: '/vw/spare-parts.jpg', title: 'Orijinal & OEM Yedek Parça Stoğu', subtitle: 'Zengin parça çeşitliliği ve garantili montaj' },
-        { src: '/vw/office-lounge.png', title: 'Servis Kabul & Müşteri Danışma', subtitle: 'Şeffaf servis planlaması ve bilgilendirme' },
-        { src: '/vw/waiting-room.png', title: 'Müşteri Bekleme Salonu', subtitle: 'Aracınızın bakımı yapılırken konforlu dinlenme alanı' },
+        { src: '/vw/vw-service.jpg', title: `${name} Mekanik Bakım Atölyesi`, subtitle: info.a },
+        { src: '/vw/spare-parts.jpg', title: `${name} Orijinal Yedek Parça Stoğu`, subtitle: 'Zengin parça çeşitliliği ve garantili montaj' },
+        { src: '/vw/office-lounge.png', title: `${name} Servis Kabul & Danışma`, subtitle: 'Şeffaf servis planlaması ve bilgilendirme' },
+        { src: '/vw/waiting-room.png', title: `${name} Müşteri Bekleme Salonu`, subtitle: info.a },
       ],
     };
   }
 
   if (info.s === 'industrial_heating') {
     return {
-      eyebrow: 'ÜRETİM, SANAYİ & TOPTAN SATIŞ MERKEZİ',
+      eyebrow: catLabel || 'ÜRETİM, SANAYİ & TOPTAN SATIŞ MERKEZİ',
       navActionLabel: 'Teklif & İletişim',
       servicesNavLabel: 'Ürünler',
       galleryNavLabel: 'Tesisimiz',
@@ -265,17 +309,19 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Hasan D.', role: 'Google Yorumu', group: 'Bayi & İş Ortağı', text: 'Satış sonrasında da her zaman ürünlerinin arkasında duran güvenilir bir firma.' },
       ],
       gallery: [
-        { src: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1000&q=85', title: 'Üretim ve İmalat Hattımız', subtitle: info.a },
-        { src: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1000&q=85', title: 'Mühendislik ve Kalite Kontrol Süreçleri', subtitle: 'Yüksek dayanımlı malzeme ve hassas işçilik' },
-        { src: 'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=1000&q=85', title: 'Stok ve Sevkiyat Hazırlık Alanı', subtitle: 'Toptan ve perakende siparişler için güçlü stok' },
-        { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: 'Kurumsal İdari Ofis & Satış Merkezi', subtitle: 'Bayi ve müşteri koordinasyon merkezi' },
+        { src: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1000&q=85', title: `${name} Üretim ve İmalat Hattı`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1000&q=85', title: `${name} Mühendislik ve Kalite Kontrol`, subtitle: 'Yüksek dayanımlı malzeme ve hassas işçilik' },
+        { src: 'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=1000&q=85', title: `${name} Stok ve Sevkiyat Alanı`, subtitle: 'Toptan ve perakende siparişler için güçlü stok' },
+        { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: `${name} İdari Ofis & Satış Merkezi`, subtitle: info.a },
       ],
     };
   }
 
   // Default: Automotive / Auto Electric / VAG / Corporate Service
   return {
-    eyebrow: info.s === 'vag_automotive' ? 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ' : 'OTOMOTİV & TEKNİK SERVİS MERKEZİ',
+    eyebrow:
+      catLabel ||
+      (info.s === 'vag_automotive' ? 'ÖZEL SERVİS & YEDEK PARÇA MERKEZİ' : 'OTOMOTİV & TEKNİK SERVİS MERKEZİ'),
     navActionLabel: 'Randevu Al',
     servicesNavLabel: 'Hizmetler',
     galleryNavLabel: 'Galeri',
@@ -326,21 +372,77 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
 }
 
 export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info }) => {
+  const [liveInfo, setLiveInfo] = useState<DynamicSiteInfo>(info);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [formName, setFormName] = useState('');
   const [formSubject, setFormSubject] = useState('');
   const [formNote, setFormNote] = useState('');
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  const cfg = getSectorConfig(info);
-  const digits = info.p.replace(/\D/g, '').replace(/^90/, '').replace(/^0/, '');
+  // Fetch real Google Maps / Instagram photos, phone, address, categories, and reviews on mount
+  useEffect(() => {
+    let cancelled = false;
+    if (info.u && /^https?:\/\//i.test(info.u)) {
+      fetch(`/api/telegram?place=${encodeURIComponent(info.u)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!cancelled && data?.ok && data?.info) {
+            setLiveInfo((prev) => ({
+              ...prev,
+              n: data.info.n || prev.n,
+              a: data.info.a && data.info.a !== 'Merkez / Türkiye' ? data.info.a : prev.a,
+              p: data.info.p && data.info.p !== '0544 477 56 57' ? data.info.p : prev.p,
+              c: data.info.c || prev.c,
+              s: data.info.s || prev.s,
+              q: data.info.q || prev.q,
+              photos: Array.isArray(data.info.photos) && data.info.photos.length > 0 ? data.info.photos : prev.photos,
+              reviews: Array.isArray(data.info.reviews) && data.info.reviews.length > 0 ? data.info.reviews : prev.reviews,
+            }));
+          }
+        })
+        .catch(() => {});
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [info.u]);
+
+  const cfg = getSectorConfig(liveInfo);
+
+  // Replace default gallery images with real Google Maps / Instagram photos when available
+  const realPhotos = liveInfo.photos || [];
+  const activeGallery = cfg.gallery.map((item, idx) => {
+    if (realPhotos[idx]) {
+      return {
+        src: realPhotos[idx],
+        title:
+          idx === 0
+            ? `${liveInfo.n} — İşletme Görseli`
+            : idx === 1
+            ? `${liveInfo.n} — Hizmet & Ürün Alanı`
+            : idx === 2
+            ? `${liveInfo.n} — Uygulama & Detay`
+            : `${liveInfo.n} — Mekan & Dış Görünüm`,
+        subtitle: idx === 0 ? liveInfo.a : liveInfo.c || item.subtitle,
+      };
+    }
+    return item;
+  });
+
+  // Combine real Google Maps reviews with sector reviews so ReviewRiver always has at least 4 items
+  const combinedReviews =
+    liveInfo.reviews && liveInfo.reviews.length > 0
+      ? [...liveInfo.reviews, ...cfg.reviews].slice(0, Math.max(4, liveInfo.reviews.length))
+      : cfg.reviews;
+  const repeatedReviews = [...combinedReviews, ...combinedReviews];
+
+  const digits = liveInfo.p.replace(/\D/g, '').replace(/^90/, '').replace(/^0/, '');
   const phoneHref = `+90${digits || '5444775657'}`;
   const isMobilePhone = digits.startsWith('5');
-  const repeatedReviews = [...cfg.reviews, ...cfg.reviews];
 
   useEffect(() => {
-    document.title = `${info.n} | Kurumsal Web Sitesi`;
-  }, [info.n]);
+    document.title = `${liveInfo.n} | Kurumsal Web Sitesi`;
+  }, [liveInfo.n]);
 
   useEffect(() => {
     const vid = videoRef.current;
@@ -362,7 +464,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isMobilePhone) {
-      const msg = `Merhaba ${info.n}, ben ${formName}. Konu: ${formSubject}. Not: ${formNote}`;
+      const msg = `Merhaba ${liveInfo.n}, ben ${formName}. Konu: ${formSubject}. Not: ${formNote}`;
       window.open(`https://wa.me/90${digits}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
     } else {
       window.location.href = `tel:${phoneHref}`;
@@ -376,12 +478,12 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-6">
             <a href="#" className="flex items-center gap-3 shrink-0">
-              {info.s === 'vag_automotive' && <VwLogo className="w-9 h-9 shrink-0" />}
+              {liveInfo.s === 'vag_automotive' && <VwLogo className="w-9 h-9 shrink-0" />}
               <div className="whitespace-nowrap">
                 <span className={`block ${cfg.headerText} font-bold text-base tracking-tight leading-none`}>
-                  {info.n.toUpperCase()}
+                  {liveInfo.n.toUpperCase()}
                 </span>
-                <span className={`block ${cfg.headerSub} text-[11px] font-medium tracking-widest uppercase mt-1`}>
+                <span className={`block ${cfg.headerSub} text-[11px] font-medium tracking-widest uppercase mt-1 max-w-[260px] sm:max-w-[360px] truncate`}>
                   {cfg.eyebrow}
                 </span>
               </div>
@@ -405,7 +507,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-lg ${cfg.headerText} text-sm font-semibold transition-colors whitespace-nowrap shrink-0`}
               >
                 <Phone className="w-4 h-4 shrink-0" />
-                <span>{info.p}</span>
+                <span>{liveInfo.p}</span>
               </a>
               <a
                 href="#iletisim"
@@ -443,7 +545,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                   className={`flex items-center justify-center gap-2 py-2.5 rounded-lg border border-zinc-500/30 ${cfg.headerText} text-sm font-semibold`}
                 >
                   <Phone className="w-4 h-4" />
-                  <span>{info.p}</span>
+                  <span>{liveInfo.p}</span>
                 </a>
                 <a
                   href="#iletisim"
@@ -482,14 +584,14 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
           <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
             <div className="max-w-3xl">
               <div className="flex items-center gap-3 mb-5">
-                <span className={`w-8 h-[2px] ${cfg.heroLine}`} />
+                <span className={`w-8 h-[2px] ${cfg.heroLine} shrink-0`} />
                 <span className={`text-xs font-semibold uppercase tracking-[0.2em] ${cfg.heroEyebrow}`}>
                   {cfg.eyebrow}
                 </span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight leading-[1.12] mb-6">
-                {info.n}.
+                {liveInfo.n}.
               </h1>
 
               <p className="text-base sm:text-lg text-zinc-300 leading-relaxed mb-9 max-w-2xl">
@@ -502,11 +604,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                   className={`inline-flex items-center gap-2.5 px-6 py-3.5 rounded-lg ${cfg.ctaBtn} font-semibold text-sm sm:text-base transition-colors`}
                 >
                   <Phone className="w-4 h-4" />
-                  <span>{info.p}</span>
+                  <span>{liveInfo.p}</span>
                 </a>
 
                 <a
-                  href={info.u}
+                  href={liveInfo.u}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-white font-medium text-sm sm:text-base border border-white/20 transition-colors"
@@ -517,7 +619,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
               </div>
 
               <div className="border-t border-white/15 pt-5 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 text-xs sm:text-sm text-zinc-400">
-                <span>Adres: {info.a}</span>
+                <span>Adres: {liveInfo.a}</span>
                 <span className="hidden sm:inline">•</span>
                 <span>{cfg.hours}</span>
               </div>
@@ -542,7 +644,12 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
               <div className="lg:col-span-6">
                 <div className="aspect-[16/10] rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100">
-                  <img src={cfg.gallery[0].src} alt={info.n} className="w-full h-full object-cover" />
+                  <img
+                    src={activeGallery[0].src}
+                    alt={liveInfo.n}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </div>
             </div>
@@ -604,11 +711,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                   MÜŞTERİ & MİSAFİR YORUMLARI
                 </p>
                 <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                  {info.n} Hakkında Görüşler
+                  {liveInfo.n} Hakkında Görüşler
                 </h2>
               </div>
               <a
-                href={info.u}
+                href={liveInfo.u}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium text-white border border-white/15 transition-colors self-start sm:self-auto whitespace-nowrap"
@@ -655,15 +762,20 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 {cfg.galleryNavLabel.toUpperCase()}
               </p>
               <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 tracking-tight">
-                {info.n} Görselleri
+                {liveInfo.n} Görselleri
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {cfg.gallery.map((photo) => (
-                <div key={photo.title} className="rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
+              {activeGallery.map((photo, idx) => (
+                <div key={idx} className="rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
                   <div className="aspect-[16/10] w-full overflow-hidden">
-                    <img src={photo.src} alt={photo.title} className="w-full h-full object-cover" />
+                    <img
+                      src={photo.src}
+                      alt={photo.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                   <div className="p-5 bg-white border-t border-zinc-200">
                     <h3 className="text-base font-bold text-zinc-900">{photo.title}</h3>
@@ -694,7 +806,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                       TELEFON
                     </span>
                     <a href={`tel:${phoneHref}`} className="text-2xl font-bold text-zinc-900 mt-1 block">
-                      {info.p}
+                      {liveInfo.p}
                     </a>
                   </div>
 
@@ -702,7 +814,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                     <span className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
                       ADRES
                     </span>
-                    <p className="text-base font-semibold text-zinc-900 mt-1">{info.a}</p>
+                    <p className="text-base font-semibold text-zinc-900 mt-1">{liveInfo.a}</p>
                   </div>
 
                   <div className="pt-5">
@@ -715,7 +827,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
                 <div className="pt-6 mt-6 border-t border-zinc-200">
                   <a
-                    href={info.u}
+                    href={liveInfo.u}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors"
@@ -778,7 +890,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                     type="submit"
                     className={`w-full py-3 px-6 rounded-lg ${cfg.ctaBtn} font-semibold text-sm transition-colors`}
                   >
-                    Hemen İletişime Geç ({info.p})
+                    Hemen İletişime Geç ({liveInfo.p})
                   </button>
                 </form>
               </div>
@@ -786,8 +898,8 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
             <div className="rounded-lg overflow-hidden border border-zinc-200 bg-white h-[360px]">
               <iframe
-                title={`${info.n} Konumu`}
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(info.q)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                title={`${liveInfo.n} Konumu`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(liveInfo.q)}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -805,15 +917,15 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-8 border-b border-white/10">
             <div>
-              <span className="block text-white font-bold text-sm">{info.n.toUpperCase()}</span>
+              <span className="block text-white font-bold text-sm">{liveInfo.n.toUpperCase()}</span>
               <span className="block text-xs text-zinc-400 mt-1">{cfg.eyebrow}</span>
             </div>
             <div className="text-sm text-zinc-300">
-              {info.a} • {info.p}
+              {liveInfo.a} • {liveInfo.p}
             </div>
           </div>
           <div className="pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-4">
-            <p>© {new Date().getFullYear()} {info.n}. Tüm hakları saklıdır.</p>
+            <p>© {new Date().getFullYear()} {liveInfo.n}. Tüm hakları saklıdır.</p>
             <p>Kurumsal Web Sitesi</p>
           </div>
         </div>
@@ -830,7 +942,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
             <span>Hemen Ara</span>
           </a>
           <a
-            href={info.u}
+            href={liveInfo.u}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-zinc-800 text-white font-medium text-xs border border-white/15"
