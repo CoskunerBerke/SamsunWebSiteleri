@@ -32,3 +32,5 @@ screenshot.png
 # Local Telegram Automation scripts & secrets
 automation/
 Baslat-Telegram-Otomasyon.bat
+.vercel
+.vercel/
