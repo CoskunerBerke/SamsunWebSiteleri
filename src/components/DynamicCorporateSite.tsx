@@ -296,8 +296,66 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
-  // 5. EV ALETLERİ / BEYAZ EŞYA / KLİMA / ELEKTRONİK TEKNİK SERVİS
-  if (info.s === 'appliance_service') {
+  // 5. TELEFON & TEKNOLOJİ / EV ALETLERİ / BEYAZ EŞYA / TEKNİK SERVİS
+  const isPhoneOrTech = /(telefon|cep telefonu|iphone|samsung|xiaomi|aksesuar|tablet|bilgisayar|laptop|teknoloji|bilişim|bilisim)/i.test(
+    combinedText
+  );
+  if (info.s === 'appliance_service' || isPhoneOrTech) {
+    if (isPhoneOrTech) {
+      return {
+        eyebrow: catLabel || 'TELEFON, AKSESUAR & TEKNİK SERVİS MERKEZİ',
+        navActionLabel: 'İletişim & Fiyat Al',
+        servicesNavLabel: 'Hizmetler',
+        galleryNavLabel: 'Mağazamız',
+        heroSubtitle: `${name} olarak ${
+          info.c || 'sıfır ve 2. el cep telefonu, orijinal aksesuar çeşitleri ve garantili telefon-tablet tamiri'
+        } alanında hızlı, şeffaf ve güvenilir çözümler sunuyoruz.`,
+        aboutTitle: `${name} Telefon, Aksesuar ve Garantili Teknik Servis Merkezi`,
+        aboutP1: `${name}, uzman teknik servis kadrosu ve geniş ürün yelpazesiyle tüm akıllı telefon ve tablet modellerinde ekran değişimi, batarya yenileme, anakart onarımı ile sıfır ve 2. el cihaz alım-satım hizmeti sunmaktadır.`,
+        aboutP2:
+          'Zengin kılıf, kırılmaz cam, orijinal şarj adaptörü, kablo ve ses aksesuarlarımızla cihazlarınızı koruyor; tüm tamir işlemlerimizi hızlı ve garantili şekilde tamamlıyoruz.',
+        hours: 'Pazartesi – Cumartesi: 09:00 – 20:30',
+        headerBg: 'bg-zinc-950/95 border-white/10',
+        headerText: 'text-white',
+        headerSub: 'text-amber-400',
+        navLink: 'text-zinc-300 hover:text-white',
+        ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+        heroBg: 'bg-zinc-950',
+        heroLine: 'bg-amber-500',
+        heroEyebrow: 'text-amber-400',
+        accentText: 'text-amber-600',
+        videoSrc: '/videos/corporate.mp4',
+        posterSrc: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1400&q=85',
+        pillars: [
+          { num: '01', title: 'Hızlı & Garantili Tamir', desc: 'Ekran, batarya, şarj soketi ve anakart arızalarında uzman ekipmanlarla aynı gün hızlı onarım.' },
+          { num: '02', title: 'Sıfır & 2. El Telefon', desc: 'Kontrolleri yapılmış, temiz ve güvenilir ikinci el ile kapalı kutu sıfır cep telefonu seçenekleri.' },
+          { num: '03', title: 'Zengin Aksesuar Çeşidi', desc: 'Her modele uyumlu kılıf, hayalet/nano kırılmaz cam, hızlı şarj aleti, kulaklık ve powerbank.' },
+          { num: '04', title: 'Şeffaf Fiyat & Güven', desc: 'Onarım ve cihaz takas işlemlerinde net bilgilendirme ve müşteri memnuniyeti odaklı esnaflık.' },
+        ],
+        servicesSectionTitle: 'Telefon, Aksesuar ve Teknik Servis Hizmetlerimiz',
+        services: [
+          { num: '01', title: 'Ekran & Ön Cam Değişimi', desc: 'Kırık veya dokunmatiği arızalı telefon ekranlarının orijinal kalitede yedek parçalarla garantili değişimi.', detail: 'Orijinal Kalite • Aynı Gün Teslim • Hassas Montaj' },
+          { num: '02', title: '2. El ve Sıfır Telefon Alım & Satım', desc: 'Tüm fonksiyonları test edilmiş güvenilir 2. el telefonlar, sıfır cihazlar ve değerinde takas imkanı.', detail: 'Güvenilir Cihazlar • Takas İmkanı • Uygun Fiyat' },
+          { num: '03', title: 'Batarya, Şarj Soketi & Hoparlör Tamiri', desc: 'Pil ömrü azalan cihazlar için yüksek kapasiteli batarya değişimi, şarj soketi, mikrofon ve kamera onarımı.', detail: 'Yüksek Kapasiteli Pil • Hızlı İşlem • Garantili Parça' },
+          { num: '04', title: 'Kılıf, Kırılmaz Cam & Orijinal Aksesuarlar', desc: 'Darbeye dayanıklı lansman ve tasarım kılıflar, kamera koruyucular, hızlı şarj adaptörleri ve kablolar.', detail: 'Zengin Çeşit • Tam Koruma • Orijinal Aksesuar' },
+          { num: '05', title: 'Anakart, Sıvı Teması & Entegre Onarımı', desc: 'Sıvı temasına maruz kalmış veya açılmayan cihazlarda profesyonel mikro-lehimleme ve anakart tamiri.', detail: 'Mikro Onarım • Arıza Tespiti • Uzman İşçilik' },
+          { num: '06', title: 'Yazılım, Kurulum & Veri Aktarımı', desc: 'Yeni cihaz kurulumu, rehber-fotoğraf aktarımı, yazılım güncelleme ve teknik destek hizmetleri.', detail: 'Güvenli Aktarım • Yazılım Desteği • Hızlı Çözüm' },
+        ],
+        reviews: [
+          { author: 'Emre K.', role: 'Müşteri Yorumu', group: 'Telefon Tamir & Aksesuar', text: 'Telefonumun ekran değişimini çok kısa sürede ve tertemiz yaptılar. Fiyatları da esnaflıkları da 10 numara.' },
+          { author: 'Burak T.', role: 'Müşteri Yorumu', group: '2. El & Sıfır Telefon', text: 'Güvenerek telefon alışverişi yapabileceğiniz, her konuda dürüstçe yardımcı olan çok ilgili bir işletme.' },
+          { author: 'Merve A.', role: 'Müşteri Yorumu', group: 'Kılıf & Kırılmaz Cam', text: 'Aksesuar çeşitleri çok bol ve kaliteli, kırılmaz cam uygulamasını da kusursuz yaptılar.' },
+          { author: 'Serkan Y.', role: 'Müşteri Yorumu', group: 'Teknik Servis', text: 'Şarj soketi ve batarya değişimi için gittim, gözümün önünde yarım saatte hallettiler. Teşekkür ederim.' },
+        ],
+        gallery: [
+          { src: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1000&q=85', title: `${name} Mağaza & Ürün Alanı`, subtitle: info.a },
+          { src: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1000&q=85', title: `${name} Garantili Teknik Servis`, subtitle: 'Ekran, batarya ve anakart onarım merkezi' },
+          { src: 'https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=1000&q=85', title: `${name} Sıfır & 2. El Telefonlar`, subtitle: 'Test edilmiş güvenilir cihaz ve takas seçenekleri' },
+          { src: 'https://images.unsplash.com/photo-1601524909162-ae8725290836?auto=format&fit=crop&w=1000&q=85', title: `${name} Zengin Aksesuar Çeşitleri`, subtitle: info.a },
+        ],
+      };
+    }
+
     return {
       eyebrow: catLabel || 'YETKİLİ & ÖZEL TEKNİK SERVİS MERKEZİ',
       navActionLabel: 'Servis Kaydı',

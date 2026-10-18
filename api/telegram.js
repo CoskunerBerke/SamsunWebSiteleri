@@ -51,7 +51,7 @@ async function sendTelegram(chatId, text) {
     body: JSON.stringify({
       chat_id: chatId,
       text,
-      disable_web_page_preview: false,
+      disable_web_page_preview: true,
     }),
   });
 }
@@ -106,7 +106,7 @@ function detectSector(combinedText) {
     return 'cafe_dessert';
   }
   if (
-    /(restoran|restaurant|aspava|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et |balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni|ciğer|ciger|mangal|dürüm|durum|tavuk)/.test(
+    /(restoran|restaurant|aspava|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et lokanta|et restoran|steakhouse|balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni|ciğer|ciger|mangal|dürüm|durum|tavuk)/.test(
       t
     )
   ) {
@@ -120,7 +120,7 @@ function detectSector(combinedText) {
     return 'dental_medical';
   }
   if (
-    /(çamaşır|camasir|bulaşık|bulasik|buzdolabı|buzdolabi|klima|kombi|süpürge|supurge|ev aletleri|elektrikli cihaz|beyaz eşya|beyaz esya|arzum|fantom|philips|beko|arçelik|arcelik|bosch|siemens|tefal|braun|delonghi|rowenta|korkmaz|fakir|teknik servis|tamir servisi)/.test(
+    /(telefon|cep telefonu|iphone|samsung|xiaomi|aksesuar|tablet|bilgisayar|laptop|teknoloji|bilişim|bilisim|elektronik|çamaşır|camasir|bulaşık|bulasik|buzdolabı|buzdolabi|klima|kombi|süpürge|supurge|ev aletleri|elektrikli cihaz|beyaz eşya|beyaz esya|arzum|fantom|philips|beko|arçelik|arcelik|bosch|siemens|tefal|braun|delonghi|rowenta|korkmaz|fakir|teknik servis|tamir)/.test(
       t
     )
   ) {
@@ -158,7 +158,7 @@ function getSectorLabel(sector) {
     grill_restaurant: 'RESTORAN, KEBAP & IZGARA TEMASI (Sıcak Kehribar & Koyu Antrasit)',
     restaurant: 'RESTORAN & GASTRONOMİ TEMASI (Sıcak Kehribar & Koyu Antrasit)',
     dental_medical: 'SAĞLIK & DİŞ KLİNİĞİ TEMASI (Ferah Beyaz & Medikal Turkuaz)',
-    appliance_service: 'TEKNİK SERVİS & ELEKTRİKLİ CİHAZ TEMASI (Kurumsal Antrasit & Kehribar)',
+    appliance_service: 'TEKNOLOJİ, CİHAZ & TEKNİK SERVİS TEMASI (Kurumsal Antrasit & Kehribar)',
     mercedes_luxury: 'LÜKS OTOMOTİV TEMASI (Monokrom Siyah & Beyaz)',
     vag_automotive: 'VAG OTOMOTİV TEMASI (Koyu Lacivert & Kristal Beyaz)',
     industrial_heating: 'ÜRETİM & SANAYİ TEMASI (Kömür Karası & Endüstriyel Kırmızı)',
@@ -166,6 +166,168 @@ function getSectorLabel(sector) {
     auto_service: 'OTOMOTİV & TEKNİK SERVİS TEMASI (Koyu Antrasit & Kehribar)',
   };
   return labels[sector] || labels.corporate_editorial;
+}
+
+function formatInstagramHandle(username, fullName) {
+  if (fullName && fullName.trim() && fullName.toLowerCase() !== username.toLowerCase()) {
+    return fullName.trim();
+  }
+  const clean = username.replace(/[._-]+/g, ' ').trim();
+  const suffixes = [
+    ['teknoloji', 'Teknoloji'],
+    ['iletisim', 'İletişim'],
+    ['otomotiv', 'Otomotiv'],
+    ['elektronik', 'Elektronik'],
+    ['aksesuar', 'Aksesuar'],
+    ['bilgisayar', 'Bilgisayar'],
+    ['insaat', 'İnşaat'],
+    ['mobilya', 'Mobilya'],
+    ['oto', 'Oto'],
+    ['servis', 'Servis'],
+    ['garaj', 'Garaj'],
+    ['tuning', 'Tuning'],
+    ['klinik', 'Klinik'],
+    ['dental', 'Dental'],
+    ['medikal', 'Medikal'],
+    ['estetik', 'Estetik'],
+    ['restoran', 'Restoran'],
+    ['borek', 'Börek'],
+    ['corba', 'Çorba'],
+    ['kebap', 'Kebap'],
+    ['kafe', 'Kafe'],
+    ['cafe', 'Cafe'],
+    ['pastane', 'Pastane'],
+    ['emlak', 'Emlak'],
+    ['gayrimenkul', 'Gayrimenkul'],
+    ['mimarlik', 'Mimarlık'],
+    ['ankara', 'Ankara'],
+    ['samsun', 'Samsun'],
+  ];
+  for (const [rawSuf, prettySuf] of suffixes) {
+    const idx = clean.toLowerCase().indexOf(rawSuf);
+    if (idx > 0) {
+      const prefix = clean.slice(0, idx).trim();
+      const rest = clean.slice(idx + rawSuf.length).trim();
+      const formattedPrefix =
+        prefix.length <= 3 ? prefix.toUpperCase() : prefix[0].toUpperCase() + prefix.slice(1);
+      return `${formattedPrefix} ${prettySuf}${rest ? ' ' + rest : ''}`.trim();
+    }
+  }
+  return clean
+    .split(' ')
+    .map((w) => (w.length <= 2 ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)))
+    .join(' ');
+}
+
+async function extractInstagramProfileData(igUrl) {
+  try {
+    const m = igUrl.match(/instagram\.com\/(?:_u\/)?([A-Za-z0-9._]+)/i);
+    if (!m) return null;
+    const username = m[1];
+    if (['p', 'reel', 'reels', 'stories', 'explore', 'accounts'].includes(username.toLowerCase())) {
+      return null;
+    }
+
+    const ua = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
+    const r = await fetch(`https://www.instagram.com/${username}/`, {
+      headers: { 'User-Agent': ua, 'Accept-Language': 'tr-TR,tr;q=0.9' },
+    });
+    const html = await r.text();
+
+    let fullName = '';
+    let biography = '';
+    const fnMatch = html.match(/"full_name":"((?:\\.|[^"\\])*)"/);
+    if (fnMatch) {
+      try {
+        fullName = JSON.parse(`"${fnMatch[1]}"`);
+      } catch (_) {}
+    }
+    const bioMatch = html.match(/"biography":"((?:\\.|[^"\\])*)"/);
+    if (bioMatch) {
+      try {
+        biography = JSON.parse(`"${bioMatch[1]}"`);
+      } catch (_) {}
+    }
+
+    const captions = [];
+    for (const cm of html.matchAll(/"text":"((?:\\.|[^"\\]){5,600})"/g)) {
+      try {
+        const txt = JSON.parse(`"${cm[1]}"`);
+        if (!/Meta AI|yapay zeka koşullarını/i.test(txt)) {
+          captions.push(txt);
+        }
+      } catch (_) {}
+    }
+
+    const photos = [];
+    for (const im of html.matchAll(/"candidates":\[\{"height":\d+,"url":"((?:\\.|[^"\\])*)"/g)) {
+      try {
+        const pUrl = JSON.parse(`"${im[1]}"`);
+        if (pUrl && pUrl.startsWith('http') && !photos.includes(pUrl)) {
+          photos.push(pUrl);
+        }
+      } catch (_) {}
+    }
+
+    const stripEmojis = (str) =>
+      str
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}]/gu, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    const bioLines = biography
+      .split(/\r?\n/)
+      .map(stripEmojis)
+      .filter((l) => l.length > 2);
+
+    let address = '';
+    const categories = [];
+    const allLines = [...bioLines, ...captions.flatMap((c) => c.split(/\r?\n|\|/).map(stripEmojis))];
+
+    const addrRegex =
+      /(?:\b(?:mahallesi|mah\.?|bulvarı|blv\.?|caddesi|cad\.?|sokak|sok\.?|sk\.?|osb|organize sanayi|sanayi sitesi|iş merkezi|is merkezi|plaza|avm|kat\b|no\s*:|sincan|çankaya|keçiören|yenimahalle|mamak|etimesgut|altındağ|gölbaşı|ivedik|ostim|şaşmaz|kızılay|çayyolu|ümitköy|batıkent|eryaman|atakum|ilkadım|canik|tekkeköy|bafra|çarşamba)\b)/i;
+
+    for (const line of allLines) {
+      if (!line || line.startsWith('#') || line.startsWith('@')) continue;
+      if (!address && addrRegex.test(line) && line.length >= 10 && line.length <= 140) {
+        address = line.replace(/@[A-Za-z0-9._]+/g, '').trim();
+      } else if (categories.length < 3 && bioLines.includes(line) && !addrRegex.test(line)) {
+        categories.push(line);
+      }
+    }
+
+    const allCombined = `${biography} ${captions.join(' ')}`.toLocaleLowerCase('tr-TR');
+    if (
+      /(ankara|sincan|çankaya|cankaya|keçiören|kecioren|yenimahalle|mamak|etimesgut|altındağ|gölbaşı|ivedik|ostim|şaşmaz|kızılay|çayyolu|batıkent|eryaman)/.test(
+        allCombined
+      )
+    ) {
+      if (address && !/ankara/i.test(address)) {
+        address = `${address}, Ankara`;
+      } else if (!address) {
+        address = 'Ankara';
+      }
+    }
+
+    let phone = '';
+    const pMatch = `${biography} ${captions.join(' ')}`.match(
+      /(?:0\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/
+    );
+    if (pMatch) {
+      phone = pMatch[0].trim();
+    }
+
+    return {
+      businessName: formatInstagramHandle(username, fullName),
+      categories,
+      address,
+      phone,
+      photos: photos.slice(0, 6),
+      rawText: `${biography} ${captions.join(' ')}`,
+    };
+  } catch (_) {
+    return null;
+  }
 }
 
 async function extractWebsiteOrInstagramPhotos(siteUrl) {
@@ -220,7 +382,19 @@ async function resolveBusinessInfo(rawText) {
   let pageText = '';
   let resolvedUrl = inputUrl;
 
-  if (inputUrl) {
+  if (inputUrl && /instagram\.com/i.test(inputUrl)) {
+    const igData = await extractInstagramProfileData(inputUrl);
+    if (igData) {
+      if (igData.businessName) businessName = igData.businessName;
+      if (igData.categories?.length) categories = igData.categories;
+      if (igData.address) address = igData.address;
+      if (igData.phone) phone = igData.phone;
+      if (igData.photos?.length) photos = igData.photos;
+      if (igData.rawText) pageText = igData.rawText;
+    }
+  }
+
+  if (inputUrl && !/instagram\.com/i.test(inputUrl)) {
     try {
       const res1 = await fetch(inputUrl, {
         redirect: 'follow',
