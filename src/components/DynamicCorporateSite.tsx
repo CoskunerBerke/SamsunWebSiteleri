@@ -48,15 +48,21 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const catLabel = info.c ? info.c.toLocaleUpperCase('tr-TR') : '';
   const combinedText = `${info.n} ${info.c || ''} ${info.q}`.toLocaleLowerCase('tr-TR');
 
-  const isBakery =
-    info.s === 'bakery_breakfast' ||
-    /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu|pastane|baklava|künefe|gözleme|mantı|ekmek)/i.test(
-      combinedText
-    );
+  const hasExplicitBorekOrBakery = /(börek|borek|poğaça|pogaca|simit|fırın|firin|unlu mam|baklava|künefe|gözleme)/i.test(
+    combinedText
+  );
   const isCafe =
-    !isBakery &&
+    !hasExplicitBorekOrBakery &&
     (info.s === 'cafe_dessert' ||
-      /(kafe|cafe|kahve|coffee|espresso|tatlı|tatli|pasta|waffle|dondurma|çikolata|cikolata)/i.test(combinedText));
+      /(kafe|cafe|kahve|coffe|espresso|latte|patisserie|pastane|magnolia|profiterol|tiramisu|cheesecake|san sebastian|tatlı|tatli|pasta|waffle|dondurma|çikolata|cikolata)/i.test(
+        combinedText
+      ));
+  const isBakery =
+    !isCafe &&
+    (info.s === 'bakery_breakfast' ||
+      /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu|pastane|baklava|künefe|gözleme|mantı|ekmek)/i.test(
+        combinedText
+      ));
   const isSoupPlace =
     !isBakery &&
     !isCafe &&
@@ -119,16 +125,24 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
 
   // 2. KAFE / KAHVE / TATLI / PASTANE
   if (isCafe) {
+    const isMultiConceptCafe = /(bazlama|tavuklu pilav|çiğ köfte|cig kofte|cofferoz)/i.test(combinedText);
     return {
-      eyebrow: catLabel || 'KAFE, KAHVE & TATLI MERKEZİ',
-      navActionLabel: 'İletişim & Konum',
+      eyebrow: catLabel || (isMultiConceptCafe ? 'KAFE, PATISSERIE & SOKAK LEZZETLERİ' : 'KAFE, KAHVE & TATLI MERKEZİ'),
+      navActionLabel: 'Sipariş & Konum',
       servicesNavLabel: 'Menümüz',
       galleryNavLabel: 'Mekanımız',
-      heroSubtitle: `${name} olarak taze kavrulmuş kahve çekirdeklerimiz, günlük hazırlanan özel tatlılarımız ve konforlu atmosferimizle keyifli buluşmalarınıza ev sahipliği yapıyoruz.`,
-      aboutTitle: 'Özel Kahve Çekirdekleri ve Günlük Taze Tatlılar',
-      aboutP1: `${name}, nitelikli kahve kültürünü ve günlük taze pastacılık ürünlerini ferah ve samimi bir mekan tasarımıyla bir araya getirmektedir.`,
-      aboutP2:
-        'Deneyimli baristalarımızın hazırladığı sıcak ve soğuk kahve çeşitlerimiz, taze demleme çayımız ve usta ellerden çıkan tatlılarımızla günün her saati yanınızdayız.',
+      heroSubtitle: isMultiConceptCafe
+        ? `${name} olarak taze öğütülmüş kahve çeşitlerimiz, günlük hazırlanan magnolia, profiterol ve San Sebastian tatlılarımız, meşhur Kızılcahamam bazlama tostumuz, kovada tavuklu pilav ve çiğ köfte lezzetlerimizle günün her saati yanınızdayız.`
+        : `${name} olarak taze kavrulmuş kahve çekirdeklerimiz, günlük hazırlanan özel tatlılarımız ve konforlu atmosferimizle keyifli buluşmalarınıza ev sahipliği yapıyoruz.`,
+      aboutTitle: isMultiConceptCafe
+        ? `${name} — Kahve, Patisserie ve Sıcak Kampüs Lezzetleri`
+        : 'Özel Kahve Çekirdekleri ve Günlük Taze Tatlılar',
+      aboutP1: isMultiConceptCafe
+        ? `${name}, nitelikli kahve ve günlük taze patisserie tatlılarını; doyurucu Kızılcahamam bazlama tost, tereyağlı kovada tavuklu pilav ve meşhur Adıyaman çiğ köfte lezzetleriyle tek çatı altında buluşturmaktadır.`
+        : `${name}, nitelikli kahve kültürünü ve günlük taze pastacılık ürünlerini ferah ve samimi bir mekan tasarımıyla bir araya getirmektedir.`,
+      aboutP2: isMultiConceptCafe
+        ? 'Samimi ve enerjik atmosferimiz, günlük taze vitrin ürünlerimiz, hızlı servisimiz ve ekonomik kampüs menülerimizle hem kahve-tatlı molalarınızda hem de öğünlerinizde lezzet dolu bir deneyim sunuyoruz.'
+        : 'Deneyimli baristalarımızın hazırladığı sıcak ve soğuk kahve çeşitlerimiz, taze demleme çayımız ve usta ellerden çıkan tatlılarımızla günün her saati yanınızdayız.',
       hours: 'Her Gün: 08:00 – 23:30',
       headerBg: 'bg-stone-950/95 border-white/10',
       headerText: 'text-white',
@@ -141,27 +155,52 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-amber-700',
       videoSrc: '/videos/cafe.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1400&q=85',
-      pillars: [
-        { num: '01', title: 'Taze Kavrulmuş Kahve', desc: 'Seçkin kahve çekirdeklerinden anında öğütülerek hazırlanan espresso ve demleme kahveler.' },
-        { num: '02', title: 'Günlük Taze Tatlılar', desc: 'Her gün taze malzemelerle üretilen pasta, cheesecake, sütlü ve çikolatalı tatlı çeşitleri.' },
-        { num: '03', title: 'Ferah & Konforlu Ortam', desc: 'Arkadaşlarınızla ve ailenizle keyifle vakit geçirebileceğiniz özenli iç ve dış mekan.' },
-        { num: '04', title: 'Güler Yüzlü Sunum', desc: 'Hızlı servis, hijyenik hazırlık ve misafir memnuniyeti odaklı hizmet anlayışı.' },
-      ],
-      servicesSectionTitle: 'Kahve, Tatlı ve İçecek Menümüz',
-      services: [
-        { num: '01', title: 'Espresso Bazlı Sıcak Kahveler', desc: 'Latte, Cappuccino, Americano, Flat White, Mocha ve geleneksel közde/kumda Türk kahvesi.', detail: 'Taze Çekirdek • Usta Barista • İdeal Kıvam' },
-        { num: '02', title: 'Günlük Pasta & Tatlı Çeşitleri', desc: 'San Sebastian cheesecake, tiramisu, magnolia, kruvasan ve günlük özel dilim pastalar.', detail: 'Günlük Üretim • Doğal Malzeme • Taze Sunum' },
-        { num: '03', title: 'Soğuk Kahveler & Ev Yapımı İçecekler', desc: 'Iced Latte, Cold Brew, Frappe, taze meyveli frozen, smoothie ve ev yapımı limonata.', detail: 'Ferahlatıcı Lezzet • Doğal Meyve • Buzlu Sunum' },
-        { num: '04', title: 'Kahvaltı & Sıcak Atıştırmalıklar', desc: 'Sandviç çeşitleri, bazlama tost, kruvasan tabakları ve güne zinde başlatan kahvaltılıklar.', detail: 'Sıcak Hazırlık • Doyurucu Porsiyon • Taze Ekmek' },
-        { num: '05', title: 'Bitki Çayları & Taze Demleme Çay', desc: 'Özel harman yaprak çaylardan demlenen taze çay ve doğal kış/bitki çayı alternatifleri.', detail: 'Taze Demleme • Doğal Bitkiler • Sıcak İkram' },
-        { num: '06', title: 'Grup Buluşmaları & Paket Servis', desc: 'Özel kutlamalar, arkadaş buluşmaları ve paket kahve-tatlı siparişleri için hızlı servis.', detail: 'Konforlu Salon • Paket Servis • Yüksek Hijyen' },
-      ],
-      reviews: [
-        { author: 'Selin Y.', role: 'Google Yorumu', group: 'Kahve & Tatlı', text: 'Kahveleri çok lezzetli, tatlıları her zaman taze. Ortamı çok ferah ve çalışanlar son derece ilgili.' },
-        { author: 'Mert K.', role: 'Google Yorumu', group: 'Mekan & Atmosfer', text: 'Arkadaşlarla oturup sohbet etmek için bölgedeki en nezih ve temiz mekanlardan biri.' },
-        { author: 'Zeynep A.', role: 'Google Yorumu', group: 'Taze Pasta & Türk Kahvesi', text: 'Sunumları çok şık, fiyatları makul ve hizmet kalitesi gerçekten çok yüksek.' },
-        { author: 'Caner T.', role: 'Google Yorumu', group: 'Soğuk İçecekler & Servis', text: 'Yaz kış uğradığımız, kalitesini hiç bozmayan harika bir işletme.' },
-      ],
+      pillars: isMultiConceptCafe
+        ? [
+            { num: '01', title: 'Günlük Patisserie & Tatlı', desc: 'Vitrinde her gün taze hazırlanan Magnolia, kupta Profiterol, Tiramisu, San Sebastian ve dilim pastalar.' },
+            { num: '02', title: 'Kızılcahamam Bazlama Tost', desc: 'Taptaze bazlama ekmeği arasında bol kaşarlı, sucuklu ve kavurmalı sıcak bazlama tost çeşitleri.' },
+            { num: '03', title: 'Kovada Pilav & Çiğ Köfte', desc: 'Tereyağlı kovada tavuklu pilav ve meşhur Bayram Usta Adıyaman çiğ köfte dürüm-porsiyon lezzetleri.' },
+            { num: '04', title: 'Nitelikli Kahve & Çay', desc: 'Taze çekirdek espresso bazlı sıcak-soğuk kahveler ve tatlıların yanında taze demleme çay.' },
+          ]
+        : [
+            { num: '01', title: 'Taze Kavrulmuş Kahve', desc: 'Seçkin kahve çekirdeklerinden anında öğütülerek hazırlanan espresso ve demleme kahveler.' },
+            { num: '02', title: 'Günlük Taze Tatlılar', desc: 'Her gün taze malzemelerle üretilen pasta, cheesecake, sütlü ve çikolatalı tatlı çeşitleri.' },
+            { num: '03', title: 'Ferah & Konforlu Ortam', desc: 'Arkadaşlarınızla ve ailenizle keyifle vakit geçirebileceğiniz özenli iç ve dış mekan.' },
+            { num: '04', title: 'Güler Yüzlü Sunum', desc: 'Hızlı servis, hijyenik hazırlık ve misafir memnuniyeti odaklı hizmet anlayışı.' },
+          ],
+      servicesSectionTitle: isMultiConceptCafe
+        ? 'Öne Çıkan Kahve, Patisserie ve Sıcak Lezzet Menümüz'
+        : 'Kahve, Tatlı ve İçecek Menümüz',
+      services: isMultiConceptCafe
+        ? [
+            { num: '01', title: 'Kızılcahamam Bazlama Tost & Sıcak Tostlar', desc: 'Taptaze günlük bazlama ekmeği arasında bol kaşarlı, sucuklu, kavurmalı, atom ve karışık sıcak bazlama tost çeşitlerimiz.', detail: 'Taptaze Bazlama • Bol Malzeme • Sıcak Sunum' },
+            { num: '02', title: 'Günlük Patisserie & Kupta Tatlılar', desc: 'Çilekli ve muzlu Magnolia, kupta bol çikolatalı Profiterol, İtalyan Tiramisu, San Sebastian Cheesecake ve yaş pastalar.', detail: 'Magnolia & Profiterol • San Sebastian • Günlük Üretim' },
+            { num: '03', title: 'Nitelikli Sıcak & Soğuk Kahveler', desc: 'Taze çekirdeklerden hazırlanan Espresso, Latte, Cappuccino, Mocha, Soğuk Kahveler, Türk kahvesi ve taze demleme çay.', detail: 'Taze Kahve Çekirdeği • Sıcak & Buzlu • Tatlı Yanı İkram' },
+            { num: '04', title: 'Kovada Tavuklu Nohutlu Pilav', desc: 'Tereyağlı tane tane pirinç pilavı üzerine bol didiklenmiş tavuk eti, karabiber ve bol köpüklü ayran menüsü.', detail: 'Tereyağlı Pilav • Bol Tavuklu • Doyurucu Kova Porsiyon' },
+            { num: '05', title: 'Meşhur Adıyaman Çiğ Köfte (Bayram Usta)', desc: 'Günlük taze yoğrulan özel baharatlı çiğ köfte; taze nane, marul, limon ve nar ekşisi eşliğinde dürüm ve porsiyon servis.', detail: 'Günlük Taze • Bol Yeşillik • Dürüm & Porsiyon' },
+            { num: '06', title: 'Kampüs Menüleri & Hızlı Servis', desc: 'Öğrencilere ve kampüs misafirlerine özel ekonomik tatlı-kahve ve tost-içecek menü kombinasyonları, hızlı paket servis.', detail: 'Ekonomik Kampüs Menü • Hızlı Servis • Yüksek Hijyen' },
+          ]
+        : [
+            { num: '01', title: 'Espresso Bazlı Sıcak Kahveler', desc: 'Latte, Cappuccino, Americano, Flat White, Mocha ve geleneksel közde/kumda Türk kahvesi.', detail: 'Taze Çekirdek • Usta Barista • İdeal Kıvam' },
+            { num: '02', title: 'Günlük Pasta & Tatlı Çeşitleri', desc: 'San Sebastian cheesecake, tiramisu, magnolia, kruvasan ve günlük özel dilim pastalar.', detail: 'Günlük Üretim • Doğal Malzeme • Taze Sunum' },
+            { num: '03', title: 'Soğuk Kahveler & Ev Yapımı İçecekler', desc: 'Iced Latte, Cold Brew, Frappe, taze meyveli frozen, smoothie ve ev yapımı limonata.', detail: 'Ferahlatıcı Lezzet • Doğal Meyve • Buzlu Sunum' },
+            { num: '04', title: 'Kahvaltı & Sıcak Atıştırmalıklar', desc: 'Sandviç çeşitleri, bazlama tost, kruvasan tabakları ve güne zinde başlatan kahvaltılıklar.', detail: 'Sıcak Hazırlık • Doyurucu Porsiyon • Taze Ekmek' },
+            { num: '05', title: 'Bitki Çayları & Taze Demleme Çay', desc: 'Özel harman yaprak çaylardan demlenen taze çay ve doğal kış/bitki çayı alternatifleri.', detail: 'Taze Demleme • Doğal Bitkiler • Sıcak İkram' },
+            { num: '06', title: 'Grup Buluşmaları & Paket Servis', desc: 'Özel kutlamalar, arkadaş buluşmaları ve paket kahve-tatlı siparişleri için hızlı servis.', detail: 'Konforlu Salon • Paket Servis • Yüksek Hijyen' },
+          ],
+      reviews: isMultiConceptCafe
+        ? [
+            { author: 'Elif K.', role: 'Müşteri Yorumu', group: 'Magnolia & San Sebastian', text: 'Tatlıları gerçekten harika, özellikle kupta profiterol ve çilekli magnoliası çok taze. Kahveyle birlikte tam bir fiyat-performans yeri.' },
+            { author: 'Burak T.', role: 'Müşteri Yorumu', group: 'Kızılcahamam Bazlama Tost', text: 'Bazlama tostu sıcacık ve içi gerçekten çok bol malzemeli geliyor. Kampüs çevresinde yiyebileceğiniz en iyi tost kesinlikle burada.' },
+            { author: 'Emre D.', role: 'Müşteri Yorumu', group: 'Kovada Tavuklu Pilav & Ayran', text: 'Kovada tavuklu pilavı hem çok doyurucu hem de lezzeti yerinde. Yanında çiğ köfte ve ayranla hızlıca öğle yemeği için bir numara.' },
+            { author: 'Zeynep M.', role: 'Müşteri Yorumu', group: 'Kafe & Patisserie Ortamı', text: 'Çalışanlar çok güler yüzlü, vitrindeki pastalar her gün taze çıkıyor. Arkadaşlarla ders arası uğradığımız favori mekanımız.' },
+          ]
+        : [
+            { author: 'Selin Y.', role: 'Google Yorumu', group: 'Kahve & Tatlı', text: 'Kahveleri çok lezzetli, tatlıları her zaman taze. Ortamı çok ferah ve çalışanlar son derece ilgili.' },
+            { author: 'Mert K.', role: 'Google Yorumu', group: 'Mekan & Atmosfer', text: 'Arkadaşlarla oturup sohbet etmek için bölgedeki en nezih ve temiz mekanlardan biri.' },
+            { author: 'Zeynep A.', role: 'Google Yorumu', group: 'Taze Pasta & Türk Kahvesi', text: 'Sunumları çok şık, fiyatları makul ve hizmet kalitesi gerçekten çok yüksek.' },
+            { author: 'Caner T.', role: 'Google Yorumu', group: 'Soğuk İçecekler & Servis', text: 'Yaz kış uğradığımız, kalitesini hiç bozmayan harika bir işletme.' },
+          ],
       gallery: [
         { src: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=85', title: `${name} Mekan & Atmosfer`, subtitle: info.a },
         { src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=85', title: `${name} Nitelikli Kahve Sunumu`, subtitle: 'Taze öğütülmüş kahve çeşitlerimiz' },

@@ -8,6 +8,14 @@ const SITE_BASE_URL = 'https://samsun-web-siteleri.vercel.app';
 const ANKARA_BASE_URL = 'https://ankara-web-siteleri.vercel.app';
 
 function detectCityAndBaseUrl(info, rawText = '') {
+  const userNote = rawText.replace(/https?:\/\/[^\s]+/gi, '').toLocaleLowerCase('tr-TR');
+  if (/\bsamsun\b/.test(userNote)) {
+    return { city: 'Samsun', baseUrl: SITE_BASE_URL };
+  }
+  if (/\bankara\b/.test(userNote)) {
+    return { city: 'Ankara', baseUrl: ANKARA_BASE_URL };
+  }
+
   const combined = `${info.n || ''} ${info.a || ''} ${info.c || ''} ${info.q || ''} ${info.p || ''} ${
     info.u || ''
   } ${info.resolvedUrl || ''} ${rawText}`.toLocaleLowerCase('tr-TR');
@@ -22,18 +30,31 @@ function detectCityAndBaseUrl(info, rawText = '') {
     if (lat >= 38.8 && lat <= 40.55 && lon >= 31.0 && lon <= 33.95) {
       return { city: 'Ankara', baseUrl: ANKARA_BASE_URL };
     }
+    if (lat >= 40.8 && lat <= 41.8 && lon >= 34.8 && lon <= 37.2) {
+      return { city: 'Samsun', baseUrl: SITE_BASE_URL };
+    }
   }
 
-  // Check Ankara city, district, industrial zone, postal code (06xxx) or area code (0312)
+  // Check explicit Samsun city, district, postal code (55xxx) or area code (0362)
   if (
-    /(ankara|çankaya|cankaya|keçiören|kecioren|yenimahalle|mamak|etimesgut|sincan|altındağ|altindag|gölbaşı|golbasi|pursaklar|polatlı|polatli|çubuk|cubuk|kahramankazan|beypazarı|beypazari|elmadağ|elmadag|şereflikoçhisar|akyurt|kızılcahamam|ivedik|ostim|şaşmaz|sasmaz|siteler|kızılay|kizilay|çayyolu|cayyolu|ümitköy|umitkoy|batıkent|batikent|eryaman|dikmen|balgat|tunalı|tunali|söğütözü|sogutozu|çukurambar|cukurambar|\b06\d{3}\b|\b0?312\s*\d{3})/.test(
+    /(samsun|atakum|ilkadım|ilkadim|canik|tekkeköy|tekkekoy|bafra|çarşamba|carsamba|terme|vezirköprü|vezirkopru|havza|kavak|ondokuzmayıs|19 mayıs|alaçam|salıpazarı|ayvacık|ladik|asarcık|yakakent|\b55\d{3}\b|\b0?362\s*\d{3})/.test(
+      combined
+    )
+  ) {
+    return { city: 'Samsun', baseUrl: SITE_BASE_URL };
+  }
+
+  // Check Ankara city, district, university/campus, industrial zone, postal code (06xxx) or area code (0312)
+  if (
+    /(ankara|çankaya|cankaya|keçiören|kecioren|yenimahalle|mamak|etimesgut|sincan|altındağ|altindag|gölbaşı|golbasi|pursaklar|polatlı|polatli|çubuk|cubuk|kahramankazan|beypazarı|beypazari|elmadağ|elmadag|şereflikoçhisar|akyurt|kızılcahamam|kizilcahamam|ivedik|ostim|şaşmaz|sasmaz|siteler|kızılay|kizilay|çayyolu|cayyolu|ümitköy|umitkoy|batıkent|batikent|eryaman|dikmen|balgat|tunalı|tunali|söğütözü|sogutozu|çukurambar|cukurambar|hacettepe|beytepe|odtü|odtu|bilkent|bahçelievler|bahcelievler|beşevler|besevler|sıhhiye|sihhiye|cebeci|ulus|\b06\d{3}\b|\b0?312\s*\d{3})/.test(
       combined
     )
   ) {
     return { city: 'Ankara', baseUrl: ANKARA_BASE_URL };
   }
 
-  return { city: 'Samsun', baseUrl: SITE_BASE_URL };
+  // Default to Ankara when no Google Maps location or city keyword is found
+  return { city: 'Ankara', baseUrl: ANKARA_BASE_URL };
 }
 
 const GMAPS_HEADERS = {
@@ -99,10 +120,20 @@ function unescapeHtml(str) {
 function detectSector(combinedText) {
   const t = combinedText.toLocaleLowerCase('tr-TR');
   if (
-    /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu mamül|unlu mamul|pastane|baklava|künefe|kunefe|kruvasan|ekmek|katmer|gözleme|gozleme|mantı|manti)/.test(
+    /(börek|borek|poğaça|pogaca|simit|fırın|firin|unlu mamül|unlu mamul|baklava|künefe|kunefe|katmer|gözleme|gozleme)/.test(
       t
     )
   ) {
+    return 'bakery_breakfast';
+  }
+  if (
+    /(kafe|cafe|kahve|coffe|espresso|latte|patisserie|pastane|magnolia|profiterol|tiramisu|cheesecake|san sebastian|bistro|dondurma|waffle|çikolata|cikolata|nargile|çay evi|cay bahcesi|tatlı|tatli)/.test(
+      t
+    )
+  ) {
+    return 'cafe_dessert';
+  }
+  if (/(kahvaltı|kahvalti|kruvasan|ekmek|mantı|manti)/.test(t)) {
     return 'bakery_breakfast';
   }
   if (
@@ -111,13 +142,6 @@ function detectSector(combinedText) {
     )
   ) {
     return 'soup_restaurant';
-  }
-  if (
-    /(kafe|cafe|kahve|coffee|espresso|latte|bistro|dondurma|waffle|çikolata|cikolata|nargile|çay evi|cay bahcesi|tatlı|tatli)/.test(
-      t
-    )
-  ) {
-    return 'cafe_dessert';
   }
   if (
     /(restoran|restaurant|aspava|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et lokanta|et restoran|steakhouse|balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni|ciğer|ciger|mangal|dürüm|durum|tavuk)/.test(
@@ -250,6 +274,46 @@ const KNOWN_INSTAGRAM_PROFILES = {
     rawText:
       'KY Teknoloji Telefon Aksesuar ve Tamir 2. El ve Sıfır Telefon Sincan 1. Osb Asora iş merkezi Boss otel yanı zemin kat Sincan Ankara',
   },
+  cofferozz: {
+    businessName: 'Cofferoz Kafe & Patisserie',
+    categories: [
+      'Kahve & Patisserie',
+      'Kızılcahamam Bazlama Tost',
+      'Kovada Tavuklu Pilav & Çiğ Köfte',
+    ],
+    address: 'Hacettepe Üniversitesi Beytepe Kampüsü, Çankaya / Ankara',
+    phone: '0544 477 56 57',
+    photos: [
+      '/images/cofferozz/1.jpg',
+      '/images/cofferozz/2.jpg',
+      '/images/cofferozz/3.jpg',
+      '/images/cofferozz/4.jpg',
+      '/images/cofferozz/5.jpg',
+      '/images/cofferozz/6.jpg',
+    ],
+    rawText:
+      'Cofferoz Kafe & Patisserie Kahve Magnolia Profiterol Tiramisu San Sebastian Kızılcahamam Bazlama Tost Kovada Tavuklu Pilav Bayram Usta Çiğ Köfte Hacettepe Beytepe Ankara',
+  },
+  cofferoz: {
+    businessName: 'Cofferoz Kafe & Patisserie',
+    categories: [
+      'Kahve & Patisserie',
+      'Kızılcahamam Bazlama Tost',
+      'Kovada Tavuklu Pilav & Çiğ Köfte',
+    ],
+    address: 'Hacettepe Üniversitesi Beytepe Kampüsü, Çankaya / Ankara',
+    phone: '0544 477 56 57',
+    photos: [
+      '/images/cofferozz/1.jpg',
+      '/images/cofferozz/2.jpg',
+      '/images/cofferozz/3.jpg',
+      '/images/cofferozz/4.jpg',
+      '/images/cofferozz/5.jpg',
+      '/images/cofferozz/6.jpg',
+    ],
+    rawText:
+      'Cofferoz Kafe & Patisserie Kahve Magnolia Profiterol Tiramisu San Sebastian Kızılcahamam Bazlama Tost Kovada Tavuklu Pilav Bayram Usta Çiğ Köfte Hacettepe Beytepe Ankara',
+  },
 };
 
 async function extractInstagramProfileData(igUrl) {
@@ -279,15 +343,26 @@ async function extractInstagramProfileData(igUrl) {
 
     let fbHtml = '';
     if (!html.includes('"biography"') || !html.includes('"candidates"')) {
-      try {
-        const rFb = await fetch(`https://www.instagram.com/${username}/`, {
-          headers: {
-            'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
-            'Accept-Language': 'tr-TR,tr;q=0.9',
-          },
-        });
-        fbHtml = await rFb.text();
-      } catch (_) {}
+      for (const fallbackUa of [
+        'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
+        'WhatsApp/2.23.20.0',
+        'TelegramBot (like TwitterBot)',
+        'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+      ]) {
+        try {
+          const rFb = await fetch(`https://www.instagram.com/${username}/`, {
+            headers: {
+              'User-Agent': fallbackUa,
+              'Accept-Language': 'tr-TR,tr;q=0.9',
+            },
+          });
+          const textFb = await rFb.text();
+          if (textFb.includes('og:title') || textFb.includes('description')) {
+            fbHtml = textFb;
+            break;
+          }
+        } catch (_) {}
+      }
     }
 
     const combinedHtml = `${html}\n${fbHtml}`;
@@ -382,7 +457,7 @@ async function extractInstagramProfileData(igUrl) {
     const allLines = [...bioLines, ...captions.flatMap((c) => c.split(/\r?\n|\|/).map(stripEmojis))];
 
     const addrRegex =
-      /(?:\b(?:mahallesi|mah\.?|bulvarı|blv\.?|caddesi|cad\.?|sokak|sok\.?|sk\.?|osb|organize sanayi|sanayi sitesi|iş merkezi|is merkezi|plaza|avm|kat\b|no\s*:|sincan|çankaya|keçiören|yenimahalle|mamak|etimesgut|altındağ|gölbaşı|ivedik|ostim|şaşmaz|kızılay|çayyolu|ümitköy|batıkent|eryaman|atakum|ilkadım|canik|tekkeköy|bafra|çarşamba)\b)/i;
+      /(?:\b(?:mahallesi|mah\.?|bulvarı|blv\.?|caddesi|cad\.?|sokak|sok\.?|sk\.?|osb|organize sanayi|sanayi sitesi|iş merkezi|is merkezi|plaza|avm|kat\b|no\s*:|sincan|çankaya|keçiören|yenimahalle|mamak|etimesgut|altındağ|gölbaşı|ivedik|ostim|şaşmaz|kızılay|çayyolu|ümitköy|batıkent|eryaman|hacettepe|beytepe|odtü|bilkent|atakum|ilkadım|canik|tekkeköy|bafra|çarşamba)\b)/i;
 
     for (const line of allLines) {
       if (!line || line.startsWith('#') || line.startsWith('@')) continue;
@@ -395,7 +470,7 @@ async function extractInstagramProfileData(igUrl) {
 
     const allCombined = `${biography} ${captions.join(' ')}`.toLocaleLowerCase('tr-TR');
     if (
-      /(ankara|sincan|çankaya|cankaya|keçiören|kecioren|yenimahalle|mamak|etimesgut|altındağ|gölbaşı|ivedik|ostim|şaşmaz|kızılay|çayyolu|batıkent|eryaman)/.test(
+      /(ankara|sincan|çankaya|cankaya|keçiören|kecioren|yenimahalle|mamak|etimesgut|altındağ|gölbaşı|kızılcahamam|ivedik|ostim|şaşmaz|kızılay|çayyolu|batıkent|eryaman|hacettepe|beytepe|odtü|odtu|bilkent)/.test(
         allCombined
       )
     ) {
@@ -794,8 +869,8 @@ export default async function handler(req, res) {
 
     const fullInfo = await resolveBusinessInfo(text);
     const { city, baseUrl } = detectCityAndBaseUrl(fullInfo, text);
-    if (fullInfo.a === 'Merkez / Türkiye' && city === 'Ankara') {
-      fullInfo.a = 'Ankara / Türkiye';
+    if (fullInfo.a === 'Merkez / Türkiye') {
+      fullInfo.a = city === 'Ankara' ? 'Ankara / Türkiye' : 'Samsun / Türkiye';
     }
 
     const slug = slugify(fullInfo.n);
@@ -811,6 +886,19 @@ export default async function handler(req, res) {
     };
     const encodedPayload = Buffer.from(JSON.stringify(compactPayload), 'utf8').toString('base64url');
     const liveUrl = `${baseUrl}/${slug}?s=${encodedPayload}`;
+
+    const altCity = city === 'Ankara' ? 'Samsun' : 'Ankara';
+    const altBaseUrl = city === 'Ankara' ? SITE_BASE_URL : ANKARA_BASE_URL;
+    const altPayload = {
+      ...compactPayload,
+      a:
+        fullInfo.a === 'Ankara / Türkiye' || fullInfo.a === 'Samsun / Türkiye'
+          ? `${altCity} / Türkiye`
+          : fullInfo.a,
+    };
+    const altEncoded = Buffer.from(JSON.stringify(altPayload), 'utf8').toString('base64url');
+    const altUrl = `${altBaseUrl}/${slug}?s=${altEncoded}`;
+
     const themeLabel = getSectorLabel(fullInfo.s);
 
     await sendTelegram(
@@ -820,10 +908,10 @@ export default async function handler(req, res) {
         ''
       )})\n🏷️ Kategori: ${fullInfo.c || themeLabel}\n📍 Adres: ${fullInfo.a}\n📞 Telefon: ${
         fullInfo.p
-      }\n📸 Çekilen Gerçek Fotoğraf: ${fullInfo.photos.length} Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki:\n${liveUrl}`
+      }\n📸 Çekilen Gerçek Fotoğraf: ${fullInfo.photos.length} Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki (${city}):\n${liveUrl}\n\n🔄 Alternatif Şehir Linki (${altCity}):\n${altUrl}`
     );
 
-    return res.status(200).json({ ok: true, city, liveUrl });
+    return res.status(200).json({ ok: true, city, liveUrl, altUrl });
   } catch (err) {
     console.error('Telegram webhook error:', err);
     return res.status(200).json({ ok: true });
