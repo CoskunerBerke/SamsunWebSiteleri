@@ -6,10 +6,12 @@ export interface DynamicSiteInfo {
   n: string; // Business Name
   a: string; // Address
   p: string; // Phone Display
-  c?: string; // Real Google Maps Categories
+  c?: string; // Real Google Maps / Instagram Categories
   s: string; // Sector key
   q: string; // Map query
   u: string; // Original URL
+  l?: string; // Compact Logo URL
+  logo?: string; // Real Business Logo URL
   photos?: string[]; // Real Google Maps / Instagram photos
   reviews?: { author: string; role: string; group: string; text: string }[]; // Real Google Maps reviews
 }
@@ -555,7 +557,66 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
-  // 8. GENEL KURUMSAL İŞLETME / MAĞAZA / KUAFÖR / EMLAK / OFİS / HİZMET
+  // 8. OTO DETAİLİNG / PASTA CİLA / SERAMİK KAPLAMA / PPF / ARAÇ KAPLAMA GARAJI
+  const isAutoDetailing =
+    info.s === 'auto_detailing' ||
+    /(garage|garaj|detailing|pasta cila|seramik kaplama|elmas kaplama|ppf|kaput filmi|araç kaplama|arac kaplama|cam filmi|boyasız göçük|boyasiz gocuk|jant boyama|bodykit|oto kuaför|oto kuafor|car care)/i.test(
+      combinedText
+    );
+  if (isAutoDetailing) {
+    return {
+      eyebrow: catLabel || 'OTO DETAİLİNG, SERAMİK KAPLAMA & PPF GARAJI',
+      navActionLabel: 'Randevu & Fiyat Al',
+      servicesNavLabel: 'Uygulamalar',
+      galleryNavLabel: 'Garajımız',
+      heroSubtitle: `${name} olarak profesyonel pasta cila ve boya düzeltme, 9H seramik ve elmas kaplama, PPF şeffaf boya koruma filmi, araç kaplama, cam filmi, jant boyama, bodykit ve boyasız göçük düzeltme (PDR) uygulamalarıyla aracınıza kusursuz showroom parlaklığı kazandırıyoruz.`,
+      aboutTitle: `${name} — Profesyonel Boya Koruma, Kaplama ve Detailing Stüdyosu`,
+      aboutP1: `${name}, özel aydınlatmalı kapalı garaj stüdyosunda birinci sınıf seramik-elmas kaplama kimyasalları, yüksek mikronlu TPU PPF filmler ve profesyonel polisaj ekipmanlarıyla üst segment araç bakım ve koruma uygulamaları gerçekleştirmektedir.`,
+      aboutP2:
+        'Aracınızın boya değerini ve estetik görünümünü en üst seviyeye taşıyan seramik kaplama, kaput ve komple PPF kaplama, renk değişimi, cam filmi, jant boyama, bodykit ve boyasız göçük düzeltme işlemlerimizi uzman kadromuzla garantili olarak sunuyoruz.',
+      hours: 'Pazartesi – Cumartesi: 09:00 – 20:00',
+      headerBg: 'bg-zinc-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/detailing.mp4',
+      posterSrc: '/images/diestrogarage/3.jpg',
+      pillars: [
+        { num: '01', title: 'Seramik & Elmas Kaplama', desc: 'Boya yüzeyinde hidrofobik kristal zırh oluşturan, UV ve çizik dirençli 9H seramik ve elmas kaplama.' },
+        { num: '02', title: 'PPF & Araç Kaplama', desc: 'Taş vuruğu ve sürtmelere karşı kendini yenileyen TPU şeffaf kaput filmi ve profesyonel araç kaplama.' },
+        { num: '03', title: 'Pasta Cila & Boya Düzeltme', desc: 'Kılcal çizik, hare ve matlaşmayı ortadan kaldıran çok aşamalı profesyonel polisaj ve ayna parlaklığı.' },
+        { num: '04', title: 'PDR Göçük, Jant & Bodykit', desc: 'Orijinalliği bozmadan boyasız göçük düzeltme, jant boyama, garantili cam filmi ve bodykit aksesuar.' },
+      ],
+      servicesSectionTitle: 'Garajımızda Uygulanan Profesyonel Detailing ve Kaplama İşlemleri',
+      services: [
+        { num: '01', title: 'Seramik Kaplama & Elmas Kaplama', desc: 'Aracınızın boyasını dış etkenlere, güneş yanığına ve kimyasallara karşı koruyan, derin ıslak görünüm ve su iticilik sağlayan kristal kaplama.', detail: '9H Kristal Koruma • Su & Kir İtici • Derin Parlaklık' },
+        { num: '02', title: 'PPF Şeffaf Kaput Filmi & Araç Kaplama', desc: 'Taş çarpmalarına ve çiziklere karşı kendini ısıyla yenileyen TPU şeffaf PPF boya koruma filmi ve özel renk değişimi folyo kaplama.', detail: 'TPU Şeffaf PPF • Kaput & Komple • Renk Değişimi' },
+        { num: '03', title: 'Profesyonel Pasta Cila & Hare Giderme', desc: 'Yıkama ve fırça kaynaklı kılcal çiziklerin mikron ölçümü yapılarak çok aşamalı polisaj ile giderilmesi ve ilk günkü parlaklığa kavuşturulması.', detail: 'Boya Ölçümü • Çizik Giderme • Showroom Parlaklığı' },
+        { num: '04', title: 'Garantili Cam Filmi & Detaylı İç Kuaför', desc: 'Yüksek ısı ve UV blokajlı çizilmez cam filmi uygulaması; antibakteriyel detaylı iç temizlik, deri bakımı ve ozon sterilizasyonu.', detail: 'Isı & UV Korumalı Film • Deri Bakımı • Detaylı Kuaför' },
+        { num: '05', title: 'Boyasız Göçük Düzeltme (PDR)', desc: 'Park hasarları, kapı vurukları ve dolu göçüklerinin boyama veya macun işlemi yapılmadan, aracın orijinalliği korunarak düzeltilmesi.', detail: 'Orijinal Boya Koruma • Değer Kaybı Yok • Hassas İşçilik' },
+        { num: '06', title: 'Jant Boyama, Kaliper & Bodykit Aksesuar', desc: 'Kaldırım sürtmesi olan jantların onarımı ve özel renk boyaması, kaliper renklendirme ve modele özel bodykit/difüzör montajı.', detail: 'Jant Yenileme • Bodykit Montaj • Sportif Görünüm' },
+      ],
+      reviews: [
+        { author: 'Burak K.', role: 'Müşteri Yorumu', group: 'Seramik & Elmas Kaplama', text: 'Aracımın pasta cila ve seramik kaplama işlemi için tercih ettim. Araba galeriden sıfır çıkmış gibi ayna parlaklığında oldu, işçilik kusursuz.' },
+        { author: 'Emre Y.', role: 'Müşteri Yorumu', group: 'PPF Kaput Filmi & Cam Filmi', text: 'Kaput PPF ve cam filmi uygulaması yaptırdım. Kesim yerleri hiç belli olmuyor, kullanılan malzeme ve garajın temizliği 10 numara.' },
+        { author: 'Oğuzhan T.', role: 'Müşteri Yorumu', group: 'Boyasız Göçük Düzeltme', text: 'Kapıdaki göçüğü boyasız şekilde milimetrik olarak düzelttiler, hiçbir iz kalmadı. Jant boyama işçilikleri de harika.' },
+        { author: 'Serkan D.', role: 'Müşteri Yorumu', group: 'Araç Kaplama & Bodykit', text: 'Hem esnaflıkları hem de detaylara verdikleri önem çok üst seviyede. Aracınızı gözünüz kapalı teslim edebileceğiniz profesyonel bir garaj.' },
+      ],
+      gallery: [
+        { src: '/images/diestrogarage/1.jpg', title: `${name} Detailing & Kaplama Stüdyosu`, subtitle: info.a },
+        { src: '/images/diestrogarage/3.jpg', title: `${name} Profesyonel Pasta Cila & Seramik Kaplama`, subtitle: 'Özel LED aydınlatmalı stüdyoda kusursuz boya düzeltme' },
+        { src: '/images/diestrogarage/5.jpg', title: `${name} PPF Boya Koruma & Araç Kaplama`, subtitle: 'Üst segment araçlara özel garantili koruma uygulamaları' },
+        { src: '/images/diestrogarage/6.jpg', title: `${name} Elmas & Seramik Kaplama Teknolojisi`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 9. GENEL KURUMSAL İŞLETME / MAĞAZA / KUAFÖR / EMLAK / OFİS / HİZMET
   if (info.s === 'corporate_editorial') {
     const cleanCategory = info.c || 'Kurumsal Hizmet ve Çözüm';
     return {
@@ -579,7 +640,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroEyebrow: 'text-amber-400',
       accentText: 'text-amber-600',
       videoSrc: '/videos/corporate.mp4',
-      posterSrc: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1400&q=85',
+      posterSrc: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85',
       pillars: [
         { num: '01', title: 'Uzman & Deneyimli Ekip', desc: `${cleanCategory} alanında bilgi birikimi yüksek, güler yüzlü ve profesyonel kadro.` },
         { num: '02', title: 'Kaliteli Ürün & Uygulama', desc: 'Tüm hizmet ve ürün gruplarımızda birinci sınıf malzeme ve titiz işçilik standardı.' },
@@ -610,7 +671,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     };
   }
 
-  // 9. DEFAULT: OTOMOTİV / OTO ELEKTRİK / VAG / OTO SERVİS
+  // 10. DEFAULT: OTOMOTİV / OTO ELEKTRİK / VAG / OTO SERVİS
   return {
     eyebrow:
       catLabel ||
@@ -664,6 +725,41 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   };
 }
 
+function getKnownLocalPhotos(name: string, url: string): string[] {
+  const combined = `${name} ${url}`.toLocaleLowerCase('tr-TR');
+  if (combined.includes('diestro')) {
+    return [
+      '/images/diestrogarage/1.jpg',
+      '/images/diestrogarage/2.jpg',
+      '/images/diestrogarage/3.jpg',
+      '/images/diestrogarage/4.jpg',
+      '/images/diestrogarage/5.jpg',
+      '/images/diestrogarage/6.jpg',
+    ];
+  }
+  if (combined.includes('ky teknoloji') || combined.includes('kyteknoloji')) {
+    return [
+      '/images/kyteknoloji/1.jpg',
+      '/images/kyteknoloji/2.jpg',
+      '/images/kyteknoloji/3.jpg',
+      '/images/kyteknoloji/4.jpg',
+      '/images/kyteknoloji/5.jpg',
+      '/images/kyteknoloji/6.jpg',
+    ];
+  }
+  if (combined.includes('cofferoz')) {
+    return [
+      '/images/cofferozz/1.jpg',
+      '/images/cofferozz/2.jpg',
+      '/images/cofferozz/3.jpg',
+      '/images/cofferozz/4.jpg',
+      '/images/cofferozz/5.jpg',
+      '/images/cofferozz/6.jpg',
+    ];
+  }
+  return [];
+}
+
 export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info }) => {
   const [liveInfo, setLiveInfo] = useState<DynamicSiteInfo>(info);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -672,7 +768,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   const [formNote, setFormNote] = useState('');
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Fetch real Google Maps / Instagram photos, phone, address, categories, and reviews on mount
+  // Fetch real Google Maps / Instagram photos, logo, phone, address, categories, and reviews on mount
   useEffect(() => {
     let cancelled = false;
     if (info.u && /^https?:\/\//i.test(info.u)) {
@@ -680,17 +776,41 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
           if (!cancelled && data?.ok && data?.info) {
-            setLiveInfo((prev) => ({
-              ...prev,
-              n: data.info.n || prev.n,
-              a: data.info.a && data.info.a !== 'Merkez / Türkiye' ? data.info.a : prev.a,
-              p: data.info.p && data.info.p !== '0544 477 56 57' ? data.info.p : prev.p,
-              c: data.info.c || prev.c,
-              s: data.info.s || prev.s,
-              q: data.info.q || prev.q,
-              photos: Array.isArray(data.info.photos) && data.info.photos.length > 0 ? data.info.photos : prev.photos,
-              reviews: Array.isArray(data.info.reviews) && data.info.reviews.length > 0 ? data.info.reviews : prev.reviews,
-            }));
+            setLiveInfo((prev) => {
+              const isGenericPrevAddr =
+                !prev.a ||
+                prev.a === 'Merkez / Türkiye' ||
+                prev.a === 'Ankara / Türkiye' ||
+                prev.a === 'Samsun / Türkiye' ||
+                prev.a === 'Ankara' ||
+                prev.a === 'Samsun';
+              const isGenericApiAddr =
+                !data.info.a ||
+                data.info.a === 'Merkez / Türkiye' ||
+                data.info.a === 'Ankara / Türkiye' ||
+                data.info.a === 'Samsun / Türkiye' ||
+                data.info.a === 'Ankara' ||
+                data.info.a === 'Samsun';
+
+              return {
+                ...prev,
+                n: prev.n && prev.n !== 'Kurumsal İşletme Merkezi' ? prev.n : data.info.n || prev.n,
+                a: !isGenericPrevAddr ? prev.a : !isGenericApiAddr ? data.info.a : prev.a || data.info.a,
+                p: prev.p && prev.p !== '0544 477 56 57' ? prev.p : data.info.p || prev.p,
+                c: prev.c || data.info.c,
+                s: prev.s && prev.s !== 'corporate_editorial' ? prev.s : data.info.s || prev.s,
+                q: prev.q || data.info.q,
+                logo: prev.logo || prev.l || data.info.logo || data.info.l,
+                photos:
+                  Array.isArray(data.info.photos) && data.info.photos.length > 0
+                    ? data.info.photos
+                    : prev.photos,
+                reviews:
+                  Array.isArray(data.info.reviews) && data.info.reviews.length > 0
+                    ? data.info.reviews
+                    : prev.reviews,
+              };
+            });
           }
         })
         .catch(() => {});
@@ -703,7 +823,9 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   const cfg = getSectorConfig(liveInfo);
 
   // Replace default gallery images with real Google Maps / Instagram photos when available
-  const realPhotos = liveInfo.photos || [];
+  const fallbackLocalPhotos = getKnownLocalPhotos(liveInfo.n, liveInfo.u);
+  const realPhotos =
+    liveInfo.photos && liveInfo.photos.length > 0 ? liveInfo.photos : fallbackLocalPhotos;
   const activeGallery = cfg.gallery.map((item, idx) => {
     if (realPhotos[idx]) {
       return {
@@ -775,6 +897,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 name={liveInfo.n}
                 sector={liveInfo.s}
                 category={liveInfo.c}
+                logo={liveInfo.logo || liveInfo.l}
                 size="md"
               />
               <div className="whitespace-nowrap">
@@ -886,6 +1009,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                   name={liveInfo.n}
                   sector={liveInfo.s}
                   category={liveInfo.c}
+                  logo={liveInfo.logo || liveInfo.l}
                   size="lg"
                 />
                 <div className="flex items-center gap-3">
@@ -914,7 +1038,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 </a>
 
                 <a
-                  href={liveInfo.u}
+                  href={
+                    /instagram\.com/i.test(liveInfo.u)
+                      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(liveInfo.q)}`
+                      : liveInfo.u
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-lg bg-zinc-900/90 hover:bg-zinc-800 text-white font-medium text-sm sm:text-base border border-white/20 transition-colors"
@@ -1026,7 +1154,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/15 text-sm font-medium text-white border border-white/15 transition-colors self-start sm:self-auto whitespace-nowrap"
               >
-                <span>Google Haritalar’da Gör</span>
+                <span>{/instagram\.com/i.test(liveInfo.u) ? 'Instagram’da Gör' : 'Google Haritalar’da Gör'}</span>
                 <ExternalLink className="w-4 h-4 text-zinc-300" />
               </a>
             </div>
@@ -1131,15 +1259,29 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                   </div>
                 </div>
 
-                <div className="pt-6 mt-6 border-t border-zinc-200">
+                <div className="pt-6 mt-6 border-t border-zinc-200 flex flex-wrap gap-3">
                   <a
-                    href={liveInfo.u}
+                    href={
+                      /instagram\.com/i.test(liveInfo.u)
+                        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(liveInfo.q)}`
+                        : liveInfo.u
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-semibold transition-colors"
                   >
                     Google Haritalar’da Yol Tarifi Aç
                   </a>
+                  {/instagram\.com/i.test(liveInfo.u) && (
+                    <a
+                      href={liveInfo.u}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center px-5 py-3 rounded-lg border border-zinc-300 hover:bg-zinc-100 text-zinc-900 text-sm font-semibold transition-colors"
+                    >
+                      Resmi Instagram Hesabı
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -1227,6 +1369,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 name={liveInfo.n}
                 sector={liveInfo.s}
                 category={liveInfo.c}
+                logo={liveInfo.logo || liveInfo.l}
                 size="md"
               />
               <div>
@@ -1256,7 +1399,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
             <span>Hemen Ara</span>
           </a>
           <a
-            href={liveInfo.u}
+            href={
+              /instagram\.com/i.test(liveInfo.u)
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(liveInfo.q)}`
+                : liveInfo.u
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-1.5 py-2.5 rounded-lg bg-zinc-800 text-white font-medium text-xs border border-white/15"

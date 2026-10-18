@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import VwLogo from './VwLogo';
 
 interface BrandLogoProps {
   name: string;
   sector: string;
   category?: string;
+  logo?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -24,13 +25,47 @@ function getInitials(name: string): string {
   return 'KR';
 }
 
+function getKnownLocalLogo(name: string): string {
+  const lower = name.toLocaleLowerCase('tr-TR');
+  if (lower.includes('diestro')) return '/images/diestrogarage/logo.jpg';
+  if (lower.includes('ky teknoloji') || lower.includes('kyteknoloji')) return '/images/kyteknoloji/logo.jpg';
+  if (lower.includes('cofferoz')) return '/images/cofferozz/logo.jpg';
+  return '';
+}
+
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   name,
   sector,
   category = '',
+  logo = '',
   size = 'md',
   className = '',
 }) => {
+  const effectiveLogo = logo || getKnownLocalLogo(name);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  useEffect(() => {
+    setImgFailed(false);
+  }, [effectiveLogo]);
+
+  if (effectiveLogo && !imgFailed) {
+    const dim = size === 'lg' ? 'w-16 h-16' : size === 'sm' ? 'w-9 h-9' : 'w-11 h-11';
+    return (
+      <div
+        className={`${dim} shrink-0 relative inline-flex items-center justify-center rounded-xl overflow-hidden border border-amber-500/40 bg-zinc-950 shadow-md select-none ${className}`}
+        title={`${name} Orijinal Logosu`}
+      >
+        <img
+          src={effectiveLogo}
+          alt={`${name} Logo`}
+          referrerPolicy="no-referrer"
+          onError={() => setImgFailed(true)}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    );
+  }
+
   if (sector === 'vag_automotive') {
     const dim = size === 'lg' ? 'w-14 h-14' : size === 'sm' ? 'w-9 h-9' : 'w-11 h-11';
     return <VwLogo className={`${dim} shrink-0 ${className}`} />;
