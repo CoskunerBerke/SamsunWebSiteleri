@@ -12,6 +12,7 @@ export interface DynamicSiteInfo {
   u: string; // Original URL
   l?: string; // Compact Logo URL
   logo?: string; // Real Business Logo URL
+  ph?: string[]; // Compact Photos Array baked into URL
   photos?: string[]; // Real Google Maps / Instagram photos
   reviews?: { author: string; role: string; group: string; text: string }[]; // Real Google Maps reviews
 }
@@ -802,9 +803,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 q: prev.q || data.info.q,
                 logo: prev.logo || prev.l || data.info.logo || data.info.l,
                 photos:
-                  Array.isArray(data.info.photos) && data.info.photos.length > 0
+                  Array.isArray(data.info.photos) &&
+                  data.info.photos.length >= (prev.photos?.length || prev.ph?.length || 0) &&
+                  data.info.photos.length > 0
                     ? data.info.photos
-                    : prev.photos,
+                    : prev.photos || prev.ph,
                 reviews:
                   Array.isArray(data.info.reviews) && data.info.reviews.length > 0
                     ? data.info.reviews
@@ -825,7 +828,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   // Replace default gallery images with real Google Maps / Instagram photos when available
   const fallbackLocalPhotos = getKnownLocalPhotos(liveInfo.n, liveInfo.u);
   const realPhotos =
-    liveInfo.photos && liveInfo.photos.length > 0 ? liveInfo.photos : fallbackLocalPhotos;
+    liveInfo.photos && liveInfo.photos.length > 0
+      ? liveInfo.photos
+      : liveInfo.ph && liveInfo.ph.length > 0
+      ? liveInfo.ph
+      : fallbackLocalPhotos;
   const activeGallery = cfg.gallery.map((item, idx) => {
     if (realPhotos[idx]) {
       return {
