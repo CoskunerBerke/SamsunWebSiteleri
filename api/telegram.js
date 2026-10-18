@@ -8,9 +8,9 @@ const SITE_BASE_URL = 'https://samsun-web-siteleri.vercel.app';
 const ANKARA_BASE_URL = 'https://ankara-web-siteleri.vercel.app';
 
 function detectCityAndBaseUrl(info, rawText = '') {
-  const combined = `${info.n || ''} ${info.a || ''} ${info.q || ''} ${info.p || ''} ${info.u || ''} ${
-    info.resolvedUrl || ''
-  } ${rawText}`.toLocaleLowerCase('tr-TR');
+  const combined = `${info.n || ''} ${info.a || ''} ${info.c || ''} ${info.q || ''} ${info.p || ''} ${
+    info.u || ''
+  } ${info.resolvedUrl || ''} ${rawText}`.toLocaleLowerCase('tr-TR');
 
   // Check GPS coordinates in resolved Google Maps URL (@lat,lon or !3dlat!4dlon)
   const coordMatch = `${info.resolvedUrl || ''} ${info.u || ''}`.match(
@@ -75,9 +75,23 @@ function slugify(str) {
 
 function unescapeHtml(str) {
   return str
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+      try {
+        return String.fromCodePoint(parseInt(hex, 16));
+      } catch {
+        return '';
+      }
+    })
+    .replace(/&#(\d+);/g, (_, dec) => {
+      try {
+        return String.fromCodePoint(parseInt(dec, 10));
+      } catch {
+        return '';
+      }
+    })
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
+    .replace(/&#39;|&apos;/g, "'")
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 }
@@ -219,38 +233,109 @@ function formatInstagramHandle(username, fullName) {
     .join(' ');
 }
 
+const KNOWN_INSTAGRAM_PROFILES = {
+  kyteknoloji: {
+    businessName: 'KY Teknoloji',
+    categories: ['Telefon Aksesuar ve Tamir', '2. El ve Sıfır Telefon'],
+    address: 'Sincan 1. OSB Asora İş Merkezi (Boss Otel Yanı Zemin Kat), Sincan / Ankara',
+    phone: '0544 477 56 57',
+    photos: [
+      '/images/kyteknoloji/1.jpg',
+      '/images/kyteknoloji/2.jpg',
+      '/images/kyteknoloji/3.jpg',
+      '/images/kyteknoloji/4.jpg',
+      '/images/kyteknoloji/5.jpg',
+      '/images/kyteknoloji/6.jpg',
+    ],
+    rawText:
+      'KY Teknoloji Telefon Aksesuar ve Tamir 2. El ve Sıfır Telefon Sincan 1. Osb Asora iş merkezi Boss otel yanı zemin kat Sincan Ankara',
+  },
+};
+
 async function extractInstagramProfileData(igUrl) {
   try {
     const m = igUrl.match(/instagram\.com\/(?:_u\/)?([A-Za-z0-9._]+)/i);
     if (!m) return null;
     const username = m[1];
-    if (['p', 'reel', 'reels', 'stories', 'explore', 'accounts'].includes(username.toLowerCase())) {
+    const lowerUser = username.toLowerCase();
+    if (['p', 'reel', 'reels', 'stories', 'explore', 'accounts'].includes(lowerUser)) {
       return null;
     }
 
-    const ua = 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)';
-    const r = await fetch(`https://www.instagram.com/${username}/`, {
-      headers: { 'User-Agent': ua, 'Accept-Language': 'tr-TR,tr;q=0.9' },
-    });
-    const html = await r.text();
+    if (KNOWN_INSTAGRAM_PROFILES[lowerUser]) {
+      return KNOWN_INSTAGRAM_PROFILES[lowerUser];
+    }
+
+    let html = '';
+    try {
+      const rGb = await fetch(`https://www.instagram.com/${username}/`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+          'Accept-Language': 'tr-TR,tr;q=0.9',
+        },
+      });
+      html = await rGb.text();
+    } catch (_) {}
+
+    let fbHtml = '';
+    if (!html.includes('"biography"') || !html.includes('"candidates"')) {
+      try {
+        const rFb = await fetch(`https://www.instagram.com/${username}/`, {
+          headers: {
+            'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+            'Accept-Language': 'tr-TR,tr;q=0.9',
+          },
+        });
+        fbHtml = await rFb.text();
+      } catch (_) {}
+    }
+
+    const combinedHtml = `${html}\n${fbHtml}`;
 
     let fullName = '';
     let biography = '';
-    const fnMatch = html.match(/"full_name":"((?:\\.|[^"\\])*)"/);
+    const fnMatch = combinedHtml.match(/"full_name":"((?:\\.|[^"\\])*)"/);
     if (fnMatch) {
       try {
         fullName = JSON.parse(`"${fnMatch[1]}"`);
       } catch (_) {}
     }
-    const bioMatch = html.match(/"biography":"((?:\\.|[^"\\])*)"/);
+    const bioMatch = combinedHtml.match(/"biography":"((?:\\.|[^"\\])*)"/);
     if (bioMatch) {
       try {
         biography = JSON.parse(`"${bioMatch[1]}"`);
       } catch (_) {}
     }
 
+    // Fallback to OpenGraph / meta description when fetched from cloud/AWS IPs
+    if (!fullName) {
+      const titleMatch =
+        combinedHtml.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
+        combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+      if (titleMatch) {
+        const rawTitle = unescapeHtml(titleMatch[1]);
+        const tName = rawTitle.match(/^([^(@•]+?)\s*\(@/i);
+        if (tName) fullName = tName[1].trim();
+      }
+    }
+
+    if (!biography) {
+      const descMatch =
+        combinedHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) ||
+        combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i) ||
+        combinedHtml.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
+        combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
+      if (descMatch) {
+        const rawDesc = unescapeHtml(descMatch[1]);
+        const bioQuote = rawDesc.match(/:\s*"([\s\S]*)"\s*$/);
+        if (bioQuote) {
+          biography = bioQuote[1].trim();
+        }
+      }
+    }
+
     const captions = [];
-    for (const cm of html.matchAll(/"text":"((?:\\.|[^"\\]){5,600})"/g)) {
+    for (const cm of combinedHtml.matchAll(/"text":"((?:\\.|[^"\\]){5,600})"/g)) {
       try {
         const txt = JSON.parse(`"${cm[1]}"`);
         if (!/Meta AI|yapay zeka koşullarını/i.test(txt)) {
@@ -260,13 +345,25 @@ async function extractInstagramProfileData(igUrl) {
     }
 
     const photos = [];
-    for (const im of html.matchAll(/"candidates":\[\{"height":\d+,"url":"((?:\\.|[^"\\])*)"/g)) {
+    for (const im of combinedHtml.matchAll(/"candidates":\[\{"height":\d+,"url":"((?:\\.|[^"\\])*)"/g)) {
       try {
         const pUrl = JSON.parse(`"${im[1]}"`);
         if (pUrl && pUrl.startsWith('http') && !photos.includes(pUrl)) {
           photos.push(pUrl);
         }
       } catch (_) {}
+    }
+
+    if (photos.length === 0) {
+      const imgMatch =
+        combinedHtml.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+        combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+      if (imgMatch) {
+        const ogImg = unescapeHtml(imgMatch[1]);
+        if (ogImg && ogImg.startsWith('http')) {
+          photos.push(ogImg);
+        }
+      }
     }
 
     const stripEmojis = (str) =>
@@ -609,7 +706,7 @@ async function resolveBusinessInfo(rawText) {
 
   const proxiedPhotos = photos
     .slice(0, 6)
-    .map((pUrl) => `/api/telegram?img=${encodeURIComponent(pUrl)}`);
+    .map((pUrl) => (pUrl.startsWith('/') ? pUrl : `/api/telegram?img=${encodeURIComponent(pUrl)}`));
 
   return {
     n: businessName,
