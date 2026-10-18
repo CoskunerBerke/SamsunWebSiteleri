@@ -51,26 +51,93 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const catLabel = info.c ? info.c.toLocaleUpperCase('tr-TR') : '';
   const combinedText = `${info.n} ${info.c || ''} ${info.q}`.toLocaleLowerCase('tr-TR');
 
-  const hasExplicitBorekOrBakery = /(börek|borek|poğaça|pogaca|simit|fırın|firin|unlu mam|baklava|künefe|gözleme)/i.test(
-    combinedText
-  );
+  const isAutoDetailing =
+    info.s === 'auto_detailing' ||
+    (info.s === 'corporate_editorial' &&
+      /(garage|garaj|detailing|pasta cila|seramik kaplama|elmas kaplama|ppf|kaput filmi|araç kaplama|arac kaplama|cam filmi|boyasız göçük|boyasiz gocuk|jant boyama|bodykit|oto kuaför|oto kuafor|car care)/i.test(
+        combinedText
+      ));
+
+  const hasExplicitBorekOrBakery =
+    !isAutoDetailing &&
+    /(börek|borek|poğaça|pogaca|simit|fırın|firin|unlu mam|baklava|künefe|gözleme)/i.test(combinedText);
   const isCafe =
+    !isAutoDetailing &&
     !hasExplicitBorekOrBakery &&
     (info.s === 'cafe_dessert' ||
-      /(kafe|cafe|kahve|coffe|espresso|latte|patisserie|pastane|magnolia|profiterol|tiramisu|cheesecake|san sebastian|tatlı|tatli|pasta|waffle|dondurma|çikolata|cikolata)/i.test(
-        combinedText
-      ));
+      (info.s === 'corporate_editorial' &&
+        /(kafe|cafe|kahve|coffe|espresso|latte|patisserie|pastane|magnolia|profiterol|tiramisu|cheesecake|san sebastian|tatlı|tatli|yaş pasta|dilim pasta|waffle|dondurma|çikolata|cikolata)/i.test(
+          combinedText
+        )));
   const isBakery =
+    !isAutoDetailing &&
     !isCafe &&
     (info.s === 'bakery_breakfast' ||
-      /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu|pastane|baklava|künefe|gözleme|mantı|ekmek)/i.test(
-        combinedText
-      ));
+      (info.s === 'corporate_editorial' &&
+        /(börek|borek|poğaça|pogaca|simit|kahvaltı|kahvalti|fırın|firin|unlu|pastane|baklava|künefe|gözleme|mantı|ekmek)/i.test(
+          combinedText
+        )));
   const isSoupPlace =
+    !isAutoDetailing &&
     !isBakery &&
     !isCafe &&
     (info.s === 'soup_restaurant' ||
-      /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|kelle)/i.test(combinedText));
+      (info.s === 'corporate_editorial' &&
+        /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|kelle)/i.test(combinedText)));
+
+  // 0. OTO DETAİLİNG / PASTA CİLA / SERAMİK KAPLAMA / PPF / ARAÇ KAPLAMA GARAJI (ÖNCELİKLİ)
+  if (isAutoDetailing) {
+    return {
+      eyebrow: catLabel || 'OTO DETAİLİNG, SERAMİK KAPLAMA & PPF GARAJI',
+      navActionLabel: 'Randevu & Fiyat Al',
+      servicesNavLabel: 'Uygulamalar',
+      galleryNavLabel: 'Garajımız',
+      heroSubtitle: `${name} olarak profesyonel pasta cila ve boya düzeltme, 9H seramik ve elmas kaplama, PPF şeffaf boya koruma filmi, araç kaplama, cam filmi, jant boyama, bodykit ve boyasız göçük düzeltme (PDR) uygulamalarıyla aracınıza kusursuz showroom parlaklığı kazandırıyoruz.`,
+      aboutTitle: `${name} — Profesyonel Boya Koruma, Kaplama ve Detailing Stüdyosu`,
+      aboutP1: `${name}, özel aydınlatmalı kapalı garaj stüdyosunda birinci sınıf seramik-elmas kaplama kimyasalları, yüksek mikronlu TPU PPF filmler ve profesyonel polisaj ekipmanlarıyla üst segment araç bakım ve koruma uygulamaları gerçekleştirmektedir.`,
+      aboutP2:
+        'Aracınızın boya değerini ve estetik görünümünü en üst seviyeye taşıyan seramik kaplama, kaput ve komple PPF kaplama, renk değişimi, cam filmi, jant boyama, bodykit ve boyasız göçük düzeltme işlemlerimizi uzman kadromuzla garantili olarak sunuyoruz.',
+      hours: 'Pazartesi – Cumartesi: 09:00 – 20:00',
+      headerBg: 'bg-zinc-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/detailing.mp4',
+      posterSrc: '/images/diestrogarage/3.jpg',
+      pillars: [
+        { num: '01', title: 'Seramik & Elmas Kaplama', desc: 'Boya yüzeyinde hidrofobik kristal zırh oluşturan, UV ve çizik dirençli 9H seramik ve elmas kaplama.' },
+        { num: '02', title: 'PPF & Araç Kaplama', desc: 'Taş vuruğu ve sürtmelere karşı kendini yenileyen TPU şeffaf kaput filmi ve profesyonel araç kaplama.' },
+        { num: '03', title: 'Pasta Cila & Boya Düzeltme', desc: 'Kılcal çizik, hare ve matlaşmayı ortadan kaldıran çok aşamalı profesyonel polisaj ve ayna parlaklığı.' },
+        { num: '04', title: 'PDR Göçük, Jant & Bodykit', desc: 'Orijinalliği bozmadan boyasız göçük düzeltme, jant boyama, garantili cam filmi ve bodykit aksesuar.' },
+      ],
+      servicesSectionTitle: 'Garajımızda Uygulanan Profesyonel Detailing ve Kaplama İşlemleri',
+      services: [
+        { num: '01', title: 'Seramik Kaplama & Elmas Kaplama', desc: 'Aracınızın boyasını dış etkenlere, güneş yanığına ve kimyasallara karşı koruyan, derin ıslak görünüm ve su iticilik sağlayan kristal kaplama.', detail: '9H Kristal Koruma • Su & Kir İtici • Derin Parlaklık' },
+        { num: '02', title: 'PPF Şeffaf Kaput Filmi & Araç Kaplama', desc: 'Taş çarpmalarına ve çiziklere karşı kendini ısıyla yenileyen TPU şeffaf PPF boya koruma filmi ve özel renk değişimi folyo kaplama.', detail: 'TPU Şeffaf PPF • Kaput & Komple • Renk Değişimi' },
+        { num: '03', title: 'Profesyonel Pasta Cila & Hare Giderme', desc: 'Yıkama ve fırça kaynaklı kılcal çiziklerin mikron ölçümü yapılarak çok aşamalı polisaj ile giderilmesi ve ilk günkü parlaklığa kavuşturulması.', detail: 'Boya Ölçümü • Çizik Giderme • Showroom Parlaklığı' },
+        { num: '04', title: 'Garantili Cam Filmi & Detaylı İç Kuaför', desc: 'Yüksek ısı ve UV blokajlı çizilmez cam filmi uygulaması; antibakteriyel detaylı iç temizlik, deri bakımı ve ozon sterilizasyonu.', detail: 'Isı & UV Korumalı Film • Deri Bakımı • Detaylı Kuaför' },
+        { num: '05', title: 'Boyasız Göçük Düzeltme (PDR)', desc: 'Park hasarları, kapı vurukları ve dolu göçüklerinin boyama veya macun işlemi yapılmadan, aracın orijinalliği korunarak düzeltilmesi.', detail: 'Orijinal Boya Koruma • Değer Kaybı Yok • Hassas İşçilik' },
+        { num: '06', title: 'Jant Boyama, Kaliper & Bodykit Aksesuar', desc: 'Kaldırım sürtmesi olan jantların onarımı ve özel renk boyaması, kaliper renklendirme ve modele özel bodykit/difüzör montajı.', detail: 'Jant Yenileme • Bodykit Montaj • Sportif Görünüm' },
+      ],
+      reviews: [
+        { author: 'Burak K.', role: 'Müşteri Yorumu', group: 'Seramik & Elmas Kaplama', text: 'Aracımın pasta cila ve seramik kaplama işlemi için tercih ettim. Araba galeriden sıfır çıkmış gibi ayna parlaklığında oldu, işçilik kusursuz.' },
+        { author: 'Emre Y.', role: 'Müşteri Yorumu', group: 'PPF Kaput Filmi & Cam Filmi', text: 'Kaput PPF ve cam filmi uygulaması yaptırdım. Kesim yerleri hiç belli olmuyor, kullanılan malzeme ve garajın temizliği 10 numara.' },
+        { author: 'Oğuzhan T.', role: 'Müşteri Yorumu', group: 'Boyasız Göçük Düzeltme', text: 'Kapıdaki göçüğü boyasız şekilde milimetrik olarak düzelttiler, hiçbir iz kalmadı. Jant boyama işçilikleri de harika.' },
+        { author: 'Serkan D.', role: 'Müşteri Yorumu', group: 'Araç Kaplama & Bodykit', text: 'Hem esnaflıkları hem de detaylara verdikleri önem çok üst seviyede. Aracınızı gözünüz kapalı teslim edebileceğiniz profesyonel bir garaj.' },
+      ],
+      gallery: [
+        { src: '/images/diestrogarage/1.jpg', title: `${name} Detailing & Kaplama Stüdyosu`, subtitle: info.a },
+        { src: '/images/diestrogarage/3.jpg', title: `${name} Profesyonel Pasta Cila & Seramik Kaplama`, subtitle: 'Özel LED aydınlatmalı stüdyoda kusursuz boya düzeltme' },
+        { src: '/images/diestrogarage/5.jpg', title: `${name} PPF Boya Koruma & Araç Kaplama`, subtitle: 'Üst segment araçlara özel garantili koruma uygulamaları' },
+        { src: '/images/diestrogarage/6.jpg', title: `${name} Elmas & Seramik Kaplama Teknolojisi`, subtitle: info.a },
+      ],
+    };
+  }
 
   // 1. BÖREKÇİ / KAHVALTI SALONU / FIRIN / UNLU MAMULLER
   if (isBakery) {
@@ -339,9 +406,11 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   }
 
   // 5. TELEFON & TEKNOLOJİ / EV ALETLERİ / BEYAZ EŞYA / TEKNİK SERVİS
-  const isPhoneOrTech = /(telefon|cep telefonu|iphone|samsung|xiaomi|aksesuar|tablet|bilgisayar|laptop|teknoloji|bilişim|bilisim)/i.test(
-    combinedText
-  );
+  const isPhoneOrTech =
+    (info.s === 'appliance_service' || info.s === 'corporate_editorial') &&
+    /(telefon|cep telefonu|iphone|samsung|xiaomi|aksesuar|tablet|bilgisayar|laptop|teknoloji|bilişim|bilisim)/i.test(
+      combinedText
+    );
   if (info.s === 'appliance_service' || isPhoneOrTech) {
     if (isPhoneOrTech) {
       return {
@@ -554,65 +623,6 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { src: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=1000&q=85', title: `${name} Mühendislik ve Kalite Kontrol`, subtitle: 'Yüksek dayanımlı malzeme ve hassas işçilik' },
         { src: 'https://images.unsplash.com/photo-1565514020179-026b92b84bb6?auto=format&fit=crop&w=1000&q=85', title: `${name} Stok ve Sevkiyat Alanı`, subtitle: 'Toptan ve perakende siparişler için güçlü stok' },
         { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: `${name} İdari Ofis & Satış Merkezi`, subtitle: info.a },
-      ],
-    };
-  }
-
-  // 8. OTO DETAİLİNG / PASTA CİLA / SERAMİK KAPLAMA / PPF / ARAÇ KAPLAMA GARAJI
-  const isAutoDetailing =
-    info.s === 'auto_detailing' ||
-    /(garage|garaj|detailing|pasta cila|seramik kaplama|elmas kaplama|ppf|kaput filmi|araç kaplama|arac kaplama|cam filmi|boyasız göçük|boyasiz gocuk|jant boyama|bodykit|oto kuaför|oto kuafor|car care)/i.test(
-      combinedText
-    );
-  if (isAutoDetailing) {
-    return {
-      eyebrow: catLabel || 'OTO DETAİLİNG, SERAMİK KAPLAMA & PPF GARAJI',
-      navActionLabel: 'Randevu & Fiyat Al',
-      servicesNavLabel: 'Uygulamalar',
-      galleryNavLabel: 'Garajımız',
-      heroSubtitle: `${name} olarak profesyonel pasta cila ve boya düzeltme, 9H seramik ve elmas kaplama, PPF şeffaf boya koruma filmi, araç kaplama, cam filmi, jant boyama, bodykit ve boyasız göçük düzeltme (PDR) uygulamalarıyla aracınıza kusursuz showroom parlaklığı kazandırıyoruz.`,
-      aboutTitle: `${name} — Profesyonel Boya Koruma, Kaplama ve Detailing Stüdyosu`,
-      aboutP1: `${name}, özel aydınlatmalı kapalı garaj stüdyosunda birinci sınıf seramik-elmas kaplama kimyasalları, yüksek mikronlu TPU PPF filmler ve profesyonel polisaj ekipmanlarıyla üst segment araç bakım ve koruma uygulamaları gerçekleştirmektedir.`,
-      aboutP2:
-        'Aracınızın boya değerini ve estetik görünümünü en üst seviyeye taşıyan seramik kaplama, kaput ve komple PPF kaplama, renk değişimi, cam filmi, jant boyama, bodykit ve boyasız göçük düzeltme işlemlerimizi uzman kadromuzla garantili olarak sunuyoruz.',
-      hours: 'Pazartesi – Cumartesi: 09:00 – 20:00',
-      headerBg: 'bg-zinc-950/95 border-amber-500/20',
-      headerText: 'text-white',
-      headerSub: 'text-amber-400',
-      navLink: 'text-zinc-300 hover:text-amber-400',
-      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
-      heroBg: 'bg-zinc-950',
-      heroLine: 'bg-amber-500',
-      heroEyebrow: 'text-amber-400',
-      accentText: 'text-amber-600',
-      videoSrc: '/videos/detailing.mp4',
-      posterSrc: '/images/diestrogarage/3.jpg',
-      pillars: [
-        { num: '01', title: 'Seramik & Elmas Kaplama', desc: 'Boya yüzeyinde hidrofobik kristal zırh oluşturan, UV ve çizik dirençli 9H seramik ve elmas kaplama.' },
-        { num: '02', title: 'PPF & Araç Kaplama', desc: 'Taş vuruğu ve sürtmelere karşı kendini yenileyen TPU şeffaf kaput filmi ve profesyonel araç kaplama.' },
-        { num: '03', title: 'Pasta Cila & Boya Düzeltme', desc: 'Kılcal çizik, hare ve matlaşmayı ortadan kaldıran çok aşamalı profesyonel polisaj ve ayna parlaklığı.' },
-        { num: '04', title: 'PDR Göçük, Jant & Bodykit', desc: 'Orijinalliği bozmadan boyasız göçük düzeltme, jant boyama, garantili cam filmi ve bodykit aksesuar.' },
-      ],
-      servicesSectionTitle: 'Garajımızda Uygulanan Profesyonel Detailing ve Kaplama İşlemleri',
-      services: [
-        { num: '01', title: 'Seramik Kaplama & Elmas Kaplama', desc: 'Aracınızın boyasını dış etkenlere, güneş yanığına ve kimyasallara karşı koruyan, derin ıslak görünüm ve su iticilik sağlayan kristal kaplama.', detail: '9H Kristal Koruma • Su & Kir İtici • Derin Parlaklık' },
-        { num: '02', title: 'PPF Şeffaf Kaput Filmi & Araç Kaplama', desc: 'Taş çarpmalarına ve çiziklere karşı kendini ısıyla yenileyen TPU şeffaf PPF boya koruma filmi ve özel renk değişimi folyo kaplama.', detail: 'TPU Şeffaf PPF • Kaput & Komple • Renk Değişimi' },
-        { num: '03', title: 'Profesyonel Pasta Cila & Hare Giderme', desc: 'Yıkama ve fırça kaynaklı kılcal çiziklerin mikron ölçümü yapılarak çok aşamalı polisaj ile giderilmesi ve ilk günkü parlaklığa kavuşturulması.', detail: 'Boya Ölçümü • Çizik Giderme • Showroom Parlaklığı' },
-        { num: '04', title: 'Garantili Cam Filmi & Detaylı İç Kuaför', desc: 'Yüksek ısı ve UV blokajlı çizilmez cam filmi uygulaması; antibakteriyel detaylı iç temizlik, deri bakımı ve ozon sterilizasyonu.', detail: 'Isı & UV Korumalı Film • Deri Bakımı • Detaylı Kuaför' },
-        { num: '05', title: 'Boyasız Göçük Düzeltme (PDR)', desc: 'Park hasarları, kapı vurukları ve dolu göçüklerinin boyama veya macun işlemi yapılmadan, aracın orijinalliği korunarak düzeltilmesi.', detail: 'Orijinal Boya Koruma • Değer Kaybı Yok • Hassas İşçilik' },
-        { num: '06', title: 'Jant Boyama, Kaliper & Bodykit Aksesuar', desc: 'Kaldırım sürtmesi olan jantların onarımı ve özel renk boyaması, kaliper renklendirme ve modele özel bodykit/difüzör montajı.', detail: 'Jant Yenileme • Bodykit Montaj • Sportif Görünüm' },
-      ],
-      reviews: [
-        { author: 'Burak K.', role: 'Müşteri Yorumu', group: 'Seramik & Elmas Kaplama', text: 'Aracımın pasta cila ve seramik kaplama işlemi için tercih ettim. Araba galeriden sıfır çıkmış gibi ayna parlaklığında oldu, işçilik kusursuz.' },
-        { author: 'Emre Y.', role: 'Müşteri Yorumu', group: 'PPF Kaput Filmi & Cam Filmi', text: 'Kaput PPF ve cam filmi uygulaması yaptırdım. Kesim yerleri hiç belli olmuyor, kullanılan malzeme ve garajın temizliği 10 numara.' },
-        { author: 'Oğuzhan T.', role: 'Müşteri Yorumu', group: 'Boyasız Göçük Düzeltme', text: 'Kapıdaki göçüğü boyasız şekilde milimetrik olarak düzelttiler, hiçbir iz kalmadı. Jant boyama işçilikleri de harika.' },
-        { author: 'Serkan D.', role: 'Müşteri Yorumu', group: 'Araç Kaplama & Bodykit', text: 'Hem esnaflıkları hem de detaylara verdikleri önem çok üst seviyede. Aracınızı gözünüz kapalı teslim edebileceğiniz profesyonel bir garaj.' },
-      ],
-      gallery: [
-        { src: '/images/diestrogarage/1.jpg', title: `${name} Detailing & Kaplama Stüdyosu`, subtitle: info.a },
-        { src: '/images/diestrogarage/3.jpg', title: `${name} Profesyonel Pasta Cila & Seramik Kaplama`, subtitle: 'Özel LED aydınlatmalı stüdyoda kusursuz boya düzeltme' },
-        { src: '/images/diestrogarage/5.jpg', title: `${name} PPF Boya Koruma & Araç Kaplama`, subtitle: 'Üst segment araçlara özel garantili koruma uygulamaları' },
-        { src: '/images/diestrogarage/6.jpg', title: `${name} Elmas & Seramik Kaplama Teknolojisi`, subtitle: info.a },
       ],
     };
   }
