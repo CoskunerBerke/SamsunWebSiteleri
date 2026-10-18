@@ -94,7 +94,8 @@ function unescapeHtml(str) {
     })
     .replace(/&amp;/g, '&')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;|&apos;/g, "'")
+    .replace(/&#39;|&apos;|&#039;/g, "'")
+    .replace(/&#064;/g, '@')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
 }
@@ -102,7 +103,7 @@ function unescapeHtml(str) {
 function detectSector(combinedText) {
   const t = combinedText.toLocaleLowerCase('tr-TR');
   if (
-    /(garage|garaj|detailing|pasta cila|seramik kaplama|elmas kaplama|ppf|kaput filmi|araç kaplama|arac kaplama|cam filmi|boyasız göçük|boyasiz gocuk|jant boyama|bodykit|oto kuaför|oto kuafor|car care)/.test(
+    /(garage|garaj|detailing|pasta cila|seramik kaplama|elmas kaplama|ppf|kaput filmi|araç kaplama|arac kaplama|cam filmi|boyasız göçük|boyasiz gocuk|jant boyama|bodykit|oto kuaför|oto kuafor|car care|autoclub)/.test(
       t
     )
   ) {
@@ -227,8 +228,16 @@ function formatInstagramHandle(username, fullName) {
     ['elektronik', 'Elektronik'],
     ['aksesuar', 'Aksesuar'],
     ['bilgisayar', 'Bilgisayar'],
+    ['gayrimenkul', 'Gayrimenkul'],
+    ['danismanlik', 'Danışmanlık'],
+    ['dekorasyon', 'Dekorasyon'],
+    ['patisserie', 'Patisserie'],
+    ['mimarlik', 'Mimarlık'],
+    ['guzellik', 'Güzellik'],
     ['insaat', 'İnşaat'],
     ['mobilya', 'Mobilya'],
+    ['sigorta', 'Sigorta'],
+    ['akademi', 'Akademi'],
     ['garage', 'Garage'],
     ['garaj', 'Garaj'],
     ['motors', 'Motors'],
@@ -239,15 +248,22 @@ function formatInstagramHandle(username, fullName) {
     ['medikal', 'Medikal'],
     ['estetik', 'Estetik'],
     ['restoran', 'Restoran'],
+    ['pastane', 'Pastane'],
+    ['bakery', 'Bakery'],
+    ['coffee', 'Coffee'],
+    ['kuafor', 'Kuaför'],
+    ['barber', 'Barber'],
+    ['studio', 'Studio'],
+    ['studyo', 'Stüdyo'],
+    ['merkezi', 'Merkezi'],
+    ['center', 'Center'],
     ['borek', 'Börek'],
     ['corba', 'Çorba'],
     ['kebap', 'Kebap'],
     ['kafe', 'Kafe'],
     ['cafe', 'Cafe'],
-    ['pastane', 'Pastane'],
+    ['club', 'Club'],
     ['emlak', 'Emlak'],
-    ['gayrimenkul', 'Gayrimenkul'],
-    ['mimarlik', 'Mimarlık'],
     ['ankara', 'Ankara'],
     ['samsun', 'Samsun'],
     ['oto', 'Oto'],
@@ -260,12 +276,13 @@ function formatInstagramHandle(username, fullName) {
       const rest = clean.slice(idx + rawSuf.length).trim();
       const formattedPrefix =
         prefix.length <= 3 ? prefix.toUpperCase() : prefix[0].toUpperCase() + prefix.slice(1);
-      return `${formattedPrefix} ${prettySuf}${rest ? ' ' + rest : ''}`.trim();
+      return `${formattedPrefix} ${prettySuf}${rest ? ' ' + rest.toUpperCase() : ''}`.trim();
     }
   }
   return clean
     .split(' ')
-    .map((w) => (w.length <= 2 ? w.toUpperCase() : w[0].toUpperCase() + w[0].slice(1)))
+    .filter(Boolean)
+    .map((w) => (w.length <= 2 ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)))
     .join(' ');
 }
 
@@ -372,21 +389,64 @@ async function extractInstagramProfileData(igUrl) {
     const photos = [];
     const captions = [];
 
-    // 1. Try Residential Instagram Bridge first (for full RelayPrefetchedStreamCache photos, logo & bio)
-    if (IG_RESIDENTIAL_BRIDGE_URL) {
+    // 1. Primary Universal Endpoint: Instagram /embed/ with curl/8.4.0 UA (returns PolarisEmbedSimple + contextJSON)
+    try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      const rEmbed = await fetch(`https://www.instagram.com/${username}/embed/`, {
+        headers: {
+          'User-Agent': 'curl/8.4.0',
+          Accept: 'text/html,application/xhtml+xml',
+          'Accept-Language': 'tr-TR,tr;q=0.9',
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(timer);
+      const embedHtml = await rEmbed.text();
+      const ctxMatch = embedHtml.match(/"contextJSON":"((?:\\.|[^"\\])*)"/);
+      if (ctxMatch) {
+        const innerJson = JSON.parse(`"${ctxMatch[1]}"`);
+        const parsedCtx = JSON.parse(innerJson);
+        const ctx = parsedCtx?.context || {};
+        if (ctx.full_name && !fullName) fullName = ctx.full_name;
+        if (ctx.profile_pic_url && !logoUrl) logoUrl = ctx.profile_pic_url;
+        if (Array.isArray(ctx.graphql_media)) {
+          const imagePosts = [];
+          const videoPosts = [];
+          for (const item of ctx.graphql_media) {
+            const sm = item?.shortcode_media;
+            if (!sm) continue;
+            const cap = sm?.edge_media_to_caption?.edges?.[0]?.node?.text || '';
+            if (cap && !captions.includes(cap)) captions.push(cap);
+            const locName = sm?.location?.name || '';
+            if (locName && !captions.includes(locName)) captions.push(locName);
+            if (sm.display_url && sm.display_url.startsWith('http')) {
+              if (sm.is_video) videoPosts.push(sm.display_url);
+              else imagePosts.push(sm.display_url);
+            }
+          }
+          for (const p of [...imagePosts, ...videoPosts]) {
+            if (!photos.includes(p)) photos.push(p);
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. Try Residential Instagram Bridge (fast 1.8s timeout, enriches biography & HD profile pic if online)
+    if (IG_RESIDENTIAL_BRIDGE_URL && (!biography || photos.length === 0)) {
       try {
         const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), 4500);
+        const timer = setTimeout(() => controller.abort(), 1800);
         const bRes = await fetch(
           `${IG_RESIDENTIAL_BRIDGE_URL}/?u=${encodeURIComponent(username)}`,
           { signal: controller.signal }
         );
         clearTimeout(timer);
-        if (bRes.ok) {
+        if (bRes.ok && (bRes.headers.get('content-type') || '').includes('application/json')) {
           const bData = await bRes.json();
           if (bData?.ok) {
-            if (bData.fullName) fullName = bData.fullName;
-            if (bData.biography) biography = bData.biography;
+            if (bData.fullName && !fullName) fullName = bData.fullName;
+            if (bData.biography && !biography) biography = bData.biography;
             if (bData.logo) logoUrl = bData.logo;
             if (Array.isArray(bData.photos)) {
               for (const p of bData.photos) {
@@ -395,7 +455,7 @@ async function extractInstagramProfileData(igUrl) {
             }
             if (Array.isArray(bData.captions)) {
               for (const c of bData.captions) {
-                if (c) captions.push(c);
+                if (c && !captions.includes(c)) captions.push(c);
               }
             }
           }
@@ -403,8 +463,8 @@ async function extractInstagramProfileData(igUrl) {
       } catch (_) {}
     }
 
-    // 2. Direct scrape fallback (Googlebot + OpenGraph crawlers)
-    if (photos.length === 0 || !biography || !logoUrl) {
+    // 3. Direct scrape fallback (Googlebot + OpenGraph crawlers for biography & HD logo)
+    if (!biography || !logoUrl || !fullName) {
       let html = '';
       try {
         const rGb = await fetch(`https://www.instagram.com/${username}/`, {
@@ -417,12 +477,10 @@ async function extractInstagramProfileData(igUrl) {
       } catch (_) {}
 
       let fbHtml = '';
-      if (!html.includes('"biography"') || !html.includes('"candidates"')) {
+      if (!html.includes('"biography"') || !html.includes('og:title')) {
         for (const fallbackUa of [
           'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
           'WhatsApp/2.23.20.0',
-          'Slackbot-LinkExpanding 1.0 (+https://api.slack.com/robots)',
-          'TelegramBot (like TwitterBot)',
         ]) {
           try {
             const rFb = await fetch(`https://www.instagram.com/${username}/`, {
@@ -458,22 +516,24 @@ async function extractInstagramProfileData(igUrl) {
           } catch (_) {}
         }
       }
-      if (!logoUrl) {
-        const hdPicMatch = combinedHtml.match(
-          /"hd_profile_pic_url_info":\{"height":\d+,"url":"((?:\\.|[^"\\])*)"/
-        );
-        const picMatch = hdPicMatch || combinedHtml.match(/"profile_pic_url":"((?:\\.|[^"\\])*)"/);
-        if (picMatch) {
-          try {
-            logoUrl = JSON.parse(`"${picMatch[1]}"`);
-          } catch (_) {}
-        }
+
+      const hdPicMatch = combinedHtml.match(
+        /"hd_profile_pic_url_info":\{"height":\d+,"url":"((?:\\.|[^"\\])*)"/
+      );
+      const picMatch = hdPicMatch || combinedHtml.match(/"profile_pic_url":"((?:\\.|[^"\\])*)"/);
+      if (picMatch) {
+        try {
+          const parsedPic = JSON.parse(`"${picMatch[1]}"`);
+          if (parsedPic && parsedPic.startsWith('http')) {
+            logoUrl = parsedPic;
+          }
+        } catch (_) {}
       }
 
       if (!fullName) {
         const titleMatch =
-          combinedHtml.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
-          combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i);
+          combinedHtml.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([\s\S]*?)["']/i) ||
+          combinedHtml.match(/<meta[^>]+content=["']([\s\S]*?)["'][^>]+property=["']og:title["']/i);
         if (titleMatch) {
           const rawTitle = unescapeHtml(titleMatch[1]);
           const tName = rawTitle.match(/^([^(@•]+?)\s*\(@/i);
@@ -483,10 +543,10 @@ async function extractInstagramProfileData(igUrl) {
 
       if (!biography) {
         const descMatch =
-          combinedHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)["']/i) ||
-          combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i) ||
-          combinedHtml.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']+)["']/i) ||
-          combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:description["']/i);
+          combinedHtml.match(/<meta[^>]+name=["']description["'][^>]+content=["']([\s\S]*?)["']/i) ||
+          combinedHtml.match(/<meta[^>]+content=["']([\s\S]*?)["'][^>]+name=["']description["']/i) ||
+          combinedHtml.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([\s\S]*?)["']/i) ||
+          combinedHtml.match(/<meta[^>]+content=["']([\s\S]*?)["'][^>]+property=["']og:description["']/i);
         if (descMatch) {
           const rawDesc = unescapeHtml(descMatch[1]);
           const bioQuote = rawDesc.match(/:\s*"([\s\S]*)"\s*$/);
@@ -499,7 +559,7 @@ async function extractInstagramProfileData(igUrl) {
       for (const cm of combinedHtml.matchAll(/"text":"((?:\\.|[^"\\]){5,600})"/g)) {
         try {
           const txt = JSON.parse(`"${cm[1]}"`);
-          if (!/Meta AI|yapay zeka koşullarını/i.test(txt)) {
+          if (!/Meta AI|yapay zeka koşullarını/i.test(txt) && !captions.includes(txt)) {
             captions.push(txt);
           }
         } catch (_) {}
@@ -508,7 +568,7 @@ async function extractInstagramProfileData(igUrl) {
       for (const im of combinedHtml.matchAll(/"candidates":\[\{"height":\d+,"url":"((?:\\.|[^"\\])*)"/g)) {
         try {
           const pUrl = JSON.parse(`"${im[1]}"`);
-          if (pUrl && pUrl.startsWith('http') && !photos.includes(pUrl)) {
+          if (pUrl && pUrl.startsWith('http') && pUrl !== logoUrl && !photos.includes(pUrl)) {
             photos.push(pUrl);
           }
         } catch (_) {}
@@ -519,9 +579,8 @@ async function extractInstagramProfileData(igUrl) {
         combinedHtml.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
       if (imgMatch) {
         const ogImg = unescapeHtml(imgMatch[1]);
-        if (ogImg && ogImg.startsWith('http')) {
-          if (!logoUrl) logoUrl = ogImg;
-          if (photos.length === 0) photos.push(ogImg);
+        if (ogImg && ogImg.startsWith('http') && !logoUrl) {
+          logoUrl = ogImg;
         }
       }
     }
@@ -574,13 +633,15 @@ async function extractInstagramProfileData(igUrl) {
       phone = pMatch[0].trim();
     }
 
+    const cleanPhotos = photos.filter((p) => p && p !== logoUrl).slice(0, 6);
+
     return {
       businessName: formatInstagramHandle(username, fullName),
       logo: logoUrl,
       categories,
       address,
       phone,
-      photos: photos.slice(0, 6),
+      photos: cleanPhotos,
       rawText: `${biography} ${captions.join(' ')}`,
     };
   } catch (_) {
@@ -588,9 +649,17 @@ async function extractInstagramProfileData(igUrl) {
   }
 }
 
-async function extractWebsiteOrInstagramPhotos(siteUrl) {
-  const found = [];
-  if (!siteUrl) return found;
+async function extractWebsiteLogoAndPhotos(siteUrl) {
+  const result = { logo: '', photos: [] };
+  if (!siteUrl) return result;
+  if (/instagram\.com/i.test(siteUrl)) {
+    const ig = await extractInstagramProfileData(siteUrl);
+    if (ig) {
+      result.logo = ig.logo || '';
+      result.photos = ig.photos || [];
+    }
+    return result;
+  }
   try {
     const res = await fetch(siteUrl, {
       headers: {
@@ -599,29 +668,54 @@ async function extractWebsiteOrInstagramPhotos(siteUrl) {
       },
     });
     const html = await res.text();
+    const resolveHref = (rawUrl) => {
+      try {
+        return new URL(unescapeHtml(rawUrl), siteUrl).href;
+      } catch {
+        return '';
+      }
+    };
+
+    // 1. Check for explicit logo img or apple-touch-icon
+    const logoImgMatch =
+      html.match(/<img[^>]+(?:class|id|alt)=["'][^"']*logo[^"']*["'][^>]+src=["']([^"']+)["']/i) ||
+      html.match(/<img[^>]+src=["']([^"']*logo[^"']*\.(?:png|jpg|jpeg|webp|svg)[^"']*)["']/i) ||
+      html.match(/<link[^>]+rel=["']apple-touch-icon["'][^>]+href=["']([^"']+)["']/i);
+    if (logoImgMatch) {
+      const lUrl = resolveHref(logoImgMatch[1]);
+      if (lUrl && lUrl.startsWith('http')) result.logo = lUrl;
+    }
+
     const ogMatches = [
       ...html.matchAll(/<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/gi),
       ...html.matchAll(/<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']/gi),
     ];
     for (const m of ogMatches) {
-      const imgUrl = unescapeHtml(m[1]);
-      if (imgUrl && imgUrl.startsWith('http') && !found.includes(imgUrl)) {
-        found.push(imgUrl);
+      const imgUrl = resolveHref(m[1]);
+      if (imgUrl && imgUrl.startsWith('http')) {
+        if (!result.logo) result.logo = imgUrl;
+        else if (!result.photos.includes(imgUrl)) result.photos.push(imgUrl);
       }
     }
-    const imgTags = [...html.matchAll(/<img[^>]+src=["'](https?:\/\/[^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi)];
+
+    const imgTags = [...html.matchAll(/<img[^>]+src=["']([^"']+\.(?:jpg|jpeg|png|webp)[^"']*)["']/gi)];
     for (const m of imgTags) {
-      const imgUrl = unescapeHtml(m[1]);
+      const imgUrl = resolveHref(m[1]);
       if (
         imgUrl &&
-        !/logo|icon|avatar|sprite|pixel|badge/i.test(imgUrl) &&
-        !found.includes(imgUrl)
+        imgUrl.startsWith('http') &&
+        !/icon|avatar|sprite|pixel|badge|flag/i.test(imgUrl)
       ) {
-        found.push(imgUrl);
+        if (/logo/i.test(imgUrl) && !result.logo) {
+          result.logo = imgUrl;
+        } else if (imgUrl !== result.logo && !result.photos.includes(imgUrl)) {
+          result.photos.push(imgUrl);
+        }
       }
     }
   } catch (_) {}
-  return found.slice(0, 6);
+  result.photos = result.photos.slice(0, 6);
+  return result;
 }
 
 async function resolveBusinessInfo(rawText) {
@@ -782,17 +876,19 @@ async function resolveBusinessInfo(rawText) {
         if (!businessName && rawTitle && !/google maps|instagram/i.test(rawTitle.trim())) {
           businessName = unescapeHtml(rawTitle).split('|')[0].split(' - ')[0].trim();
         }
-        const directPhotos = await extractWebsiteOrInstagramPhotos(inputUrl);
-        for (const dp of directPhotos) {
+        const directMedia = await extractWebsiteLogoAndPhotos(inputUrl);
+        if (directMedia.logo && !logo) logo = directMedia.logo;
+        for (const dp of directMedia.photos) {
           if (!photos.includes(dp)) photos.push(dp);
         }
       }
     } catch (_) {}
   }
 
-  if (website && photos.length < 4) {
-    const webPhotos = await extractWebsiteOrInstagramPhotos(website);
-    for (const wp of webPhotos) {
+  if (website && (!logo || photos.length < 4)) {
+    const webMedia = await extractWebsiteLogoAndPhotos(website);
+    if (webMedia.logo && !logo) logo = webMedia.logo;
+    for (const wp of webMedia.photos) {
       if (!photos.includes(wp)) photos.push(wp);
     }
   }
@@ -874,6 +970,7 @@ async function resolveBusinessInfo(rawText) {
     : '';
 
   const proxiedPhotos = photos
+    .filter((pUrl) => pUrl && pUrl !== logo)
     .slice(0, 6)
     .map((pUrl) => (pUrl.startsWith('/') ? pUrl : `/api/telegram?img=${encodeURIComponent(pUrl)}`));
 
@@ -894,21 +991,27 @@ async function resolveBusinessInfo(rawText) {
 }
 
 function parseEmbeddedWizardState(text = '') {
-  const linkMatch = text.match(/🔗 Link:\s*(https?:\/\/[^\s\n]+)/i) || text.match(/(https?:\/\/[^\s\n]+)/i);
-  const cityMatch = text.match(/🌆 Şehir:\s*([^\n]+)/i);
+  const linkMatch =
+    text.match(/🔗 (?:Link|Kaynak):\s*(https?:\/\/[^\s\n]+)/i) || text.match(/(https?:\/\/[^\s\n]+)/i);
+  const cityMatch = text.match(/🌆 Şehir(?:\s*\/\s*Alan Adı)?:\s*(Ankara|Samsun)/i);
   const sectorMatch = text.match(/🎯 SektörKod:\s*([a-z_]+)/i);
   const districtMatch = text.match(/📍 Bölge:\s*([^\n]+)/i);
+  const photoModeMatch = text.match(/📸 GörselMod:\s*(auto|studio)/i);
   return {
     url: linkMatch ? linkMatch[1].trim() : '',
     city: cityMatch ? cityMatch[1].trim() : 'Ankara',
     sector: sectorMatch ? sectorMatch[1].trim() : '',
     district: districtMatch ? districtMatch[1].trim() : 'keep',
+    photoMode: photoModeMatch ? photoModeMatch[1].trim() : 'auto',
   };
 }
+
+const LAST_WIZARD_STATE_BY_CHAT = new Map();
 
 async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
   const chosenCity = wizardState.city === 'Samsun' ? 'Samsun' : 'Ankara';
   const baseUrl = chosenCity === 'Ankara' ? ANKARA_BASE_URL : SITE_BASE_URL;
+  const cached = LAST_WIZARD_STATE_BY_CHAT.get(chatId);
 
   const fullInfo = await resolveBusinessInfo(`${wizardState.url} ${customNotes}`.trim());
 
@@ -972,6 +1075,15 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
 
   fullInfo.q = `${fullInfo.n}, ${fullInfo.a}`;
 
+  const photoMode = wizardState.photoMode === 'studio' ? 'studio' : 'auto';
+  const tgLogo = wizardState.tgLogo || cached?.tgLogo || '';
+  const tgPhotos = wizardState.tgPhotos || cached?.tgPhotos || [];
+
+  if (tgLogo) {
+    fullInfo.l = `/api/telegram?tgfile=${encodeURIComponent(tgLogo)}`;
+    fullInfo.logo = fullInfo.l;
+  }
+
   const slug = slugify(fullInfo.n);
   const compactPayload = {
     n: fullInfo.n,
@@ -982,41 +1094,109 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
     q: fullInfo.q,
     u: fullInfo.u,
   };
-  if (fullInfo.l && fullInfo.l.startsWith('/images/')) {
+
+  if (photoMode === 'studio') {
+    compactPayload.pm = 'studio';
+  }
+  if (fullInfo.l) {
     compactPayload.l = fullInfo.l;
+  }
+  if (tgPhotos.length > 0) {
+    compactPayload.ph = tgPhotos
+      .slice(0, 6)
+      .map((fid) => `/api/telegram?tgfile=${encodeURIComponent(fid)}`);
   }
 
   const encodedPayload = Buffer.from(JSON.stringify(compactPayload), 'utf8').toString('base64url');
   const liveUrl = `${baseUrl}/${slug}?s=${encodedPayload}`;
   const themeLabel = getSectorLabel(fullInfo.s);
+  const oppositeCity = chosenCity === 'Ankara' ? 'Samsun' : 'Ankara';
+
+  const photoSummaryText =
+    tgPhotos.length > 0
+      ? `${tgPhotos.length} Adet Telegram'dan Yüklenen Fotoğraf ✅`
+      : photoMode === 'studio'
+      ? '6 Adet Profesyonel 16:10 Yatay Sektör Stüdyo Fotoğrafı ✨'
+      : `${fullInfo.photos.length} Adet İşletme Fotoğrafı + HD Stüdyo Tamamlama ✅`;
 
   await sendTelegram(
     chatId,
-    `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n🏢 Firma: ${fullInfo.n}\n🌆 Şehir / Alan Adı: ${chosenCity} (${baseUrl.replace(
-      'https://',
-      ''
-    )})\n🎯 Sektör & Konsept: ${getShortSectorLabel(fullInfo.s)}\n🏷️ Hizmetler: ${
-      fullInfo.c || themeLabel
-    }\n📍 Adres: ${fullInfo.a}\n📞 Telefon: ${fullInfo.p}\n🖼️ Orijinal Logo: ${
-      fullInfo.logo ? 'Eklendi ✅' : 'Kurumsal Monogram ✅'
-    }\n📸 Çekilen Gerçek Fotoğraf: ${fullInfo.photos.length} Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki:\n${liveUrl}`
+    `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n` +
+      `🏢 Firma: ${fullInfo.n}\n` +
+      `🌆 Şehir / Alan Adı: ${chosenCity} (${baseUrl.replace('https://', '')})\n` +
+      `🎯 Sektör & Konsept: ${getShortSectorLabel(fullInfo.s)}\n` +
+      `🎯 SektörKod: ${fullInfo.s}\n` +
+      `📍 Bölge: ${wizardState.district || 'keep'}\n` +
+      `📍 Adres: ${fullInfo.a}\n` +
+      `📞 Telefon: ${fullInfo.p}\n` +
+      `🏷️ Hizmetler: ${fullInfo.c || themeLabel}\n` +
+      `🖼️ Orijinal Logo: ${fullInfo.logo ? 'Eklendi ✅' : 'Kurumsal Monogram ✅'}\n` +
+      `📸 GörselMod: ${photoMode}\n` +
+      `📸 Galeri Görselleri: ${photoSummaryText}\n` +
+      `🔗 Kaynak: ${wizardState.url}\n\n` +
+      `🌐 Canlı Web Sitesi Linki:\n${liveUrl}`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            photoMode === 'studio'
+              ? { text: '📸 İşletmenin Kendi Fotoğraflarını Kullan', callback_data: 'qf:auto' }
+              : {
+                  text: '✨ Fotoğrafları 16:10 Stüdyo HD Yap (Afişleri Kaldır)',
+                  callback_data: 'qf:studio',
+                },
+          ],
+          [
+            { text: '🎯 Sektör / Video Değiştir', callback_data: `w1:${chosenCity}` },
+            { text: `🌆 Şehri ${oppositeCity} Yap`, callback_data: `qf:city:${oppositeCity}` },
+          ],
+        ],
+      },
+    }
   );
 
   return { liveUrl, fullInfo };
 }
 
-const LAST_WIZARD_STATE_BY_CHAT = new Map();
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
 
+  // 1. Telegram Uploaded File Proxy (GET /api/telegram?tgfile=<file_id>)
+  if (req.method === 'GET' && req.query?.tgfile) {
+    try {
+      const fileId = req.query.tgfile;
+      const metaRes = await fetch(
+        `https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`
+      );
+      const metaJson = await metaRes.json();
+      const filePath = metaJson?.result?.file_path;
+      if (!filePath) {
+        return res.status(404).end();
+      }
+      const imgRes = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+      if (!imgRes.ok) {
+        return res.status(404).end();
+      }
+      const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
+      const arrayBuf = await imgRes.arrayBuffer();
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+      return res.status(200).send(Buffer.from(arrayBuf));
+    } catch (_) {
+      return res.status(500).end();
+    }
+  }
+
+  // 2. External Image Proxy (GET /api/telegram?img=<url>) — bypasses Instagram/Facebook SameOrigin CORP blocks
   if (req.method === 'GET' && req.query?.img) {
     try {
       const targetImg = req.query.img;
+      const isIgCdn = /instagram\.com|fbcdn\.net|cdninstagram\.com/i.test(targetImg);
       const imgRes = await fetch(targetImg, {
         headers: {
           'User-Agent': GMAPS_HEADERS['User-Agent'],
-          Referer: 'https://www.google.com/',
+          Referer: isIgCdn ? 'https://www.instagram.com/' : 'https://www.google.com/',
         },
       });
       if (!imgRes.ok) {
@@ -1025,13 +1205,15 @@ export default async function handler(req, res) {
       const contentType = imgRes.headers.get('content-type') || 'image/jpeg';
       const arrayBuf = await imgRes.arrayBuffer();
       res.setHeader('Content-Type', contentType);
-      res.setHeader('Cache-Control', 'public, max-age=604800, s-maxage=604800');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      res.setHeader('Cache-Control', 'public, max-age=604800, s-maxage=604800, immutable');
       return res.status(200).send(Buffer.from(arrayBuf));
     } catch (_) {
       return res.status(500).end();
     }
   }
 
+  // 3. Place & Instagram Live Info Endpoint (GET /api/telegram?place=<url>)
   if (req.method === 'GET' && req.query?.place) {
     try {
       const info = await resolveBusinessInfo(req.query.place);
@@ -1043,13 +1225,15 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') {
-    return res.status(200).json({ ok: true, status: 'Telegram Webhook & Place API Aktif (7/24 Anlik)' });
+    return res
+      .status(200)
+      .json({ ok: true, status: 'Telegram Webhook & Place API Aktif (7/24 Anlik)' });
   }
 
   try {
     const update = req.body;
 
-    // 1. Handle Step-by-Step Interactive Wizard Callback Buttons
+    // 4. Handle Step-by-Step Interactive Wizard Callback Buttons
     if (update?.callback_query) {
       const cb = update.callback_query;
       const chatId = cb.message?.chat?.id;
@@ -1057,33 +1241,66 @@ export default async function handler(req, res) {
       const data = cb.data || '';
       const msgText = cb.message?.text || '';
       const state = parseEmbeddedWizardState(msgText);
+      const cached = LAST_WIZARD_STATE_BY_CHAT.get(chatId) || {};
 
       if (!chatId) {
         return res.status(200).json({ ok: true });
       }
 
-      // Legacy city: button support + Step 1 -> Step 2 (City chosen -> Ask Sector & Video)
+      // Post-generation 1-Click Quick Toggles (qf:studio, qf:auto, qf:city:...)
+      if (data === 'qf:studio' || data === 'qf:auto') {
+        const newMode = data === 'qf:studio' ? 'studio' : 'auto';
+        await answerCallbackQuery(
+          cb.id,
+          newMode === 'studio'
+            ? '✨ 16:10 Stüdyo HD fotoğraflarla yenileniyor...'
+            : '📸 İşletmenin kendi fotoğraflarıyla yenileniyor...'
+        );
+        const updatedState = {
+          ...cached,
+          ...state,
+          photoMode: newMode,
+        };
+        const { liveUrl } = await finalizeAndSendWebsite(chatId, updatedState);
+        return res.status(200).json({ ok: true, liveUrl });
+      }
+
+      if (data.startsWith('qf:city:')) {
+        const newCity = data.includes('Samsun') ? 'Samsun' : 'Ankara';
+        await answerCallbackQuery(cb.id, `🌆 Şehir ${newCity} olarak güncelleniyor...`);
+        const updatedState = {
+          ...cached,
+          ...state,
+          city: newCity,
+        };
+        const { liveUrl } = await finalizeAndSendWebsite(chatId, updatedState);
+        return res.status(200).json({ ok: true, liveUrl });
+      }
+
+      // Step 1 -> Step 2 (City chosen -> Ask Sector & Video)
       if (data.startsWith('w1:') || data.startsWith('city:')) {
         const chosenCity = data.includes('Samsun') ? 'Samsun' : 'Ankara';
         await answerCallbackQuery(cb.id, `🌆 ${chosenCity} seçildi — Şimdi sektörü seçin`);
 
-        const info = await resolveBusinessInfo(state.url);
+        const info = await resolveBusinessInfo(state.url || cached.url || '');
         const autoSector = info.s || 'corporate_editorial';
         LAST_WIZARD_STATE_BY_CHAT.set(chatId, {
-          url: state.url,
+          ...cached,
+          url: state.url || cached.url,
           city: chosenCity,
           sector: autoSector,
           district: 'keep',
+          photoMode: state.photoMode || cached.photoMode || 'auto',
           ts: Date.now(),
         });
 
         const step2Text =
-          `🎨 Adım Adım Site Kurulumu (2/4 — Sektör & Video Seçimi)\n\n` +
+          `🎨 Adım Adım Site Kurulumu (2/5 — Sektör & Video Seçimi)\n\n` +
           `🏢 İşletme: ${info.n}\n` +
           `🌆 Şehir: ${chosenCity}\n` +
           `📸 Görsel: ${info.photos.length} Fotoğraf ${info.logo ? '+ Orijinal Logo ✅' : ''}\n` +
-          `🔗 Link: ${state.url}\n\n` +
-          `❓ 2. SORU: Bu işletmenin tam sektörü ve arka plan videosu hangisi olsun?\n` +
+          `🔗 Link: ${state.url || cached.url}\n\n` +
+          `❓ 2. SORU: Bu işletmenin tam sektörü, renk teması ve arka plan videosu hangisi olsun?\n` +
           `(Otomatik algılanan: ${getShortSectorLabel(autoSector)})`;
 
         await editTelegramMessage(chatId, messageId, step2Text, {
@@ -1106,6 +1323,10 @@ export default async function handler(req, res) {
                 { text: '⭐ Mercedes / Lüks Oto', callback_data: `w2:${chosenCity}:mercedes_luxury` },
               ],
               [
+                { text: '🚙 Volkswagen / VAG Servis', callback_data: `w2:${chosenCity}:vag_automotive` },
+                { text: '🏭 Sanayi / Üretim / Fabrika', callback_data: `w2:${chosenCity}:industrial_heating` },
+              ],
+              [
                 { text: '☕ Kafe / Patisserie / Tatlı', callback_data: `w2:${chosenCity}:cafe_dessert` },
                 { text: '🥐 Börekçi / Fırın / Kahvaltı', callback_data: `w2:${chosenCity}:bakery_breakfast` },
               ],
@@ -1118,8 +1339,10 @@ export default async function handler(req, res) {
                 { text: '🦷 Diş Kliniği / Sağlık', callback_data: `w2:${chosenCity}:dental_medical` },
               ],
               [
-                { text: '🏭 Sanayi / Üretim / Fabrika', callback_data: `w2:${chosenCity}:industrial_heating` },
-                { text: '🏢 Kurumsal / Mağaza / Ofis', callback_data: `w2:${chosenCity}:corporate_editorial` },
+                {
+                  text: '🏢 Kurumsal İşletme / Mağaza / Ofis',
+                  callback_data: `w2:${chosenCity}:corporate_editorial`,
+                },
               ],
             ],
           },
@@ -1131,20 +1354,22 @@ export default async function handler(req, res) {
       // Step 2 -> Step 3 (Sector chosen -> Ask District / Location)
       if (data.startsWith('w2:')) {
         const parts = data.split(':');
-        const chosenCity = parts[1] === 'Samsun' ? 'Samsun' : 'Ankara';
-        const chosenSector = parts[2] || 'corporate_editorial';
+        const chosenCity = parts[1] === 'Samsun' ? 'Samsun' : state.city || 'Ankara';
+        const chosenSector = parts[2] || parts[1] || 'corporate_editorial';
 
         await answerCallbackQuery(cb.id, `🎯 Sektör seçildi — Şimdi ilçe/konum seçin`);
 
-        const info = await resolveBusinessInfo(state.url);
+        const info = await resolveBusinessInfo(state.url || cached.url || '');
         const currentAddr =
           info.a && info.a !== 'Merkez / Türkiye' ? info.a : `${chosenCity} Merkez`;
 
         LAST_WIZARD_STATE_BY_CHAT.set(chatId, {
-          url: state.url,
+          ...cached,
+          url: state.url || cached.url,
           city: chosenCity,
           sector: chosenSector,
           district: 'keep',
+          photoMode: state.photoMode || cached.photoMode || 'auto',
           ts: Date.now(),
         });
 
@@ -1154,32 +1379,32 @@ export default async function handler(req, res) {
                 [
                   {
                     text: `📍 Mevcut Adresi Koru (${currentAddr.slice(0, 28)})`,
-                    callback_data: `w3:Ankara:${chosenSector}:keep`,
+                    callback_data: `w3:keep`,
                   },
                 ],
                 [
-                  { text: '🏛️ Çankaya', callback_data: `w3:Ankara:${chosenSector}:Çankaya` },
-                  { text: '🏙️ Yenimahalle', callback_data: `w3:Ankara:${chosenSector}:Yenimahalle` },
+                  { text: '🏛️ Çankaya', callback_data: `w3:Çankaya` },
+                  { text: '🏙️ Yenimahalle', callback_data: `w3:Yenimahalle` },
                 ],
                 [
                   {
                     text: '🔧 İvedik / Ostim / Şaşmaz',
-                    callback_data: `w3:Ankara:${chosenSector}:İvedik OSB, Yenimahalle`,
+                    callback_data: `w3:İvedik OSB, Yenimahalle`,
                   },
-                  { text: '🏢 Sincan / Etimesgut', callback_data: `w3:Ankara:${chosenSector}:Sincan` },
+                  { text: '🏢 Sincan / Etimesgut', callback_data: `w3:Sincan` },
                 ],
                 [
-                  { text: '🏘️ Keçiören / Altındağ', callback_data: `w3:Ankara:${chosenSector}:Keçiören` },
-                  { text: '🌳 Mamak / Gölbaşı', callback_data: `w3:Ankara:${chosenSector}:Mamak` },
+                  { text: '🏘️ Keçiören / Altındağ', callback_data: `w3:Keçiören` },
+                  { text: '🌳 Mamak / Gölbaşı', callback_data: `w3:Mamak` },
                 ],
                 [
                   {
                     text: '🌲 Çayyolu / Ümitköy / Beytepe',
-                    callback_data: `w3:Ankara:${chosenSector}:Çayyolu, Çankaya`,
+                    callback_data: `w3:Çayyolu, Çankaya`,
                   },
                   {
                     text: '🚇 Batıkent / Eryaman',
-                    callback_data: `w3:Ankara:${chosenSector}:Batıkent, Yenimahalle`,
+                    callback_data: `w3:Batıkent, Yenimahalle`,
                   },
                 ],
               ]
@@ -1187,34 +1412,34 @@ export default async function handler(req, res) {
                 [
                   {
                     text: `📍 Mevcut Adresi Koru (${currentAddr.slice(0, 28)})`,
-                    callback_data: `w3:Samsun:${chosenSector}:keep`,
+                    callback_data: `w3:keep`,
                   },
                 ],
                 [
-                  { text: '🌊 Atakum', callback_data: `w3:Samsun:${chosenSector}:Atakum` },
-                  { text: '🏛️ İlkadım', callback_data: `w3:Samsun:${chosenSector}:İlkadım` },
+                  { text: '🌊 Atakum', callback_data: `w3:Atakum` },
+                  { text: '🏛️ İlkadım', callback_data: `w3:İlkadım` },
                 ],
                 [
                   {
                     text: '🔧 Canik / Gülsan Sanayi',
-                    callback_data: `w3:Samsun:${chosenSector}:Gülsan Sanayi, Canik`,
+                    callback_data: `w3:Gülsan Sanayi, Canik`,
                   },
-                  { text: '🏭 Tekkeköy / OSB', callback_data: `w3:Samsun:${chosenSector}:Tekkeköy` },
+                  { text: '🏭 Tekkeköy / OSB', callback_data: `w3:Tekkeköy` },
                 ],
                 [
-                  { text: '🌿 Bafra', callback_data: `w3:Samsun:${chosenSector}:Bafra` },
-                  { text: '🌾 Çarşamba / Terme', callback_data: `w3:Samsun:${chosenSector}:Çarşamba` },
+                  { text: '🌿 Bafra', callback_data: `w3:Bafra` },
+                  { text: '🌾 Çarşamba / Terme', callback_data: `w3:Çarşamba` },
                 ],
               ];
 
         const step3Text =
-          `📍 Adım Adım Site Kurulumu (3/4 — İlçe & Konum Seçimi)\n\n` +
+          `📍 Adım Adım Site Kurulumu (3/5 — İlçe & Konum Seçimi)\n\n` +
           `🏢 İşletme: ${info.n}\n` +
           `🌆 Şehir: ${chosenCity}\n` +
           `🎯 Sektör: ${getShortSectorLabel(chosenSector)}\n` +
           `🎯 SektörKod: ${chosenSector}\n` +
           `📍 Algılanan Adres: ${currentAddr}\n` +
-          `🔗 Link: ${state.url}\n\n` +
+          `🔗 Link: ${state.url || cached.url}\n\n` +
           `❓ 3. SORU: İşletme ${chosenCity} içinde hangi ilçede / bölgede yer alıyor?`;
 
         await editTelegramMessage(chatId, messageId, step3Text, {
@@ -1224,16 +1449,112 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true, step: 3 });
       }
 
-      // Step 3 -> Step 4 (District chosen -> Ask Phone / Extra Services OR Generate Now)
+      // Step 3 -> Step 4 (District chosen -> Ask Photo & Gallery Mode!)
       if (data.startsWith('w3:')) {
-        const parts = data.split(':');
-        const chosenCity = parts[1] === 'Samsun' ? 'Samsun' : 'Ankara';
-        const chosenSector = parts[2] || state.sector || 'corporate_editorial';
-        const chosenDistrict = parts.slice(3).join(':') || 'keep';
+        const rawParts = data.slice(3).split(':');
+        const chosenDistrict =
+          rawParts.length >= 3 ? rawParts.slice(2).join(':') : data.slice(3) || 'keep';
+        const chosenCity = state.city || cached.city || 'Ankara';
+        const chosenSector = state.sector || cached.sector || 'corporate_editorial';
 
-        await answerCallbackQuery(cb.id, `📍 Bölge kaydedildi — Son onay adımı`);
+        await answerCallbackQuery(cb.id, `📍 Bölge kaydedildi — Şimdi fotoğraf modunu seçin`);
 
-        const info = await resolveBusinessInfo(state.url);
+        const info = await resolveBusinessInfo(state.url || cached.url || '');
+
+        LAST_WIZARD_STATE_BY_CHAT.set(chatId, {
+          ...cached,
+          url: state.url || cached.url,
+          city: chosenCity,
+          sector: chosenSector,
+          district: chosenDistrict,
+          photoMode: 'auto',
+          ts: Date.now(),
+        });
+
+        const step4Text =
+          `📸 Adım Adım Site Kurulumu (4/5 — Fotoğraf & Galeri Tercihi)\n\n` +
+          `🏢 İşletme: ${info.n}\n` +
+          `🌆 Şehir: ${chosenCity}\n` +
+          `🎯 Sektör: ${getShortSectorLabel(chosenSector)}\n` +
+          `🎯 SektörKod: ${chosenSector}\n` +
+          `📍 Bölge: ${chosenDistrict}\n` +
+          `🖼️ Orijinal Logo: ${info.logo ? 'Bulundu ve Eklenecek ✅' : 'Kurumsal Monogram ✅'}\n` +
+          `📸 Çekilen İşletme Fotoğrafı: ${info.photos.length} Adet\n` +
+          `🔗 Link: ${state.url || cached.url}\n\n` +
+          `❓ 4. SORU: Sitedeki "Hakkımızda" ve "Galeri" fotoğrafları nasıl kullanılsın?\n` +
+          `• İşletmenin kendi fotoğrafları gerçek mekan/ürün görseliyse 1. seçeneği seçin.\n` +
+          `• Eğer Instagram sayfasında sadece yazılı kampanya afişleri varsa 2. seçeneği (16:10 Yatay HD Stüdyo) seçin (Orijinal logo yine korunur).`;
+
+        await editTelegramMessage(chatId, messageId, step4Text, {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: `📸 İşletmenin Kendi Fotoğrafları (${info.photos.length} Adet) + HD Tamamlama`,
+                  callback_data: 'w4:auto',
+                },
+              ],
+              [
+                {
+                  text: '✨ 16:10 Yatay Sektör Stüdyo Fotoğrafları (Yazılı Afiş Olmasın)',
+                  callback_data: 'w4:studio',
+                },
+              ],
+              [
+                {
+                  text: "📤 Fotoğrafları Şimdi Telegram'dan Ben Göndereceğim",
+                  callback_data: 'w4:upload',
+                },
+              ],
+            ],
+          },
+        });
+
+        return res.status(200).json({ ok: true, step: 4 });
+      }
+
+      // Step 4 -> Step 5 (Photo Mode chosen -> Final Summary OR Upload Prompt)
+      if (data === 'w4:auto' || data === 'w4:studio' || data === 'w4:upload' || data === 'w5:upload') {
+        const chosenCity = state.city || cached.city || 'Ankara';
+        const chosenSector = state.sector || cached.sector || 'corporate_editorial';
+        const chosenDistrict = state.district || cached.district || 'keep';
+        const chosenPhotoMode = data === 'w4:studio' ? 'studio' : 'auto';
+
+        LAST_WIZARD_STATE_BY_CHAT.set(chatId, {
+          ...cached,
+          url: state.url || cached.url,
+          city: chosenCity,
+          sector: chosenSector,
+          district: chosenDistrict,
+          photoMode: chosenPhotoMode,
+          ts: Date.now(),
+        });
+
+        if (data === 'w4:upload' || data === 'w5:upload') {
+          await answerCallbackQuery(cb.id, '📤 Fotoğrafları sohbete gönderebilirsiniz');
+          await sendTelegram(
+            chatId,
+            `📤 Lütfen sitede kullanılmasını istediğiniz 1 ila 6 adet fotoğrafı doğrudan bu sohbete gönderin.\n` +
+              `💡 İpucu: Eğer özel bir logo göndermek isterseniz fotoğrafın altına "logo" yazarak gönderebilirsiniz.\n\n` +
+              `🌆 Şehir: ${chosenCity}\n` +
+              `🎯 SektörKod: ${chosenSector}\n` +
+              `📍 Bölge: ${chosenDistrict}\n` +
+              `📸 GörselMod: ${chosenPhotoMode}\n` +
+              `🔗 Link: ${state.url || cached.url}`,
+            {
+              reply_markup: {
+                inline_keyboard: [
+                  [{ text: '🚀 Mevcut Görsellerle Hemen Oluştur', callback_data: 'w5:go' }],
+                ],
+              },
+            }
+          );
+          return res.status(200).json({ ok: true, step: 'upload_prompt' });
+        }
+
+        await answerCallbackQuery(cb.id, `📸 Görsel modu seçildi — Son onay adımı`);
+
+        const info = await resolveBusinessInfo(state.url || cached.url || '');
         const displayDistrict =
           chosenDistrict === 'keep'
             ? info.a && info.a !== 'Merkez / Türkiye'
@@ -1241,16 +1562,8 @@ export default async function handler(req, res) {
               : `${chosenCity} Merkez`
             : `${chosenDistrict}, ${chosenCity}`;
 
-        LAST_WIZARD_STATE_BY_CHAT.set(chatId, {
-          url: state.url,
-          city: chosenCity,
-          sector: chosenSector,
-          district: chosenDistrict,
-          ts: Date.now(),
-        });
-
-        const step4Text =
-          `📞 Adım Adım Site Kurulumu (4/4 — Son Kontrol & Yayına Alma)\n\n` +
+        const step5Text =
+          `📞 Adım Adım Site Kurulumu (5/5 — Son Kontrol & Yayına Alma)\n\n` +
           `🏢 İşletme: ${info.n}\n` +
           `🌆 Şehir: ${chosenCity}\n` +
           `🎯 Sektör: ${getShortSectorLabel(chosenSector)}\n` +
@@ -1259,23 +1572,35 @@ export default async function handler(req, res) {
           `📍 Gösterilecek Adres: ${displayDistrict}\n` +
           `📞 Telefon: ${info.p}\n` +
           `🏷️ Hizmetler: ${info.c || 'Sektörel standart hizmetler'}\n` +
-          `📸 Görsel: ${info.photos.length} Gerçek Fotoğraf ${info.logo ? '+ Orijinal Logo ✅' : ''}\n` +
-          `🔗 Link: ${state.url}\n\n` +
-          `❓ 4. SORU: Özel bir telefon numarası, tam açık adres veya ekstra hizmet eklemek ister misiniz, yoksa hemen yayına alalım mı?`;
+          `🖼️ Orijinal Logo: ${info.logo ? 'Eklendi ✅' : 'Kurumsal Monogram ✅'}\n` +
+          `📸 GörselMod: ${chosenPhotoMode}\n` +
+          `📸 Galeri: ${
+            chosenPhotoMode === 'studio'
+              ? '16:10 Yatay Sektör Stüdyo Fotoğrafları ✨'
+              : `${info.photos.length} İşletme Fotoğrafı + HD Tamamlama`
+          }\n` +
+          `🔗 Link: ${state.url || cached.url}\n\n` +
+          `❓ 5. SORU: Özel bir telefon numarası, tam açık adres veya ekstra hizmet eklemek ister misiniz, yoksa hemen yayına alalım mı?`;
 
-        await editTelegramMessage(chatId, messageId, step4Text, {
+        await editTelegramMessage(chatId, messageId, step5Text, {
           reply_markup: {
             inline_keyboard: [
               [
                 {
                   text: '🚀 Bilgiler Doğru — Siteyi Hemen Oluştur!',
-                  callback_data: 'w4:go',
+                  callback_data: 'w5:go',
                 },
               ],
               [
                 {
                   text: '✍️ Telefon / Açık Adres / Özel Hizmet Yaz',
-                  callback_data: 'w4:custom',
+                  callback_data: 'w5:custom',
+                },
+              ],
+              [
+                {
+                  text: "📤 Telegram'dan Fotoğraf / Logo Gönder",
+                  callback_data: 'w5:upload',
                 },
               ],
               [
@@ -1288,39 +1613,52 @@ export default async function handler(req, res) {
           },
         });
 
-        return res.status(200).json({ ok: true, step: 4 });
+        return res.status(200).json({ ok: true, step: 5 });
       }
 
-      // Step 4A: User clicked "🚀 Bilgiler Doğru — Siteyi Hemen Oluştur!"
-      if (data === 'w4:go') {
+      // Step 5A: User clicked "🚀 Bilgiler Doğru — Siteyi Hemen Oluştur!" (supports both w4:go and w5:go)
+      if (data === 'w4:go' || data === 'w5:go') {
         await answerCallbackQuery(cb.id, '🚀 Kurumsal web sitesi hazırlanıyor...');
+        const mergedState = {
+          ...cached,
+          ...state,
+          url: state.url || cached.url,
+          city: state.city || cached.city || 'Ankara',
+          sector: state.sector || cached.sector || 'corporate_editorial',
+          district: state.district || cached.district || 'keep',
+          photoMode: state.photoMode || cached.photoMode || 'auto',
+        };
         if (messageId) {
           await editTelegramMessage(
             chatId,
             messageId,
-            `⏳ Seçimleriniz onaylandı! İşletmenin orijinal logosu, gerçek fotoğrafları, sektörel videosu ve kurumsal web sitesi yayına alınıyor...\n\n🔗 Link: ${state.url}`
+            `⏳ Seçimleriniz onaylandı! İşletmenin orijinal logosu, fotoğrafları, sektörel videosu ve kurumsal web sitesi yayına alınıyor...\n\n🔗 Link: ${mergedState.url}`
           );
         }
+        const { liveUrl } = await finalizeAndSendWebsite(chatId, mergedState);
         LAST_WIZARD_STATE_BY_CHAT.delete(chatId);
-        const { liveUrl } = await finalizeAndSendWebsite(chatId, state);
         return res.status(200).json({ ok: true, liveUrl });
       }
 
-      // Step 4B: User clicked "✍️ Telefon / Açık Adres / Özel Hizmet Yaz"
-      if (data === 'w4:custom') {
+      // Step 5B: User clicked "✍️ Telefon / Açık Adres / Özel Hizmet Yaz"
+      if (data === 'w4:custom' || data === 'w5:custom') {
         await answerCallbackQuery(cb.id, '✍️ Bilgileri yazıp gönderin');
-        LAST_WIZARD_STATE_BY_CHAT.set(chatId, {
+        const mergedState = {
+          ...cached,
           ...state,
+          url: state.url || cached.url,
           ts: Date.now(),
-        });
+        };
+        LAST_WIZARD_STATE_BY_CHAT.set(chatId, mergedState);
         await sendTelegram(
           chatId,
           `✍️ Lütfen eklemek istediğiniz telefon numarasını, açık adresi veya özel hizmetleri bu mesaja yanıt olarak yazıp gönderin:\n` +
             `(Örn: "0532 111 22 33, İvedik OSB 1354. Cad, Seramik Kaplama ve PPF")\n\n` +
-            `🌆 Şehir: ${state.city}\n` +
-            `🎯 SektörKod: ${state.sector}\n` +
-            `📍 Bölge: ${state.district}\n` +
-            `🔗 Link: ${state.url}`,
+            `🌆 Şehir: ${mergedState.city}\n` +
+            `🎯 SektörKod: ${mergedState.sector}\n` +
+            `📍 Bölge: ${mergedState.district}\n` +
+            `📸 GörselMod: ${mergedState.photoMode || 'auto'}\n` +
+            `🔗 Link: ${mergedState.url}`,
           {
             reply_markup: {
               force_reply: true,
@@ -1328,30 +1666,94 @@ export default async function handler(req, res) {
             },
           }
         );
-        return res.status(200).json({ ok: true, step: '4_custom_prompt' });
+        return res.status(200).json({ ok: true, step: '5_custom_prompt' });
       }
 
       return res.status(200).json({ ok: true });
     }
 
     const msg = update?.message || update?.edited_message;
-    if (!msg || !msg.text) {
+    if (!msg) {
       return res.status(200).json({ ok: true });
     }
 
     const chatId = msg.chat.id;
+
+    // 5. Handle Direct Photo or Image Upload in Telegram Chat!
+    const uploadedPhotoFileId =
+      Array.isArray(msg.photo) && msg.photo.length > 0
+        ? msg.photo[msg.photo.length - 1].file_id
+        : msg.document?.mime_type?.startsWith('image/')
+        ? msg.document.file_id
+        : '';
+
+    if (uploadedPhotoFileId) {
+      const caption = (msg.caption || '').trim();
+      const replyState = msg.reply_to_message?.text
+        ? parseEmbeddedWizardState(msg.reply_to_message.text)
+        : {};
+      const existing = LAST_WIZARD_STATE_BY_CHAT.get(chatId) || {
+        url: replyState.url || '',
+        city: replyState.city || 'Ankara',
+        sector: replyState.sector || 'corporate_editorial',
+        district: replyState.district || 'keep',
+        photoMode: 'auto',
+        tgPhotos: [],
+        tgLogo: '',
+        ts: Date.now(),
+      };
+
+      if (/logo/i.test(caption)) {
+        existing.tgLogo = uploadedPhotoFileId;
+      } else {
+        existing.tgPhotos = [...(existing.tgPhotos || []), uploadedPhotoFileId].slice(0, 6);
+      }
+      existing.ts = Date.now();
+      LAST_WIZARD_STATE_BY_CHAT.set(chatId, existing);
+
+      await sendTelegram(
+        chatId,
+        `📸 Görsel başarıyla eklendi! (${
+          existing.tgLogo ? 'Orijinal Logo ✅ + ' : ''
+        }${(existing.tgPhotos || []).length} Galeri Fotoğrafı)\n` +
+          `Başka fotoğraf göndermeye devam edebilir veya aşağıdaki butona basarak siteyi hemen oluşturabilirsiniz.\n\n` +
+          `🌆 Şehir: ${existing.city}\n` +
+          `🎯 SektörKod: ${existing.sector}\n` +
+          `📍 Bölge: ${existing.district}\n` +
+          `📸 GörselMod: auto\n` +
+          `🔗 Link: ${existing.url}`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: `🚀 Gönderilen Fotoğraflarla Siteyi Hemen Oluştur!`,
+                  callback_data: 'w5:go',
+                },
+              ],
+            ],
+          },
+        }
+      );
+      return res.status(200).json({ ok: true, action: 'photo_added' });
+    }
+
+    if (!msg.text) {
+      return res.status(200).json({ ok: true });
+    }
+
     const text = msg.text.trim();
 
-    // 2. Check if user is replying to Step 4 with custom phone / address / services!
+    // 6. Check if user is replying to Step 5 with custom phone / address / services!
     if (msg.reply_to_message?.text && msg.reply_to_message.text.includes('🔗 Link:')) {
       const replyState = parseEmbeddedWizardState(msg.reply_to_message.text);
       if (replyState.url) {
-        LAST_WIZARD_STATE_BY_CHAT.delete(chatId);
         await sendTelegram(
           chatId,
           `⏳ Yazdığınız özel bilgiler (${text}) eklendi! Kurumsal web sitesi hazırlanıyor...`
         );
         const { liveUrl } = await finalizeAndSendWebsite(chatId, replyState, text);
+        LAST_WIZARD_STATE_BY_CHAT.delete(chatId);
         return res.status(200).json({ ok: true, liveUrl });
       }
     }
@@ -1359,7 +1761,7 @@ export default async function handler(req, res) {
     if (text === '/start' || text.toLowerCase() === 'merhaba') {
       await sendTelegram(
         chatId,
-        '⚡ 7/24 Akıllı Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; size adım adım:\n1️⃣ Şehir (Ankara / Samsun)\n2️⃣ Sektör & Arka Plan Videosu\n3️⃣ İlçe / Bölge\n4️⃣ Telefon & Özel Hizmet detaylarını sorarak işletmenin orijinal logosu ve gerçek fotoğraflarıyla en doğru kurumsal web sitesini hazırlayayım.'
+        '⚡ 7/24 Akıllı Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; size adım adım:\n1️⃣ Şehir (Ankara / Samsun)\n2️⃣ Sektör & Arka Plan Videosu\n3️⃣ İlçe / Bölge\n4️⃣ Görsel & Galeri Modu (İşletme Fotoğrafları / 16:10 HD Stüdyo / Telegram Fotoğraf Yükleme)\n5️⃣ Telefon & Özel Hizmet detaylarını sorarak işletmenin orijinal logosu ve gerçek fotoğraflarıyla en doğru kurumsal web sitesini hazırlayayım.'
       );
       return res.status(200).json({ ok: true });
     }
@@ -1367,12 +1769,12 @@ export default async function handler(req, res) {
     if (!/https?:\/\//i.test(text)) {
       const cachedState = LAST_WIZARD_STATE_BY_CHAT.get(chatId);
       if (cachedState && cachedState.url && Date.now() - cachedState.ts < 30 * 60 * 1000) {
-        LAST_WIZARD_STATE_BY_CHAT.delete(chatId);
         await sendTelegram(
           chatId,
           `⏳ Yazdığınız özel bilgiler (${text}) eklendi! Kurumsal web sitesi hazırlanıyor...`
         );
         const { liveUrl } = await finalizeAndSendWebsite(chatId, cachedState, text);
+        LAST_WIZARD_STATE_BY_CHAT.delete(chatId);
         return res.status(200).json({ ok: true, liveUrl });
       }
 
@@ -1383,7 +1785,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // 3. New Link Received -> Pre-analyze & Start Step 1 of 4 Questionnaire
+    // 7. New Link Received -> Pre-analyze & Start Step 1 of 5 Questionnaire
     const urlMatch = text.match(/https?:\/\/[^\s]+/i);
     const cleanUrl = urlMatch ? urlMatch[0] : text;
     const previewInfo = await resolveBusinessInfo(text);
@@ -1393,17 +1795,19 @@ export default async function handler(req, res) {
       city: 'Ankara',
       sector: previewInfo.s,
       district: 'keep',
+      photoMode: 'auto',
+      tgPhotos: [],
+      tgLogo: '',
       ts: Date.now(),
     });
 
     await sendTelegram(
       chatId,
-      `🔍 Link İncelendi — Adım Adım Site Kurulumu (1/4)\n\n` +
+      `🔍 Link İncelendi — Adım Adım Site Kurulumu (1/5)\n\n` +
         `🏢 Algılanan İşletme: ${previewInfo.n}\n` +
         `🎯 Önerilen Sektör: ${getShortSectorLabel(previewInfo.s)}\n` +
-        `📸 Çekilen Görsel: ${previewInfo.photos.length} Fotoğraf ${
-          previewInfo.logo ? '+ Orijinal Logo ✅' : ''
-        }\n` +
+        `🖼️ Orijinal Logo: ${previewInfo.logo ? 'Bulundu ✅' : 'Kurumsal Monogram ✅'}\n` +
+        `📸 Çekilen Görsel: ${previewInfo.photos.length} Fotoğraf\n` +
         `🔗 Link: ${cleanUrl}\n\n` +
         `❓ 1. SORU: Bu işletme hangi şehirde hizmet veriyor?`,
       {

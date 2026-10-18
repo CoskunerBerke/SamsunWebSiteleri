@@ -12,6 +12,7 @@ export interface DynamicSiteInfo {
   u: string; // Original URL
   l?: string; // Compact Logo URL
   logo?: string; // Real Business Logo URL
+  pm?: 'auto' | 'studio'; // Photo mode: 'auto' (business photos + HD fill) or 'studio' (16:10 clean sector photos)
   ph?: string[]; // Compact Photos Array baked into URL
   photos?: string[]; // Real Google Maps / Instagram photos
   reviews?: { author: string; role: string; group: string; text: string }[]; // Real Google Maps reviews
@@ -39,12 +40,76 @@ interface SectorConfig {
   accentText: string;
   videoSrc: string;
   posterSrc: string;
+  aboutImgSrc: string;
   pillars: { num: string; title: string; desc: string }[];
   servicesSectionTitle: string;
   services: { num: string; title: string; desc: string; detail: string }[];
   reviews: { author: string; role: string; group: string; text: string }[];
   gallery: { src: string; title: string; subtitle: string }[];
 }
+
+const SmartBusinessImage: React.FC<{
+  src: string;
+  fallbackSrc: string;
+  alt: string;
+}> = ({ src, fallbackSrc, alt }) => {
+  const [currentSrc, setCurrentSrc] = useState<string>(src || fallbackSrc);
+  const [isPortraitOrSquare, setIsPortraitOrSquare] = useState<boolean>(false);
+
+  useEffect(() => {
+    setCurrentSrc(src || fallbackSrc);
+    setIsPortraitOrSquare(false);
+  }, [src, fallbackSrc]);
+
+  const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth > 0 && img.naturalHeight / img.naturalWidth > 0.88) {
+      setIsPortraitOrSquare(true);
+    } else {
+      setIsPortraitOrSquare(false);
+    }
+  };
+
+  const handleError = () => {
+    if (currentSrc !== fallbackSrc) {
+      setCurrentSrc(fallbackSrc);
+      setIsPortraitOrSquare(false);
+    }
+  };
+
+  if (isPortraitOrSquare) {
+    return (
+      <div className="relative w-full h-full bg-zinc-950 overflow-hidden flex items-center justify-center">
+        <img
+          src={currentSrc}
+          alt=""
+          aria-hidden="true"
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl brightness-50 saturate-150 pointer-events-none select-none"
+        />
+        <img
+          src={currentSrc}
+          alt={alt}
+          referrerPolicy="no-referrer"
+          onLoad={handleLoad}
+          onError={handleError}
+          className="relative z-10 max-h-full max-w-full w-auto h-full object-contain p-1.5 drop-shadow-2xl"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={currentSrc}
+      alt={alt}
+      referrerPolicy="no-referrer"
+      onLoad={handleLoad}
+      onError={handleError}
+      className="w-full h-full object-cover"
+    />
+  );
+};
 
 function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const name = info.n;
@@ -108,7 +173,8 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroEyebrow: 'text-amber-400',
       accentText: 'text-amber-600',
       videoSrc: '/videos/detailing.mp4',
-      posterSrc: '/images/diestrogarage/1.jpg?v=2',
+      posterSrc: '/images/diestrogarage/5.jpg?v=2',
+      aboutImgSrc: '/images/diestrogarage/1.jpg?v=2',
       pillars: [
         { num: '01', title: 'Seramik & Elmas Kaplama', desc: 'Boya yüzeyinde hidrofobik kristal zırh oluşturan, UV ve çizik dirençli 9H seramik ve elmas kaplama.' },
         { num: '02', title: 'PPF & Araç Kaplama', desc: 'Taş vuruğu ve sürtmelere karşı kendini yenileyen TPU şeffaf kaput filmi ve profesyonel araç kaplama.' },
@@ -163,6 +229,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-amber-700',
       videoSrc: '/videos/bakery.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=1200&q=85',
       pillars: [
         { num: '01', title: 'El Açması & Günlük Üretim', desc: 'Tüm börek ve unlu mamullerimiz her sabah günlük olarak açılır ve fırından sıcak servis edilir.' },
         { num: '02', title: 'Doğal İç Harç & Tereyağı', desc: 'Yöresel peynir, taze çekilmiş dana kıyma, ıspanak ve gerçek tereyağı ile hazırlanan geleneksel tarifler.' },
@@ -225,6 +292,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-amber-700',
       videoSrc: '/videos/cafe.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=1200&q=85',
       pillars: isMultiConceptCafe
         ? [
             { num: '01', title: 'Günlük Patisserie & Tatlı', desc: 'Vitrinde her gün taze hazırlanan Magnolia, kupta Profiterol, Tiramisu, San Sebastian ve dilim pastalar.' },
@@ -310,6 +378,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       posterSrc: isSoupPlace
         ? 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=1400&q=85'
         : 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85',
       pillars: [
         { num: '01', title: 'Günlük Taze Hazırlık', desc: 'Tüm menümüz her sabah taze et, doğal sebzeler ve yöresel malzemelerle günlük olarak hazırlanır.' },
         { num: '02', title: 'Geleneksel Usta Tarifleri', desc: 'Yılların tecrübesiyle korunan orijinal reçeteler ve usta ellerde pişirilen özel lezzetler.' },
@@ -375,6 +444,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-teal-600',
       videoSrc: '/videos/dental.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1629909615184-74f495363b67?auto=format&fit=crop&w=1200&q=85',
       pillars: [
         { num: '01', title: 'Dijital Teşhis & Planlama', desc: 'Modern görüntüleme cihazları ile hızlı, doğru teşhis ve kişiye özel tedavi planlaması.' },
         { num: '02', title: 'Üst Düzey Sterilizasyon', desc: 'Tüm klinik ekipmanlarımızda uluslararası hijyen ve otoklav sterilizasyon standartları.' },
@@ -437,6 +507,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         accentText: 'text-amber-600',
         videoSrc: '/videos/corporate.mp4',
         posterSrc: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1400&q=85',
+        aboutImgSrc: 'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?auto=format&fit=crop&w=1200&q=85',
         pillars: [
           { num: '01', title: 'Hızlı & Garantili Tamir', desc: 'Ekran, batarya, şarj soketi ve anakart arızalarında uzman ekipmanlarla aynı gün hızlı onarım.' },
           { num: '02', title: 'Sıfır & 2. El Telefon', desc: 'Kontrolleri yapılmış, temiz ve güvenilir ikinci el ile kapalı kutu sıfır cep telefonu seçenekleri.' },
@@ -491,6 +562,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-amber-600',
       videoSrc: '/videos/corporate.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?auto=format&fit=crop&w=1200&q=85',
       pillars: [
         { num: '01', title: 'Hızlı Arıza Tespiti', desc: 'Cihazlarınızdaki elektronik, motor ve mekanik arızaların uzman teknisyenlerimizce hızlı ve doğru tespiti.' },
         { num: '02', title: 'Orijinal Yedek Parça', desc: 'Önde gelen tüm ev aletleri ve beyaz eşya markalarına uyumlu zengin orijinal yedek parça ve aksesuar stoğu.' },
@@ -544,6 +616,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-neutral-900',
       videoSrc: '/vw/hero-bg.mp4',
       posterSrc: '/vw/vw-service.jpg',
+      aboutImgSrc: '/vw/vw-engine.jpg',
       pillars: [
         { num: '01', title: 'Bilgisayarlı Arıza Tespiti', desc: 'Orijinal diyagnostik cihazlar ile elektronik ve mekanik arızaların nokta atışı tespiti.' },
         { num: '02', title: 'Motor & Şanzıman Uzmanlığı', desc: 'Otomatik şanzıman bakımı, zincir/triger değişimi ve komple motor revizyon işlemleri.' },
@@ -597,6 +670,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-red-700',
       videoSrc: '/videos/industrial.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1531973576160-7125cd663d86?auto=format&fit=crop&w=1200&q=85',
       pillars: [
         { num: '01', title: 'Standartlara Uygun Üretim', desc: 'Kalite standartlarına uygun hammadde ve modern üretim parkuruyla yüksek dayanımlı imalat.' },
         { num: '02', title: 'Yüksek Verimlilik', desc: 'Uzun yıllar güvenli kullanım sağlayan mühendislik ve kalite kontrol süreçleri.' },
@@ -652,6 +726,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       accentText: 'text-amber-600',
       videoSrc: '/videos/corporate.mp4',
       posterSrc: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1200&q=85',
       pillars: [
         { num: '01', title: 'Uzman & Deneyimli Ekip', desc: `${cleanCategory} alanında bilgi birikimi yüksek, güler yüzlü ve profesyonel kadro.` },
         { num: '02', title: 'Kaliteli Ürün & Uygulama', desc: 'Tüm hizmet ve ürün gruplarımızda birinci sınıf malzeme ve titiz işçilik standardı.' },
@@ -706,6 +781,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     accentText: info.s === 'vag_automotive' ? 'text-zinc-900' : 'text-amber-600',
     videoSrc: '/vw/hero-bg.mp4',
     posterSrc: '/vw/vw-service.jpg',
+    aboutImgSrc: '/vw/vw-engine.jpg',
     pillars: [
       { num: '01', title: 'Bilgisayarlı Teşhis & Analiz', desc: 'Modern test cihazları ile deneme-yanılma yapmadan nokta atışı arıza ve ihtiyaç tespiti.' },
       { num: '02', title: 'Uzman Usta Kadrosu', desc: 'Alanında deneyimli teknisyenlerimizle tüm işlemlerde standartlara uygun, titiz işçilik.' },
@@ -813,11 +889,13 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 q: prev.q || data.info.q,
                 logo: prev.logo || prev.l || data.info.logo || data.info.l,
                 photos:
-                  Array.isArray(data.info.photos) &&
-                  data.info.photos.length >= (prev.photos?.length || prev.ph?.length || 0) &&
-                  data.info.photos.length > 0
+                  prev.ph && prev.ph.length > 0
+                    ? prev.ph
+                    : Array.isArray(data.info.photos) &&
+                      data.info.photos.length >= (prev.photos?.length || 0) &&
+                      data.info.photos.length > 0
                     ? data.info.photos
-                    : prev.photos || prev.ph,
+                    : prev.photos,
                 reviews:
                   Array.isArray(data.info.reviews) && data.info.reviews.length > 0
                     ? data.info.reviews
@@ -835,37 +913,47 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
   const cfg = getSectorConfig(liveInfo);
 
-  // Replace default gallery images with real Google Maps / Instagram photos when available
+  // Replace default gallery images with real Google Maps / Instagram / Telegram photos when available (unless pm === 'studio')
   const fallbackLocalPhotos = getKnownLocalPhotos(liveInfo.n, liveInfo.u);
-  const realPhotos =
-    fallbackLocalPhotos.length > 0
+  const rawRealPhotos =
+    liveInfo.pm === 'studio'
+      ? []
+      : liveInfo.ph && liveInfo.ph.length > 0
+      ? liveInfo.ph
+      : fallbackLocalPhotos.length > 0
       ? fallbackLocalPhotos
       : liveInfo.photos && liveInfo.photos.length > 0
       ? liveInfo.photos
-      : liveInfo.ph && liveInfo.ph.length > 0
-      ? liveInfo.ph
       : [];
-  const galleryOffset = realPhotos.length >= 5 ? 1 : 0;
+
+  // Deduplicate and filter out logo URL so the logo never appears as a gallery photo
+  const effectiveLogoUrl = liveInfo.logo || liveInfo.l || '';
+  const realPhotos = [...new Set(rawRealPhotos)].filter(
+    (p) => p && p !== effectiveLogoUrl
+  );
+
+  // Always use realPhotos[0] for Hakkımızda and start Galeri at realPhotos[1] so Hakkımızda and Galeri NEVER show the same image
+  const aboutPhotoSrc = realPhotos[0] || cfg.aboutImgSrc || cfg.gallery[0].src;
   const activeGallery = cfg.gallery.map((item, idx) => {
-    const candidatePhoto = realPhotos[idx + galleryOffset] || realPhotos[idx];
+    const candidatePhoto = realPhotos[idx + 1];
     if (candidatePhoto) {
       return {
         src: candidatePhoto,
-        title: item.title || (
-          idx === 0
+        fallbackSrc: item.src,
+        title:
+          item.title ||
+          (idx === 0
             ? `${liveInfo.n} — İşletme Görseli`
             : idx === 1
             ? `${liveInfo.n} — Hizmet & Ürün Alanı`
             : idx === 2
             ? `${liveInfo.n} — Uygulama & Detay`
-            : `${liveInfo.n} — Mekan & Dış Görünüm`
-        ),
+            : `${liveInfo.n} — Mekan & Dış Görünüm`),
         subtitle: idx === 0 ? liveInfo.a : liveInfo.c || item.subtitle,
       };
     }
-    return item;
+    return { ...item, fallbackSrc: item.src };
   });
-  const aboutPhotoSrc = realPhotos[0] || activeGallery[0].src;
 
   // Combine real Google Maps reviews with sector reviews so ReviewRiver always has at least 4 items
   const combinedReviews =
@@ -1101,11 +1189,10 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
 
               <div className="lg:col-span-6">
                 <div className="aspect-[16/10] rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100">
-                  <img
+                  <SmartBusinessImage
                     src={aboutPhotoSrc}
+                    fallbackSrc={cfg.aboutImgSrc || cfg.gallery[0].src}
                     alt={liveInfo.n}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover"
                   />
                 </div>
               </div>
@@ -1227,11 +1314,10 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
               {activeGallery.map((photo, idx) => (
                 <div key={idx} className="rounded-lg overflow-hidden border border-zinc-200 bg-zinc-50">
                   <div className="aspect-[16/10] w-full overflow-hidden">
-                    <img
+                    <SmartBusinessImage
                       src={photo.src}
+                      fallbackSrc={photo.fallbackSrc || cfg.gallery[idx]?.src || cfg.aboutImgSrc}
                       alt={photo.title}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="p-5 bg-white border-t border-zinc-200">
