@@ -65,7 +65,7 @@ const GMAPS_HEADERS = {
     'SOCS=CAESHAgBEhJnd3NfMjAyMzA4MTAtMF9SQzIaAmVuIAEaBgiAo_CmBg; CONSENT=YES+cb.20230531-04-p0.tr+FX+111',
 };
 
-async function sendTelegram(chatId, text) {
+async function sendTelegram(chatId, text, extra = {}) {
   await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -73,8 +73,37 @@ async function sendTelegram(chatId, text) {
       chat_id: chatId,
       text,
       disable_web_page_preview: true,
+      ...extra,
     }),
   });
+}
+
+async function answerCallbackQuery(callbackQueryId, text) {
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text,
+      }),
+    });
+  } catch (_) {}
+}
+
+async function editTelegramMessage(chatId, messageId, text) {
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        message_id: messageId,
+        text,
+        disable_web_page_preview: true,
+      }),
+    });
+  } catch (_) {}
 }
 
 function slugify(str) {
@@ -838,6 +867,85 @@ export default async function handler(req, res) {
 
   try {
     const update = req.body;
+
+    // 1. Handle Inline Button Click (Ankara / Samsun selection)
+    if (update?.callback_query) {
+      const cb = update.callback_query;
+      const chatId = cb.message?.chat?.id;
+      const messageId = cb.message?.message_id;
+      const data = cb.data || '';
+
+      if (chatId && data.startsWith('city:')) {
+        const chosenCity = data === 'city:Samsun' ? 'Samsun' : 'Ankara';
+        const baseUrl = chosenCity === 'Ankara' ? ANKARA_BASE_URL : SITE_BASE_URL;
+
+        let rawText = cb.message?.reply_to_message?.text || '';
+        if (!rawText && cb.message?.text) {
+          const linkIdx = cb.message.text.indexOf('🔗');
+          if (linkIdx !== -1) {
+            rawText = cb.message.text.slice(linkIdx + 2).trim();
+          } else {
+            const mUrl = cb.message.text.match(/https?:\/\/[^\s]+/i);
+            if (mUrl) rawText = mUrl[0];
+          }
+        }
+
+        await answerCallbackQuery(cb.id, `⏳ ${chosenCity} seçildi, site hazırlanıyor...`);
+        if (messageId) {
+          await editTelegramMessage(
+            chatId,
+            messageId,
+            `⏳ Seçilen Şehir: ${chosenCity} (${baseUrl.replace(
+              'https://',
+              ''
+            )})\nİşletmenin fotoğrafları, sektörel içerikleri, özel kurumsal logosu ve iletişim bilgileri hazırlanıyor...`
+          );
+        }
+
+        const fullInfo = await resolveBusinessInfo(rawText);
+        if (
+          fullInfo.a === 'Merkez / Türkiye' ||
+          fullInfo.a === 'Ankara / Türkiye' ||
+          fullInfo.a === 'Samsun / Türkiye' ||
+          fullInfo.a === 'Ankara' ||
+          fullInfo.a === 'Samsun'
+        ) {
+          fullInfo.a = `${chosenCity} / Türkiye`;
+        } else if (!fullInfo.a.toLocaleLowerCase('tr-TR').includes(chosenCity.toLocaleLowerCase('tr-TR'))) {
+          fullInfo.a = `${fullInfo.a}, ${chosenCity}`;
+        }
+        fullInfo.q = `${fullInfo.n}, ${fullInfo.a}`;
+
+        const slug = slugify(fullInfo.n);
+        const compactPayload = {
+          n: fullInfo.n,
+          a: fullInfo.a,
+          p: fullInfo.p,
+          c: fullInfo.c,
+          s: fullInfo.s,
+          q: fullInfo.q,
+          u: fullInfo.u,
+        };
+        const encodedPayload = Buffer.from(JSON.stringify(compactPayload), 'utf8').toString('base64url');
+        const liveUrl = `${baseUrl}/${slug}?s=${encodedPayload}`;
+        const themeLabel = getSectorLabel(fullInfo.s);
+
+        await sendTelegram(
+          chatId,
+          `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n🏢 Firma: ${fullInfo.n}\n🌆 Şehir / Alan Adı: ${chosenCity} (${baseUrl.replace(
+            'https://',
+            ''
+          )})\n🏷️ Kategori: ${fullInfo.c || themeLabel}\n📍 Adres: ${fullInfo.a}\n📞 Telefon: ${
+            fullInfo.p
+          }\n📸 Çekilen Gerçek Fotoğraf: ${fullInfo.photos.length} Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki:\n${liveUrl}`
+        );
+
+        return res.status(200).json({ ok: true, city: chosenCity, liveUrl });
+      }
+
+      return res.status(200).json({ ok: true });
+    }
+
     const msg = update?.message || update?.edited_message;
     if (!msg || !msg.text) {
       return res.status(200).json({ ok: true });
@@ -849,7 +957,7 @@ export default async function handler(req, res) {
     if (text === '/start' || text.toLowerCase() === 'merhaba') {
       await sendTelegram(
         chatId,
-        '⚡ 7/24 Anlık Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; işletmenin bulunduğu şehre (Ankara / Samsun) göre özel alan adıyla, gerçek fotoğrafları, telefonu, adresi ve özel logosuyla kurumsal web sitesini saniyeler içinde hazırlayıp göndereyim.'
+        '⚡ 7/24 Anlık Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; size Ankara mı Samsun mu olduğunu sorayım ve seçtiğiniz şehrin özel alan adıyla kurumsal web sitesini saniyeler içinde hazırlayıp göndereyim.'
       );
       return res.status(200).json({ ok: true });
     }
@@ -862,56 +970,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // Ask user directly: Ankara mı Samsun mu?
     await sendTelegram(
       chatId,
-      '⏳ İşletmenin Google Maps fotoğrafları, sektörel içerikleri, özel kurumsal logosu ve iletişim bilgileri hazırlanıyor...'
+      `🏙️ Bu işletme hangi şehirde yer alıyor? Lütfen aşağıdan seçin:\n\n🔗 ${text}`,
+      {
+        reply_to_message_id: msg.message_id,
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: '🏛️ Ankara (ankara-web-siteleri)', callback_data: 'city:Ankara' },
+              { text: '🌊 Samsun (samsun-web-siteleri)', callback_data: 'city:Samsun' },
+            ],
+          ],
+        },
+      }
     );
 
-    const fullInfo = await resolveBusinessInfo(text);
-    const { city, baseUrl } = detectCityAndBaseUrl(fullInfo, text);
-    if (fullInfo.a === 'Merkez / Türkiye') {
-      fullInfo.a = city === 'Ankara' ? 'Ankara / Türkiye' : 'Samsun / Türkiye';
-    }
-
-    const slug = slugify(fullInfo.n);
-
-    const compactPayload = {
-      n: fullInfo.n,
-      a: fullInfo.a,
-      p: fullInfo.p,
-      c: fullInfo.c,
-      s: fullInfo.s,
-      q: fullInfo.q,
-      u: fullInfo.u,
-    };
-    const encodedPayload = Buffer.from(JSON.stringify(compactPayload), 'utf8').toString('base64url');
-    const liveUrl = `${baseUrl}/${slug}?s=${encodedPayload}`;
-
-    const altCity = city === 'Ankara' ? 'Samsun' : 'Ankara';
-    const altBaseUrl = city === 'Ankara' ? SITE_BASE_URL : ANKARA_BASE_URL;
-    const altPayload = {
-      ...compactPayload,
-      a:
-        fullInfo.a === 'Ankara / Türkiye' || fullInfo.a === 'Samsun / Türkiye'
-          ? `${altCity} / Türkiye`
-          : fullInfo.a,
-    };
-    const altEncoded = Buffer.from(JSON.stringify(altPayload), 'utf8').toString('base64url');
-    const altUrl = `${altBaseUrl}/${slug}?s=${altEncoded}`;
-
-    const themeLabel = getSectorLabel(fullInfo.s);
-
-    await sendTelegram(
-      chatId,
-      `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n🏢 Firma: ${fullInfo.n}\n🌆 Şehir / Alan Adı: ${city} (${baseUrl.replace(
-        'https://',
-        ''
-      )})\n🏷️ Kategori: ${fullInfo.c || themeLabel}\n📍 Adres: ${fullInfo.a}\n📞 Telefon: ${
-        fullInfo.p
-      }\n📸 Çekilen Gerçek Fotoğraf: ${fullInfo.photos.length} Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki (${city}):\n${liveUrl}\n\n🔄 Alternatif Şehir Linki (${altCity}):\n${altUrl}`
-    );
-
-    return res.status(200).json({ ok: true, city, liveUrl, altUrl });
+    return res.status(200).json({ ok: true, action: 'asked_city' });
   } catch (err) {
     console.error('Telegram webhook error:', err);
     return res.status(200).json({ ok: true });
