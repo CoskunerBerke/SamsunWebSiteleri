@@ -108,7 +108,7 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
       heroEyebrow: 'text-amber-400',
       accentText: 'text-amber-600',
       videoSrc: '/videos/detailing.mp4',
-      posterSrc: '/images/diestrogarage/3.jpg',
+      posterSrc: '/images/diestrogarage/1.jpg?v=2',
       pillars: [
         { num: '01', title: 'Seramik & Elmas Kaplama', desc: 'Boya yüzeyinde hidrofobik kristal zırh oluşturan, UV ve çizik dirençli 9H seramik ve elmas kaplama.' },
         { num: '02', title: 'PPF & Araç Kaplama', desc: 'Taş vuruğu ve sürtmelere karşı kendini yenileyen TPU şeffaf kaput filmi ve profesyonel araç kaplama.' },
@@ -131,10 +131,10 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
         { author: 'Serkan D.', role: 'Müşteri Yorumu', group: 'Araç Kaplama & Bodykit', text: 'Hem esnaflıkları hem de detaylara verdikleri önem çok üst seviyede. Aracınızı gözünüz kapalı teslim edebileceğiniz profesyonel bir garaj.' },
       ],
       gallery: [
-        { src: '/images/diestrogarage/1.jpg', title: `${name} Detailing & Kaplama Stüdyosu`, subtitle: info.a },
-        { src: '/images/diestrogarage/3.jpg', title: `${name} Profesyonel Pasta Cila & Seramik Kaplama`, subtitle: 'Özel LED aydınlatmalı stüdyoda kusursuz boya düzeltme' },
-        { src: '/images/diestrogarage/5.jpg', title: `${name} PPF Boya Koruma & Araç Kaplama`, subtitle: 'Üst segment araçlara özel garantili koruma uygulamaları' },
-        { src: '/images/diestrogarage/6.jpg', title: `${name} Elmas & Seramik Kaplama Teknolojisi`, subtitle: info.a },
+        { src: '/images/diestrogarage/2.jpg?v=2', title: `${name} Seramik & Elmas Kaplama Stüdyosu`, subtitle: info.a },
+        { src: '/images/diestrogarage/3.jpg?v=2', title: `${name} Detaylı Yıkama & Boya Hazırlık`, subtitle: 'Özel LED aydınlatmalı stüdyoda kusursuz yüzey hazırlığı' },
+        { src: '/images/diestrogarage/4.jpg?v=2', title: `${name} 9H Kristal Seramik & Elmas Kaplama`, subtitle: 'Üst segment araçlara özel garantili boya koruma uygulamaları' },
+        { src: '/images/diestrogarage/6.jpg?v=2', title: `${name} Profesyonel Pasta Cila & Showroom Parlaklığı`, subtitle: info.a },
       ],
     };
   }
@@ -740,12 +740,12 @@ function getKnownLocalPhotos(name: string, url: string): string[] {
   const combined = `${name} ${url}`.toLocaleLowerCase('tr-TR');
   if (combined.includes('diestro')) {
     return [
-      '/images/diestrogarage/1.jpg',
-      '/images/diestrogarage/2.jpg',
-      '/images/diestrogarage/3.jpg',
-      '/images/diestrogarage/4.jpg',
-      '/images/diestrogarage/5.jpg',
-      '/images/diestrogarage/6.jpg',
+      '/images/diestrogarage/1.jpg?v=2',
+      '/images/diestrogarage/2.jpg?v=2',
+      '/images/diestrogarage/3.jpg?v=2',
+      '/images/diestrogarage/4.jpg?v=2',
+      '/images/diestrogarage/6.jpg?v=2',
+      '/images/diestrogarage/5.jpg?v=2',
     ];
   }
   if (combined.includes('ky teknoloji') || combined.includes('kyteknoloji')) {
@@ -838,28 +838,34 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   // Replace default gallery images with real Google Maps / Instagram photos when available
   const fallbackLocalPhotos = getKnownLocalPhotos(liveInfo.n, liveInfo.u);
   const realPhotos =
-    liveInfo.photos && liveInfo.photos.length > 0
+    fallbackLocalPhotos.length > 0
+      ? fallbackLocalPhotos
+      : liveInfo.photos && liveInfo.photos.length > 0
       ? liveInfo.photos
       : liveInfo.ph && liveInfo.ph.length > 0
       ? liveInfo.ph
-      : fallbackLocalPhotos;
+      : [];
+  const galleryOffset = realPhotos.length >= 5 ? 1 : 0;
   const activeGallery = cfg.gallery.map((item, idx) => {
-    if (realPhotos[idx]) {
+    const candidatePhoto = realPhotos[idx + galleryOffset] || realPhotos[idx];
+    if (candidatePhoto) {
       return {
-        src: realPhotos[idx],
-        title:
+        src: candidatePhoto,
+        title: item.title || (
           idx === 0
             ? `${liveInfo.n} — İşletme Görseli`
             : idx === 1
             ? `${liveInfo.n} — Hizmet & Ürün Alanı`
             : idx === 2
             ? `${liveInfo.n} — Uygulama & Detay`
-            : `${liveInfo.n} — Mekan & Dış Görünüm`,
+            : `${liveInfo.n} — Mekan & Dış Görünüm`
+        ),
         subtitle: idx === 0 ? liveInfo.a : liveInfo.c || item.subtitle,
       };
     }
     return item;
   });
+  const aboutPhotoSrc = realPhotos[0] || activeGallery[0].src;
 
   // Combine real Google Maps reviews with sector reviews so ReviewRiver always has at least 4 items
   const combinedReviews =
@@ -1096,7 +1102,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
               <div className="lg:col-span-6">
                 <div className="aspect-[16/10] rounded-lg overflow-hidden border border-zinc-200 bg-zinc-100">
                   <img
-                    src={activeGallery[0].src}
+                    src={aboutPhotoSrc}
                     alt={liveInfo.n}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-cover"

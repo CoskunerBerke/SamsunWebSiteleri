@@ -281,12 +281,12 @@ const KNOWN_INSTAGRAM_PROFILES = {
     address: 'Ankara',
     phone: '0544 477 56 57',
     photos: [
-      '/images/diestrogarage/1.jpg',
-      '/images/diestrogarage/2.jpg',
-      '/images/diestrogarage/3.jpg',
-      '/images/diestrogarage/4.jpg',
-      '/images/diestrogarage/5.jpg',
-      '/images/diestrogarage/6.jpg',
+      '/images/diestrogarage/1.jpg?v=2',
+      '/images/diestrogarage/2.jpg?v=2',
+      '/images/diestrogarage/3.jpg?v=2',
+      '/images/diestrogarage/4.jpg?v=2',
+      '/images/diestrogarage/6.jpg?v=2',
+      '/images/diestrogarage/5.jpg?v=2',
     ],
     rawText:
       'DİESTRO GARAGE LUXURY Seramik Kaplama Araç Kaplama Elmas Kaplama Jant Boyama Kaput Filmi Cam Filmi Bodykit Aksesuar Boyasız Göçük Düzeltme Pasta Cila Detailing Ankara',
