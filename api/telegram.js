@@ -5,6 +5,36 @@ const BOT_TOKEN =
   Buffer.from(p1, 'base64').toString('utf8') + Buffer.from(p2, 'base64').toString('utf8');
 
 const SITE_BASE_URL = 'https://samsun-web-siteleri.vercel.app';
+const ANKARA_BASE_URL = 'https://ankara-web-siteleri.vercel.app';
+
+function detectCityAndBaseUrl(info, rawText = '') {
+  const combined = `${info.n || ''} ${info.a || ''} ${info.q || ''} ${info.p || ''} ${info.u || ''} ${
+    info.resolvedUrl || ''
+  } ${rawText}`.toLocaleLowerCase('tr-TR');
+
+  // Check GPS coordinates in resolved Google Maps URL (@lat,lon or !3dlat!4dlon)
+  const coordMatch = `${info.resolvedUrl || ''} ${info.u || ''}`.match(
+    /(?:@|!3d)(-?\d+\.\d+)(?:,|!4d)(-?\d+\.\d+)/
+  );
+  if (coordMatch) {
+    const lat = parseFloat(coordMatch[1]);
+    const lon = parseFloat(coordMatch[2]);
+    if (lat >= 38.8 && lat <= 40.55 && lon >= 31.0 && lon <= 33.95) {
+      return { city: 'Ankara', baseUrl: ANKARA_BASE_URL };
+    }
+  }
+
+  // Check Ankara city, district, industrial zone, postal code (06xxx) or area code (0312)
+  if (
+    /(ankara|çankaya|cankaya|keçiören|kecioren|yenimahalle|mamak|etimesgut|sincan|altındağ|altindag|gölbaşı|golbasi|pursaklar|polatlı|polatli|çubuk|cubuk|kahramankazan|beypazarı|beypazari|elmadağ|elmadag|şereflikoçhisar|akyurt|kızılcahamam|ivedik|ostim|şaşmaz|sasmaz|siteler|kızılay|kizilay|çayyolu|cayyolu|ümitköy|umitkoy|batıkent|batikent|eryaman|dikmen|balgat|tunalı|tunali|söğütözü|sogutozu|çukurambar|cukurambar|\b06\d{3}\b|\b0?312\s*\d{3})/.test(
+      combined
+    )
+  ) {
+    return { city: 'Ankara', baseUrl: ANKARA_BASE_URL };
+  }
+
+  return { city: 'Samsun', baseUrl: SITE_BASE_URL };
+}
 
 const GMAPS_HEADERS = {
   'User-Agent':
@@ -188,6 +218,7 @@ async function resolveBusinessInfo(rawText) {
   let photos = [];
   let reviews = [];
   let pageText = '';
+  let resolvedUrl = inputUrl;
 
   if (inputUrl) {
     try {
@@ -196,6 +227,7 @@ async function resolveBusinessInfo(rawText) {
         headers: GMAPS_HEADERS,
       });
       const finalUrl = res1.url || inputUrl;
+      resolvedUrl = finalUrl;
       let pageHtml = await res1.text();
 
       if (!pageHtml.includes('/maps/preview/place')) {
@@ -413,6 +445,7 @@ async function resolveBusinessInfo(rawText) {
     s: sector,
     q: mapQuery,
     u: inputUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`,
+    resolvedUrl,
     photos: proxiedPhotos,
     reviews: reviews.slice(0, 6),
   };
@@ -470,7 +503,7 @@ export default async function handler(req, res) {
     if (text === '/start' || text.toLowerCase() === 'merhaba') {
       await sendTelegram(
         chatId,
-        '⚡ 7/24 Anlık Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; Google Haritalar üzerindeki gerçek fotoğraflarını, gerçek telefonunu, adresini, özel logosunu ve yorumlarını çekerek saniyeler içinde kurumsal web sitesini hazırlayıp canlı Vercel linkini göndereyim.'
+        '⚡ 7/24 Anlık Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; işletmenin bulunduğu şehre (Ankara / Samsun) göre özel alan adıyla, gerçek fotoğrafları, telefonu, adresi ve özel logosuyla kurumsal web sitesini saniyeler içinde hazırlayıp göndereyim.'
       );
       return res.status(200).json({ ok: true });
     }
@@ -489,6 +522,11 @@ export default async function handler(req, res) {
     );
 
     const fullInfo = await resolveBusinessInfo(text);
+    const { city, baseUrl } = detectCityAndBaseUrl(fullInfo, text);
+    if (fullInfo.a === 'Merkez / Türkiye' && city === 'Ankara') {
+      fullInfo.a = 'Ankara / Türkiye';
+    }
+
     const slug = slugify(fullInfo.n);
 
     const compactPayload = {
@@ -501,19 +539,20 @@ export default async function handler(req, res) {
       u: fullInfo.u,
     };
     const encodedPayload = Buffer.from(JSON.stringify(compactPayload), 'utf8').toString('base64url');
-    const liveUrl = `${SITE_BASE_URL}/${slug}?s=${encodedPayload}`;
+    const liveUrl = `${baseUrl}/${slug}?s=${encodedPayload}`;
     const themeLabel = getSectorLabel(fullInfo.s);
 
     await sendTelegram(
       chatId,
-      `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n🏢 Firma: ${fullInfo.n}\n🏷️ Kategori: ${
-        fullInfo.c || themeLabel
-      }\n📍 Adres: ${fullInfo.a}\n📞 Telefon: ${fullInfo.p}\n📸 Çekilen Gerçek Fotoğraf: ${
-        fullInfo.photos.length
-      } Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki:\n${liveUrl}`
+      `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n🏢 Firma: ${fullInfo.n}\n🌆 Şehir / Alan Adı: ${city} (${baseUrl.replace(
+        'https://',
+        ''
+      )})\n🏷️ Kategori: ${fullInfo.c || themeLabel}\n📍 Adres: ${fullInfo.a}\n📞 Telefon: ${
+        fullInfo.p
+      }\n📸 Çekilen Gerçek Fotoğraf: ${fullInfo.photos.length} Adet\n🎨 Tema: ${themeLabel}\n\n🌐 Canlı Web Sitesi Linki:\n${liveUrl}`
     );
 
-    return res.status(200).json({ ok: true, liveUrl });
+    return res.status(200).json({ ok: true, city, liveUrl });
   } catch (err) {
     console.error('Telegram webhook error:', err);
     return res.status(200).json({ ok: true });
