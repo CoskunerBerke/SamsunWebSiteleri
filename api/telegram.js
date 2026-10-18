@@ -106,7 +106,7 @@ function detectSector(combinedText) {
     return 'cafe_dessert';
   }
   if (
-    /(restoran|restaurant|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et |balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni)/.test(
+    /(restoran|restaurant|aspava|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et |balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni|ciğer|ciger|mangal|dürüm|durum|tavuk)/.test(
       t
     )
   ) {
