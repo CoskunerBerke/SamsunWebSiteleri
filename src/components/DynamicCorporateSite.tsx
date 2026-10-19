@@ -855,6 +855,21 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   const [formNote, setFormNote] = useState('');
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  useEffect(() => {
+    setLiveInfo((prev) => ({
+      ...prev,
+      ...info,
+      photos: info.photos && info.photos.length > 0 ? info.photos : prev.photos,
+      reviews: info.reviews && info.reviews.length > 0 ? info.reviews : prev.reviews,
+    }));
+  }, [info]);
+
+  useEffect(() => {
+    if (liveInfo.n) {
+      document.title = `${liveInfo.n} | Kurumsal Web Sitesi`;
+    }
+  }, [liveInfo.n]);
+
   // Fetch real Google Maps / Instagram photos, logo, phone, address, categories, and reviews on mount
   useEffect(() => {
     let cancelled = false;
