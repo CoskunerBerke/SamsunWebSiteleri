@@ -13,12 +13,12 @@ import DynamicCorporateSite, { DynamicSiteInfo } from './components/DynamicCorpo
 const SEED_SITES_CLIENT: Record<string, DynamicSiteInfo> = {
   'sweden-pizza': {
     n: 'Sweden Pizza',
-    a: 'Kültür, Doktorlar Sitesi, Ataç-2 Sk. 37/A, 06420 Çankaya/Ankara, Türkiye',
-    p: '+90 312 433 06 10',
+    a: 'Etlik, Etlik Cd No:128/D, 06010 Keçiören/Ankara, Türkiye',
+    p: '+90 312 326 43 63',
     c: 'Pizza Restoranı',
     s: 'pizza_italian',
-    q: 'Sweden Pizza, Kültür, Doktorlar Sitesi, Ataç-2 Sk. 37/A, 06420 Çankaya/Ankara, Türkiye',
-    u: 'https://maps.google.com/?q=Sweden+Pizza+K%C3%BClt%C3%BCr+Ata%C3%A7-2+Sk.+37/A+%C3%87ankaya+Ankara',
+    q: 'Sweden Pizza, Etlik, Etlik Cd No:128/D, 06010 Keçiören/Ankara, Türkiye',
+    u: 'https://maps.app.goo.gl/F2Vz8UzzreoNzbBo6?g_st=ic',
     bio: 'Sweden Pizza, 35 yıllık tecrübesiyle pizzayı sadece yemek değil, keyifli bir anıya dönüştürüyor. Özenle dinlendirilmiş hamurumuz, kendi mutfağımızda hazırladığımız özgün soslarımız, kaliteli peynir ve seçkin et ürünlerimiz ile her gün taze seçilen sebzelerimiz bir araya geliyor.',
     hr: 'Hafta İçi: 11:00 – 22:00 • Hafta Sonu: 12:00 – 22:00',
     rt: '4.9',
