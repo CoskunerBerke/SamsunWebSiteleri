@@ -112,38 +112,65 @@ const KV_LANG_BUCKETS = [
 const GLOBAL_SLUG_CACHE = new Map();
 
 const SEED_SITES = {
+  'sweden-pizza': {
+    n: 'Sweden Pizza',
+    a: 'Etlik, Etlik Cd No:128/D, 06010 Keçiören/Ankara, Türkiye',
+    p: '+90 312 326 43 63',
+    c: 'Pizza Restoranı',
+    s: 'pizza_italian',
+    q: 'Sweden Pizza, Etlik, Etlik Cd No:128/D, 06010 Keçiören/Ankara, Türkiye',
+    u: 'https://maps.app.goo.gl/F2Vz8UzzreoNzbBo6?g_st=ic',
+    city: 'Ankara',
+    pm: 'auto',
+    bio: 'Sweden Pizza, 35 yıllık tecrübesiyle pizzayı sadece yemek değil, keyifli bir anıya dönüştürüyor. Her biri özenle seçilmiş malzemelerle hazırlanan pizzalarımız; klasiklerden özel tariflere, herkesin damak zevkine hitap ediyor. Samimi ortamı, hızlı servisi ve uygun fiyatlarıyla gerçek pizza severlerin vazgeçilmezi haline geldik.',
+    hr: 'Pazartesi – Cuma: 11:00 – 22:00 • Hafta Sonu: 12:00 – 22:00',
+    rt: '4.9',
+    rc: 227,
+  },
   'bagdat-tatlisi-lokantasi': {
     n: 'Bağdat Tatlısı Bağdat Lokantası',
     a: 'G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     p: '+90 312 229 63 18',
-    c: 'Tatlıcı',
-    s: 'cafe_dessert',
+    c: 'Tatlıcı & Geleneksel Lokanta',
+    s: 'traditional_dessert',
     q: 'Bağdat Tatlısı Bağdat Lokantası, G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     u: 'https://maps.app.goo.gl/VWpfdcWe9UU4fZAP8?g_st=ic',
     city: 'Ankara',
     pm: 'auto',
+    bio: 'Kurucusu olduğumuz Bağdat Lokantası ve eşsiz lezzeti Bağdat tatlısı 45 yıldır aynı yerinde ve tek adresinde Ankara Çankaya Maltepe’de misafirlerini ağırlamaktadır.',
+    hr: 'Her Gün: 09:00 – 20:00',
+    rt: '4.7',
+    rc: 328,
   },
   'bagdat-tatlisi-bagdat-lokantasi': {
     n: 'Bağdat Tatlısı Bağdat Lokantası',
     a: 'G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     p: '+90 312 229 63 18',
-    c: 'Tatlıcı',
-    s: 'cafe_dessert',
+    c: 'Tatlıcı & Geleneksel Lokanta',
+    s: 'traditional_dessert',
     q: 'Bağdat Tatlısı Bağdat Lokantası, G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     u: 'https://maps.app.goo.gl/VWpfdcWe9UU4fZAP8?g_st=ic',
     city: 'Ankara',
     pm: 'auto',
+    bio: 'Kurucusu olduğumuz Bağdat Lokantası ve eşsiz lezzeti Bağdat tatlısı 45 yıldır aynı yerinde ve tek adresinde Ankara Çankaya Maltepe’de misafirlerini ağırlamaktadır.',
+    hr: 'Her Gün: 09:00 – 20:00',
+    rt: '4.7',
+    rc: 328,
   },
   'bagdat-tatlisi': {
     n: 'Bağdat Tatlısı Bağdat Lokantası',
     a: 'G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     p: '+90 312 229 63 18',
-    c: 'Tatlıcı',
-    s: 'cafe_dessert',
+    c: 'Tatlıcı & Geleneksel Lokanta',
+    s: 'traditional_dessert',
     q: 'Bağdat Tatlısı Bağdat Lokantası, G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     u: 'https://maps.app.goo.gl/VWpfdcWe9UU4fZAP8?g_st=ic',
     city: 'Ankara',
     pm: 'auto',
+    bio: 'Kurucusu olduğumuz Bağdat Lokantası ve eşsiz lezzeti Bağdat tatlısı 45 yıldır aynı yerinde ve tek adresinde Ankara Çankaya Maltepe’de misafirlerini ağırlamaktadır.',
+    hr: 'Her Gün: 09:00 – 20:00',
+    rt: '4.7',
+    rc: 328,
   },
   'diestro-garage': {
     n: 'Diestro Garage',
@@ -209,6 +236,13 @@ async function saveSiteBySlug(slug, record) {
       pm: record.pm || 'auto',
       l: record.l || record.logo || '',
     };
+    if (record.bio) kvObj.bio = String(record.bio).slice(0, 340);
+    if (record.hr) kvObj.hr = String(record.hr).slice(0, 90);
+    if (record.rt) kvObj.rt = String(record.rt);
+    if (record.rc) kvObj.rc = Number(record.rc);
+    if (Array.isArray(record.ci) && record.ci.length > 0) {
+      kvObj.ci = record.ci.slice(0, 6);
+    }
     if (Array.isArray(record.ph) && record.ph.length > 0) {
       kvObj.ph = record.ph.slice(0, 6);
     }
@@ -254,34 +288,54 @@ async function loadSiteBySlug(slug, host = '') {
     return GLOBAL_SLUG_CACHE.get(cleanSlug);
   }
 
-  let foundRecord = SEED_SITES[cleanSlug] ? { ...SEED_SITES[cleanSlug] } : null;
+  let kvRecord = null;
+  try {
+    const { bucket, key } = getSlugBucketAndKey(cleanSlug);
+    const getRes = await fetch(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getMyCommands?language_code=${bucket}`
+    );
+    const getJson = await getRes.json();
+    const existing = Array.isArray(getJson?.result) ? getJson.result : [];
+    const matching = existing
+      .filter((cmd) => cmd.command.startsWith(`${key}_`))
+      .map((cmd) => ({
+        idx: parseInt(cmd.command.slice(key.length + 1), 10) || 0,
+        desc: cmd.description || '',
+      }))
+      .sort((a, b) => a.idx - b.idx);
 
-  if (!foundRecord) {
-    try {
-      const { bucket, key } = getSlugBucketAndKey(cleanSlug);
-      const getRes = await fetch(
-        `https://api.telegram.org/bot${BOT_TOKEN}/getMyCommands?language_code=${bucket}`
-      );
-      const getJson = await getRes.json();
-      const existing = Array.isArray(getJson?.result) ? getJson.result : [];
-      const matching = existing
-        .filter((cmd) => cmd.command.startsWith(`${key}_`))
-        .map((cmd) => ({
-          idx: parseInt(cmd.command.slice(key.length + 1), 10) || 0,
-          desc: cmd.description || '',
-        }))
-        .sort((a, b) => a.idx - b.idx);
-
-      if (matching.length > 0) {
-        const b64 = matching.map((m) => m.desc).join('');
-        const parsed = JSON.parse(Buffer.from(b64, 'base64url').toString('utf8'));
-        if (parsed && parsed.n) {
-          foundRecord = parsed;
-        }
+    if (matching.length > 0) {
+      const b64 = matching.map((m) => m.desc).join('');
+      const parsed = JSON.parse(Buffer.from(b64, 'base64url').toString('utf8'));
+      if (parsed && parsed.n) {
+        kvRecord = parsed;
       }
-    } catch (err) {
-      console.error('loadSiteBySlug KV error:', err);
     }
+  } catch (err) {
+    console.error('loadSiteBySlug KV error:', err);
+  }
+
+  const seedRecord = SEED_SITES[cleanSlug] ? { ...SEED_SITES[cleanSlug] } : null;
+  let foundRecord = null;
+
+  if (seedRecord && kvRecord) {
+    foundRecord = {
+      ...seedRecord,
+      ...kvRecord,
+      // Fix legacy generic sector if seed has a more specific one
+      s:
+        kvRecord.s === 'grill_restaurant' && seedRecord.s === 'pizza_italian'
+          ? 'pizza_italian'
+          : kvRecord.s === 'cafe_dessert' && seedRecord.s === 'traditional_dessert'
+          ? 'traditional_dessert'
+          : kvRecord.s || seedRecord.s,
+      bio: kvRecord.bio || seedRecord.bio,
+      hr: kvRecord.hr || seedRecord.hr,
+      rt: kvRecord.rt || seedRecord.rt,
+      rc: kvRecord.rc || seedRecord.rc,
+    };
+  } else {
+    foundRecord = kvRecord || seedRecord;
   }
 
   if (foundRecord) {
@@ -333,8 +387,10 @@ function unescapeHtml(str) {
     .replace(/&gt;/g, '>');
 }
 
-function detectSector(combinedText) {
-  const t = combinedText.toLocaleLowerCase('tr-TR');
+function matchGranularSector(text) {
+  const t = String(text || '').toLocaleLowerCase('tr-TR');
+  if (!t.trim()) return '';
+
   if (
     /(garage|garaj|detailing|pasta cila|seramik kaplama|elmas kaplama|ppf|kaput filmi|araç kaplama|arac kaplama|cam filmi|boyasız göçük|boyasiz gocuk|jant boyama|bodykit|oto kuaför|oto kuafor|car care|autoclub)/.test(
       t
@@ -342,15 +398,28 @@ function detectSector(combinedText) {
   ) {
     return 'auto_detailing';
   }
+  if (/(pizza|pizzeria|margarita|margherita|calzone|trattoria|napoliten|italyan restoran)/.test(t)) {
+    return 'pizza_italian';
+  }
+  if (/(burger|hamburger|cheeseburger|smash burger|street food|hot dog|çıtır tavuk|citir tavuk)/.test(t)) {
+    return 'burger_streetfood';
+  }
   if (
-    /(börek|borek|poğaça|pogaca|simit|fırın|firin|unlu mamül|unlu mamul|baklava|künefe|kunefe|katmer|gözleme|gozleme)/.test(
+    /(tatlıcı|tatlici|bağdat tatlısı|bagdat tatlisi|baklava|künefe|kunefe|kadayıf|kadayif|şöbiyet|sobiyet|muhallebi|sütlü tatlı|şerbetli tatlı|helva|lokma|katmer)/.test(
+      t
+    )
+  ) {
+    return 'traditional_dessert';
+  }
+  if (
+    /(börek|borek|poğaça|pogaca|simit|fırın|firin|unlu mamül|unlu mamul|gözleme|gozleme|kahvaltı salonu|serpme kahvaltı)/.test(
       t
     )
   ) {
     return 'bakery_breakfast';
   }
   if (
-    /(kafe|cafe|kahve|coffe|espresso|latte|patisserie|pastane|magnolia|profiterol|tiramisu|cheesecake|san sebastian|bistro|dondurma|waffle|çikolata|cikolata|nargile|çay evi|cay bahcesi|tatlı|tatli)/.test(
+    /(kafe|cafe|kahve|coffe|espresso|latte|patisserie|pastane|magnolia|profiterol|tiramisu|cheesecake|san sebastian|bistro|dondurma|waffle|çikolata|cikolata|nargile|çay evi|cay bahcesi|roastery)/.test(
       t
     )
   ) {
@@ -359,26 +428,53 @@ function detectSector(combinedText) {
   if (/(kahvaltı|kahvalti|kruvasan|ekmek|mantı|manti)/.test(t)) {
     return 'bakery_breakfast';
   }
+  if (/(balık|balik|deniz ürün|midye|kalamar|karides|hamsi|levrek|çupra)/.test(t)) {
+    return 'seafood_fish';
+  }
+  if (/(döner|doner|iskender|tantuni|köfte|kofte|kokoreç|kokorec|cağ kebabı|cag kebabi|dürümcü)/.test(t)) {
+    return 'doner_tantuni';
+  }
   if (
-    /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|ezogelin|sulu yemek|ev yemekleri|lokanta)/.test(
+    /(çorba|corba|paça|paca|işkembe|iskembe|beyran|mercimek|tarhana|ezogelin|sulu yemek|ev yemekleri|esnaf lokantası)/.test(
       t
     )
   ) {
     return 'soup_restaurant';
   }
   if (
-    /(restoran|restaurant|aspava|kebap|ocakbaşı|ocakbasi|pide|lahmacun|yemek|et lokanta|et restoran|steakhouse|balık|balik|döner|doner|iskender|köfte|kofte|izgara|ızgara|mutfak|lezzet|steak|burger|pizza|kokoreç|tantuni|ciğer|ciger|mangal|dürüm|durum|tavuk)/.test(
+    /(restoran|restaurant|aspava|kebap|ocakbaşı|ocakbasi|pide|lahmacun|et lokanta|et restoran|steakhouse|izgara|ızgara|steak|ciğer|ciger|mangal|lokanta)/.test(
       t
     )
   ) {
     return 'grill_restaurant';
   }
   if (
-    /(diş|dis|dental|dent|klinik|poliklinik|sağlık|saglik|medikal|estetik|doktor|hekim|eczane|optik|hastane|psikolog|fizyoterapi|veteriner)/.test(
+    /(kuaför|kuafor|berber|saç tasarım|sac tasarim|güzellik|guzellik|cilt bakım|cilt bakim|lazer epilasyon|protez tırnak|protez tirnak|nail art|ipek kirpik|makyaj|manikür|pedikür)/.test(
+      t
+    )
+  ) {
+    return 'beauty_hair';
+  }
+  if (
+    /(spor salonu|fitness|gym|pilates|reformer|yoga|crossfit|boks|kickboks|kişisel antrenör|personal trainer)/.test(
+      t
+    )
+  ) {
+    return 'fitness_pilates';
+  }
+  if (
+    /(diş|dis|dental|dent|klinik|poliklinik|sağlık|saglik|medikal|estetik|doktor|hekim|eczane|optik|hastane|psikolog|diyetisyen|fizyoterapi|veteriner)/.test(
       t
     )
   ) {
     return 'dental_medical';
+  }
+  if (
+    /(mimar|iç mimar|inşaat|insaat|müteahhit|gayrimenkul|emlak|konut|yapı|yapi|dekorasyon|avukat|hukuk|mali müşavir|danışmanlık)/.test(
+      t
+    )
+  ) {
+    return 'architecture_real_estate';
   }
   if (
     /(telefon|cep telefonu|iphone|samsung|xiaomi|aksesuar|tablet|bilgisayar|laptop|teknoloji|bilişim|bilisim|elektronik|çamaşır|camasir|bulaşık|bulasik|buzdolabı|buzdolabi|klima|kombi|süpürge|supurge|ev aletleri|elektrikli cihaz|beyaz eşya|beyaz esya|arzum|fantom|philips|beko|arçelik|arcelik|bosch|siemens|tefal|braun|delonghi|rowenta|korkmaz|fakir|teknik servis|tamir)/.test(
@@ -394,7 +490,7 @@ function detectSector(combinedText) {
     return 'vag_automotive';
   }
   if (
-    /(soba|kuzine|şömine|somine|döküm|dokum|metal|makina|makine|üretim|uretim|fabrika|kazan|plastik|ambalaj|mermer|demir doğrama)/.test(
+    /(soba|kuzine|şömine|somine|döküm|dokum|metal|makina|makine|üretim|uretim|fabrika|kazan|plastik|ambalaj|mermer|demir doğrama|mobilya imalat)/.test(
       t
     ) &&
     !/(oto|araba|lastik|kaporta|şanzıman)/.test(t)
@@ -408,18 +504,33 @@ function detectSector(combinedText) {
   ) {
     return 'auto_service';
   }
-  return 'corporate_editorial';
+  return '';
+}
+
+function detectSector(primaryText, secondaryText = '') {
+  const primaryMatch = matchGranularSector(primaryText);
+  if (primaryMatch) return primaryMatch;
+  const secondaryMatch = matchGranularSector(`${primaryText} ${secondaryText}`);
+  return secondaryMatch || 'corporate_editorial';
 }
 
 function getSectorLabel(sector) {
   const labels = {
+    pizza_italian: 'ARTİZAN PİZZA & İTALYAN MUTFAĞI TEMASI (Taş Fırın Sıcak Kehribar & Koyu Antrasit)',
+    burger_streetfood: 'GURME BURGER & SOKAK LEZZETLERİ TEMASI (Ateş Kehribar & Koyu Karbon)',
+    traditional_dessert: 'GELENEKSEL TATLI, BAKLAVA & LOKANTA TEMASI (Altın Şerbet Kehribar & Antrasit)',
+    doner_tantuni: 'YAPRAK DÖNER, İSKENDER & KÖFTE TEMASI (Sıcak Kehribar & Koyu Antrasit)',
+    seafood_fish: 'BALIK & DENİZ ÜRÜNLERİ RESTORANI TEMASI (Ege Mavisi & Koyu Antrasit)',
+    beauty_hair: 'KUAFÖR, GÜZELLİK & BAKIM STÜDYOSU TEMASI (Editoryal Antrasit & Altın)',
+    fitness_pilates: 'SPOR SALONU, PİLATES & FİTNESS STÜDYOSU TEMASI (Dinamik Karbon & Kehribar)',
+    architecture_real_estate: 'MİMARLIK, İNŞAAT, GAYRİMENKUL & HUKUK TEMASI (Ağırbaşlı Antrasit & Bronz)',
     auto_detailing: 'OTO DETAİLİNG, PASTA CİLA, SERAMİK & PPF GARAJI (Koyu Karbon & Altın Kehribar + Polisaj Videosu)',
     bakery_breakfast: 'BÖREKÇİ, FIRIN & KAHVALTI TEMASI (Sıcak Altın Kehribar & Koyu Antrasit)',
     soup_restaurant: 'ÇORBACI & GELENEKSEL LOKANTA TEMASI (Sıcak Kehribar & Koyu Antrasit)',
-    cafe_dessert: 'KAFE, KAHVE & TATLI TEMASI (Espresso & Altın Kehribar)',
+    cafe_dessert: 'KAFE, KAHVE & PATISSERIE TEMASI (Espresso & Altın Kehribar)',
     grill_restaurant: 'RESTORAN, KEBAP & IZGARA TEMASI (Sıcak Kehribar & Koyu Antrasit)',
     restaurant: 'RESTORAN & GASTRONOMİ TEMASI (Sıcak Kehribar & Koyu Antrasit)',
-    dental_medical: 'SAĞLIK & DİŞ KLİNİĞİ TEMASI (Ferah Beyaz & Medikal Turkuaz)',
+    dental_medical: 'SAĞLIK, DİŞ KLİNİĞİ & MEDİKAL TEMA (Ferah Beyaz & Medikal Turkuaz)',
     appliance_service: 'TEKNOLOJİ, CİHAZ & TEKNİK SERVİS TEMASI (Kurumsal Antrasit & Kehribar)',
     mercedes_luxury: 'LÜKS OTOMOTİV TEMASI (Monokrom Siyah & Beyaz)',
     vag_automotive: 'VAG OTOMOTİV TEMASI (Koyu Lacivert & Kristal Beyaz)',
@@ -432,20 +543,247 @@ function getSectorLabel(sector) {
 
 function getShortSectorLabel(sector) {
   const shortLabels = {
+    pizza_italian: '🍕 Pizza & İtalyan Restoranı',
+    burger_streetfood: '🍔 Gurme Burger & Sokak Lezzetleri',
+    traditional_dessert: '🍮 Tatlıcı / Baklava / Künefe / Lokanta',
+    doner_tantuni: '🥙 Yaprak Döner / İskender / Köfte / Tantuni',
+    seafood_fish: '🐟 Balık & Deniz Ürünleri Restoranı',
+    beauty_hair: '💇‍♀️ Kuaför / Berber / Güzellik & Bakım Merkezi',
+    fitness_pilates: '🏋️ Spor Salonu / Pilates / Fitness Stüdyosu',
+    architecture_real_estate: '🏛️ Mimarlık / İnşaat / Gayrimenkul / Hukuk',
     auto_detailing: '🚘 Oto Detailing / Pasta Cila / Kaplama Garajı',
     auto_service: '🔧 Oto Tamir & Mekanik Servis',
     mercedes_luxury: '⭐ Mercedes / Lüks Oto Servisi',
     vag_automotive: '🚙 Volkswagen / VAG Özel Servis',
-    cafe_dessert: '☕ Kafe / Kahve / Patisserie / Tatlı',
+    cafe_dessert: '☕ Kafe / 3. Nesil Kahve / Patisserie',
     bakery_breakfast: '🥐 Börekçi / Fırın / Kahvaltı',
-    grill_restaurant: '🥩 Restoran / Kebap / Izgara',
-    soup_restaurant: '🍲 Çorbacı / Geleneksel Lokanta',
-    appliance_service: '📱 Telefon / Teknoloji / Teknik Servis',
-    dental_medical: '🦷 Diş Kliniği / Sağlık / Estetik',
-    industrial_heating: '🏭 Sanayi / Üretim / Fabrika',
+    grill_restaurant: '🥩 Kebap / Ocakbaşı / Pide & Izgara',
+    soup_restaurant: '🍲 Çorbacı / Geleneksel Ev Yemekleri',
+    appliance_service: '📱 Telefon / Bilgisayar / Teknik Servis',
+    dental_medical: '🦷 Diş Kliniği / Sağlık / Veteriner / Optik',
+    industrial_heating: '🏭 Sanayi / Üretim / Mobilya / Fabrika',
     corporate_editorial: '🏢 Kurumsal İşletme / Mağaza / Ofis',
   };
   return shortLabels[sector] || shortLabels.corporate_editorial;
+}
+
+function formatGoogleHours(hoursArr) {
+  if (!Array.isArray(hoursArr) || hoursArr.length === 0) return '';
+  try {
+    const map = {};
+    for (const entry of hoursArr) {
+      const day = entry?.[0];
+      const range = entry?.[3]?.[0]?.[0];
+      if (day && range) {
+        map[day] = range.replace(/–/g, ' – ');
+      }
+    }
+    const pzt = map['Pazartesi'] || map['Salı'] || '';
+    const cmt = map['Cumartesi'] || '';
+    const paz = map['Pazar'] || '';
+    if (!pzt) return '';
+    if (pzt === cmt && pzt === paz) {
+      return `Her Gün: ${pzt}`;
+    }
+    if (cmt === paz && cmt) {
+      return `Hafta İçi: ${pzt} • Hafta Sonu: ${cmt}`;
+    }
+    return `Hafta İçi: ${pzt}${cmt ? ` • Cumartesi: ${cmt}` : ''}${paz ? ` • Pazar: ${paz}` : ''}`;
+  } catch {
+    return '';
+  }
+}
+
+function extractRealBusinessOfferings({
+  businessName = '',
+  categories = [],
+  ownerBio = '',
+  reviews = [],
+  pageText = '',
+  sector = 'corporate_editorial',
+  customItems = [],
+}) {
+  // 1. If the user explicitly taught custom items in Telegram, build cards directly from them!
+  if (Array.isArray(customItems) && customItems.length > 0) {
+    return customItems.slice(0, 6).map((rawItem, idx) => {
+      const cleanTitle = formatBusinessTitle(String(rawItem).trim());
+      return {
+        num: String(idx + 1).padStart(2, '0'),
+        title: cleanTitle,
+        desc: `${businessName} bünyesinde özenle seçilen birinci sınıf malzemeler ve usta işçilikle sunulan ${cleanTitle.toLocaleLowerCase('tr-TR')} uzmanlığımız.`,
+        detail: `${businessName} Kalitesi • Özenli Hazırlık • Tam Memnuniyet`,
+      };
+    });
+  }
+
+  const reviewCorpus = Array.isArray(reviews)
+    ? reviews.map((r) => (typeof r === 'string' ? r : r?.text || '')).join(' ')
+    : '';
+  const fullCorpus = `${businessName} ${categories.join(' ')} ${ownerBio} ${reviewCorpus} ${pageText}`.toLocaleLowerCase(
+    'tr-TR'
+  );
+
+  const matched = [];
+  const addCard = (title, desc, detail) => {
+    if (!matched.some((m) => m.title === title) && matched.length < 6) {
+      matched.push({
+        num: String(matched.length + 1).padStart(2, '0'),
+        title,
+        desc,
+        detail,
+      });
+    }
+  };
+
+  // Sector-specific deep review, bio & menu mining
+  if (sector === 'pizza_italian') {
+    if (/(4 peynir|dört peynir|quattro formaggi|peynirli)/.test(fullCorpus)) {
+      addCard(
+        'Dört Peynirli Artizan Pizza',
+        'İnce ve çıtır hamur üzerinde özenle dengelenmiş dört farklı gerçek peynir harmanıyla tam kıvamında fırınlanan imza lezzetimiz.',
+        'İnce Çıtır Hamur • 4 Özel Peynir • Günlük Taze Hazırlık'
+      );
+    }
+    if (/(ege|kabak|patlıcan|sebzeli|mantar)/.test(fullCorpus)) {
+      addCard(
+        'Ege & Taze Sebzeli Pizzalar',
+        'Günlük seçilen taze kabak, patlıcan, zeytin ve mevsim sebzeleriyle hazırlanan, sebzeyi en lezzetli haliyle sunan özel reçetemiz.',
+        'Günlük Taze Sebze • Ege Reçetesi • Doğal Malzeme'
+      );
+    }
+    if (/(margarita|margherita|mozzarella|fesleğen)/.test(fullCorpus)) {
+      addCard(
+        'Klasik Margarita Pizza',
+        'Ev yapımı taze domates sosumuz, gerçek mozzarella peyniri ve taze fesleğen dokunuşuyla hazırlanan geleneksel İtalyan klasiği.',
+        'Ev Yapımı Domates Sosu • Mozzarella • İnce Hamur'
+      );
+    }
+    if (/(et ürün|sucuk|kavurma|füme|şarküteri|karışık|32 cm|porsiyon|pepperoni)/.test(fullCorpus)) {
+      addCard(
+        'Seçkin Etli & 32 cm Doyurucu Pizzalar',
+        'Dondurulmuş veya fabrikasyon ürün kullanılmadan, tek tek seçilen kaliteli et ve şarküteri ürünleriyle hazırlanan doyurucu pizzalarımız.',
+        'Seçkin Et Ürünleri • 32 cm Doyurucu Porsiyon • Bol Malzeme'
+      );
+    }
+    if (/(acı sos|özel sos|soslar|sarımsak)/.test(fullCorpus)) {
+      addCard(
+        'Ev Yapımı Özgün Soslar & Acı Sos',
+        'Hamurun ve malzemelerin tadını bastırmadan yukarı taşıyan, kendi mutfağımızda günlük hazırladığımız özel pizza sosları ve ev yapımı acı sos.',
+        'Kendi Üretimimiz • Dengeli & Taze • Özgün Reçete'
+      );
+    }
+    if (/(tiramisu|sufle|tatlı|calzone)/.test(fullCorpus)) {
+      addCard(
+        'Ev Yapımı İtalyan Tiramisu & Tatlılar',
+        'Pizza keyfinizi taçlandıran günlük taze hazırlanmış tam kıvamında tiramisu ve sıcak-soğuk içecek çeşitlerimiz.',
+        'Günlük Taze Tiramisu • Samimi Ortam • Paket & Salon Servisi'
+      );
+    }
+  } else if (sector === 'traditional_dessert') {
+    if (/(bağdat tatlısı|bagdat tatlisi)/.test(fullCorpus)) {
+      addCard(
+        'Meşhur Fıstıklı Bağdat Tatlısı',
+        'İncecik çıtır hamuru, doğal şeker şerbeti ve bol Antep fıstığıyla lokmalık olarak hazırlanan, Ankara’ya özgü tescilli imza tatlımız.',
+        '45 Yıllık Orijinal Tarif • İnce Çıtır Hamur • Doğal Şeker'
+      );
+    }
+    if (/(döner|doner|lokanta)/.test(fullCorpus)) {
+      addCard(
+        'Geleneksel Yaprak Döner & Lokanta',
+        `${businessName} mutfağında günlük taze etten hazırlanan sıcak yaprak döner porsiyon ve geleneksel lokanta lezzetlerimiz.`,
+        'Günlük Taze Et • Usta Pişirim • Sıcak Sunum'
+      );
+    }
+    if (/(çiğ köfte|cig kofte)/.test(fullCorpus)) {
+      addCard(
+        'El Yapımı Günlük Çiğ Köfte',
+        'Geleneksel usulde günlük olarak elde yoğrulan, taze yeşillik ve özel soslarla sunulan el yapımı çiğ köfte lezzetimiz.',
+        'El Yapımı • Günlük Yoğrulan • Doğal Baharat'
+      );
+    }
+    if (/(baklava|şöbiyet|sobiyet|fıstıklı|cevizli|midye baklava|soğuk baklava)/.test(fullCorpus)) {
+      addCard(
+        'Taş Fırın Fıstıklı & Cevizli Baklava',
+        'İncecik açılan el yapımı yufka, sade tereyağı ve birinci sınıf Antep fıstığı ile günlük üretilen geleneksel baklava çeşitlerimiz.',
+        'El Açması Yufka • Sade Tereyağı • Bol Antep Fıstığı'
+      );
+    }
+    if (/(künefe|kunefe|kadayıf|kadayif|katmer)/.test(fullCorpus)) {
+      addCard(
+        'Sıcak Künefe & Kızarmış Kadayıf',
+        'Sipariş üzerine sıcak hazırlanan, uzayan gerçek künefe peyniri ve çıtır tel kadayıf ile sunulan geleneksel tatlılarımız.',
+        'Sıcak Pişirim • Gerçek Peynir • Kaymaklı Sunum'
+      );
+    }
+    if (/(kilo|paket|iş yeri|misafir|ikram)/.test(fullCorpus)) {
+      addCard(
+        'Kiloluk Paket & Kurumsal İkram Siparişi',
+        'İş yerleri, özel davetler, bayramlar ve misafir ağırlamaları için özel kutusunda taze kiloluk tatlı ve hızlı paket servis.',
+        'Özel Kutu Ambalaj • Toptan & Perakende • Hızlı Teslimat'
+      );
+    }
+  } else if (sector === 'burger_streetfood') {
+    if (/(smash|cheeseburger|burger|hamburger)/.test(fullCorpus)) {
+      addCard(
+        'El Yapımı %100 Dana Gurme Burgerler',
+        'Günlük çekilen dinlendirilmiş dana kaburga kıyması, karamelize soğan, eritilmiş cheddar ve günlük taze burger ekmeğiyle hazırlanan imza burgerlerimiz.',
+        '%100 Dana Eti • Günlük Brioche Ekmek • Özel Burger Sosu'
+      );
+    }
+    if (/(patates|kajun|baharatlı|çıtır tavuk|tenders|soğan halkası)/.test(fullCorpus)) {
+      addCard(
+        'Kajun Baharatlı Patates & Çıtır Atıştırmalıklar',
+        'Dışı altın sarısı çıtır, içi yumuşak özel baharat harmanlı patates kızartması, çıtır tavuk parçaları ve el yapımı dip soslar.',
+        'Sıcak Çıtır Kızartma • Özel Baharat • Ev Yapımı Soslar'
+      );
+    }
+  } else if (sector === 'doner_tantuni') {
+    if (/(döner|doner|yaprak|iskender|dürüm|tombik|pilav üstü)/.test(fullCorpus)) {
+      addCard(
+        'Odun Ateşinde Gerçek Yaprak Döner',
+        'Özel marine edilmiş sinirsiz dana ve kuzu etinden ustalıkla dizilen, lavaş dürüm, tombik ekmek veya porsiyon olarak sunulan yaprak dönerimiz.',
+        'Günlük Taze Et • Usta Kesim • Sıcak Lavaş & Pide'
+      );
+    }
+    if (/(iskender|tereyağ|yoğurt)/.test(fullCorpus)) {
+      addCard(
+        'Köpüklü Tereyağlı İskender Kebap',
+        'Kızarmış tırnak pidesi üzerinde ince yaprak döner, özel domates sosu, kızgın tereyağı ve doğal tava yoğurdu ile hazırlanan klasik lezzet.',
+        'Halis Tereyağı • Tırnak Pide • Doğal Tava Yoğurdu'
+      );
+    }
+    if (/(köfte|kofte|piyaz|ızgara köfte|kasap köfte|tantuni|kokoreç)/.test(fullCorpus)) {
+      addCard(
+        'Izgara Kasap Köfte & Geleneksel Lezzetler',
+        'Doğal baharatlarla günlük yoğrulan sulu ızgara köfte, közlenmiş biber-domates ve taze yeşillik ikramlarıyla doyurucu porsiyonlar.',
+        'Zırh & Kasap Kıyması • Közde Pişirim • Zengin İkram'
+      );
+    }
+  } else if (sector === 'cafe_dessert') {
+    if (/(espresso|latte|americano|filtre kahve|türk kahvesi|kahve|coffee|cold brew)/.test(fullCorpus)) {
+      addCard(
+        '3. Nesil Nitelikli Kahve & Espresso Bar',
+        'Taze kavrulmuş %100 Arabica çekirdeklerden hazırlanan Latte, Cappuccino, Cold Brew, Filtre Kahve ve geleneksel Türk Kahvesi çeşitleri.',
+        '%100 Arabica Çekirdek • Usta Barista • Sıcak & Buzlu Seçenekler'
+      );
+    }
+    if (/(magnolia|profiterol|tiramisu|cheesecake|san sebastian|pasta|tatlı|waffle|kruvasan)/.test(fullCorpus)) {
+      addCard(
+        'Günlük Taze Patisserie & İmza Tatlılar',
+        'Belçika çikolatası ve taze mevsim meyveleriyle günlük hazırlanan San Sebastian Cheesecake, Magnolia, Profiterol ve Tiramisu çeşitlerimiz.',
+        'Günlük Üretim • Belçika Çikolatası • Taze Meyveli'
+      );
+    }
+    if (/(bazlama|tost|sandviç|pilav|çiğ köfte|atıştırmalık|kahvaltı)/.test(fullCorpus)) {
+      addCard(
+        'Sıcak Bazlama Tost & Doyurucu Atıştırmalıklar',
+        'Günün her saati sıcak hazırlanan özel bazlama tost, taze sandviçler ve doyurucu mutfak spesiyallerimiz.',
+        'Sıcak Hazırlık • Bol Malzeme • Hızlı Servis'
+      );
+    }
+  }
+
+  return matched;
 }
 
 function formatInstagramHandle(username, fullName) {
@@ -965,6 +1303,11 @@ async function resolveBusinessInfo(rawText) {
   let mapQuery = '';
   let photos = [];
   let reviews = [];
+  let allReviewTexts = [];
+  let ownerBio = '';
+  let hours = '';
+  let rating = '';
+  let reviewCount = 0;
   let pageText = '';
   let resolvedUrl = inputUrl;
 
@@ -1041,6 +1384,21 @@ async function resolveBusinessInfo(rawText) {
             if (Array.isArray(d[7]) && typeof d[7][0] === 'string') {
               website = d[7][0].trim();
             }
+            // Extract Owner's Official Business Description (Hakkında / İşletme Sahibinden)
+            if (typeof d[154]?.[0]?.[0] === 'string' && d[154][0][0].trim()) {
+              ownerBio = d[154][0][0].trim();
+            }
+            // Extract Official Working Hours
+            if (Array.isArray(d[203]?.[0])) {
+              hours = formatGoogleHours(d[203][0]);
+            }
+            // Extract Official Google Rating & Review Count
+            if (d[4]?.[7] !== undefined && d[4]?.[7] !== null) {
+              rating = String(d[4][7]);
+            }
+            if (typeof d[4]?.[8] === 'number') {
+              reviewCount = d[4][8];
+            }
 
             if (Array.isArray(d[51]) && Array.isArray(d[51][0])) {
               for (const pItem of d[51][0]) {
@@ -1065,6 +1423,9 @@ async function resolveBusinessInfo(rawText) {
               }
             }
 
+            const negativeReviewRegex =
+              /(bir daha yiyeceğimi sanmıyorum|eski lezzeti alamadım|memnun kalmadım|tavsiye etmem|hayal kırıklığı|kötü olmuş|bozmuş|berbat)/i;
+
             if (Array.isArray(d[175]?.[9]?.[0]?.[0])) {
               for (const revWrap of d[175][9][0][0]) {
                 try {
@@ -1072,7 +1433,15 @@ async function resolveBusinessInfo(rawText) {
                   const author = rev?.[1]?.[4]?.[5]?.[0] || 'Google Kullanıcısı';
                   const stars = rev?.[2]?.[0]?.[0] || 5;
                   const rText = rev?.[2]?.[15]?.[0]?.[0] || '';
-                  if (rText && rText.length >= 15 && stars >= 4) {
+                  if (rText) {
+                    allReviewTexts.push(rText);
+                  }
+                  if (
+                    rText &&
+                    rText.length >= 15 &&
+                    stars >= 4 &&
+                    !negativeReviewRegex.test(rText)
+                  ) {
                     reviews.push({
                       author,
                       role: 'Google Yorumu',
@@ -1192,9 +1561,20 @@ async function resolveBusinessInfo(rawText) {
   }
 
   const categoryText = categories.join(' • ');
+  // Primary text (businessName + categories + extraNotes) takes strict priority over secondary snippets
   const sector = detectSector(
-    `${businessName} ${categoryText} ${address} ${extraNotes} ${pageText} ${searchSnippets}`
+    `${businessName} ${categoryText} ${extraNotes}`,
+    `${ownerBio} ${pageText} ${address} ${searchSnippets}`
   );
+
+  const learnedItems = extractRealBusinessOfferings({
+    businessName,
+    categories,
+    ownerBio,
+    reviews: allReviewTexts.length > 0 ? allReviewTexts : reviews,
+    pageText,
+    sector,
+  });
 
   const proxiedLogo = logo
     ? logo.startsWith('/')
@@ -1219,6 +1599,11 @@ async function resolveBusinessInfo(rawText) {
     u: inputUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`,
     l: proxiedLogo,
     logo: proxiedLogo,
+    bio: ownerBio || undefined,
+    hr: hours || undefined,
+    rt: rating || undefined,
+    rc: reviewCount || undefined,
+    items: learnedItems.length > 0 ? learnedItems : undefined,
     resolvedUrl,
     photos: proxiedPhotos,
     reviews: reviews.slice(0, 6),
@@ -1286,7 +1671,9 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
     }
   }
 
-  // Apply custom notes (phone, address, or custom service categories) if user typed any
+  let customItems = wizardState.customItems || cached?.customItems || [];
+
+  // Apply custom notes (phone, address, or custom taught menu/services) if user typed any
   if (customNotes.trim()) {
     const pMatch = customNotes.match(
       /(?:0\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/
@@ -1299,18 +1686,38 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
         /(?:0\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2}|\+90\s*\(?\s*(?:2\d{2}|3\d{2}|4\d{2}|5\d{2})\s*\)?\s*\d{3}\s*\d{2}\s*\d{2})/g,
         ''
       )
+      .replace(/^(?:menü|menu|hizmetler|ürünler|urunler)\s*:\s*/i, '')
       .replace(/^[\s,-]+|[\s,-]+$/g, '')
       .trim();
 
     if (remainingText.length > 3) {
-      if (/(mah\.|mahallesi|cad\.|caddesi|sok\.|sokak|bulvar|osb|no:|kat)/i.test(remainingText)) {
+      if (
+        /(mah\.|mahallesi|cad\.|caddesi|sok\.|sokak|bulvar|osb|no:|kat\b)/i.test(remainingText) &&
+        !wizardState.teachingItems
+      ) {
         fullInfo.a = remainingText.includes(chosenCity)
           ? remainingText
           : `${remainingText}, ${chosenCity}`;
       } else {
+        const splitItems = remainingText
+          .split(/[,•\n;]+/)
+          .map((s) => s.trim())
+          .filter((s) => s.length >= 2);
+        if (splitItems.length >= 2 || wizardState.teachingItems) {
+          customItems = splitItems.slice(0, 6);
+        }
         fullInfo.c = fullInfo.c ? `${fullInfo.c} • ${remainingText}` : remainingText;
       }
     }
+  }
+
+  if (customItems.length > 0) {
+    fullInfo.ci = customItems;
+    fullInfo.items = extractRealBusinessOfferings({
+      businessName: fullInfo.n,
+      sector: fullInfo.s,
+      customItems,
+    });
   }
 
   fullInfo.n = formatBusinessTitle(fullInfo.n);
@@ -1340,6 +1747,12 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
     pm: photoMode,
     l: fullInfo.l || '',
     logo: fullInfo.logo || fullInfo.l || '',
+    bio: fullInfo.bio,
+    hr: fullInfo.hr,
+    rt: fullInfo.rt,
+    rc: fullInfo.rc,
+    ci: customItems.length > 0 ? customItems : undefined,
+    items: fullInfo.items,
     ph:
       tgPhotos.length > 0
         ? tgPhotos.slice(0, 6).map((fid) => `/api/telegram?tgfile=${encodeURIComponent(fid)}`)
@@ -1361,6 +1774,7 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
     photoMode,
     tgLogo,
     tgPhotos,
+    customItems,
     slug,
     ts: Date.now(),
   });
@@ -1376,15 +1790,22 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
       ? '6 Adet Profesyonel 16:10 Yatay Sektör Stüdyo Fotoğrafı ✨'
       : `${fullInfo.photos.length} Adet İşletme Fotoğrafı + HD Stüdyo Tamamlama ✅`;
 
+  const learnedSummary =
+    Array.isArray(fullInfo.items) && fullInfo.items.length > 0
+      ? fullInfo.items.map((it) => it.title).join(', ')
+      : fullInfo.c || themeLabel;
+
   await sendTelegram(
     chatId,
-    `✅ Kurumsal Web Sitesi Hazırlandı ve Yayına Alındı!\n\n` +
+    `✅ Kurumsal Web Sitesi İncelendi, Öğrenildi ve Yayına Alındı!\n\n` +
       `🏢 İşletme: ${fullInfo.n}\n` +
       `🌆 Şehir: ${chosenCity}\n` +
       `🎯 Konsept: ${getShortSectorLabel(fullInfo.s)}\n` +
+      (fullInfo.rt ? `⭐ Google Puanı: ${fullInfo.rt} / 5 (${fullInfo.rc || 'Onaylı'} Yorum)\n` : '') +
+      (fullInfo.hr ? `🕒 Çalışma Saatleri: ${fullInfo.hr}\n` : '') +
       `📍 Adres: ${fullInfo.a}\n` +
       `📞 Telefon: ${fullInfo.p}\n` +
-      `🏷️ Hizmetler: ${fullInfo.c || themeLabel}\n` +
+      `🧠 Öğrenilen Menü / Hizmetler: ${learnedSummary}\n` +
       `🖼️ Logo: ${fullInfo.logo ? 'Orijinal Logo Eklendi ✅' : 'Kurumsal Monogram ✅'}\n` +
       `📸 Görseller: ${photoSummaryText}\n` +
       `🔗 Kaynak: ${wizardState.url}\n\n` +
@@ -1392,6 +1813,12 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
     {
       reply_markup: {
         inline_keyboard: [
+          [
+            {
+              text: '🧠 Menü / Hizmetleri Öğret & Düzenle',
+              callback_data: 'qf:items',
+            },
+          ],
           [
             photoMode === 'studio'
               ? { text: '📸 İşletmenin Kendi Fotoğraflarını Kullan', callback_data: 'qf:auto' }
@@ -1513,7 +1940,41 @@ export default async function handler(req, res) {
         return res.status(200).json({ ok: true });
       }
 
-      // Post-generation 1-Click Quick Toggles (qf:studio, qf:auto, qf:city:...)
+      // Post-generation 1-Click Quick Toggles (qf:studio, qf:auto, qf:city:..., qf:items)
+      if (data === 'qf:items' || data === 'w5:items') {
+        await answerCallbackQuery(cb.id, '🧠 Menü / Hizmetleri virgülle ayırarak yazın');
+        const mergedState = {
+          ...cached,
+          url: state.url || cached.url || slugRecord?.u || '',
+          city: state.city || cached.city || slugRecord?.city || 'Ankara',
+          sector: state.sector || cached.sector || slugRecord?.s || '',
+          district:
+            state.district !== 'keep' ? state.district : cached.district || slugRecord?.district || 'keep',
+          photoMode: state.photoMode || cached.photoMode || slugRecord?.pm || 'auto',
+          teachingItems: true,
+          ts: Date.now(),
+        };
+        LAST_WIZARD_STATE_BY_CHAT.set(chatId, mergedState);
+        await sendTelegram(
+          chatId,
+          `🧠 Bota Öğret — Bu işletmenin sitede 01–06 kartlarında gösterilmesini istediğiniz gerçek menü ürünlerini veya hizmetlerini virgülle ayırarak yazıp gönderin:\n\n` +
+            `💡 Örnek (Pizzacı): Dört Peynirli Pizza, Sebzeli Ege Pizza, Klasik Margarita, Seçkin Etli Pizza, Ev Yapımı Acı Sos, Tiramisu\n` +
+            `💡 Örnek (Garaj): Seramik Kaplama, PPF Kaput Koruma, Detaylı Pasta Cila, Cam Filmi, İç Detaylı Temizlik, Boyasız Göçük Düzeltme\n\n` +
+            `🌆 Şehir: ${mergedState.city}\n` +
+            `🎯 SektörKod: ${mergedState.sector}\n` +
+            `📍 Bölge: ${mergedState.district}\n` +
+            `📸 GörselMod: ${mergedState.photoMode}\n` +
+            `🔗 Link: ${mergedState.url}`,
+          {
+            reply_markup: {
+              force_reply: true,
+              selective: true,
+            },
+          }
+        );
+        return res.status(200).json({ ok: true, step: 'teach_items_prompt' });
+      }
+
       if (data === 'qf:studio' || data === 'qf:auto') {
         const newMode = data === 'qf:studio' ? 'studio' : 'auto';
         await answerCallbackQuery(
@@ -1568,26 +2029,46 @@ export default async function handler(req, res) {
         });
 
         const step2Text =
-          `🎨 Adım Adım Site Kurulumu (2/5 — Sektör & Video Seçimi)\n\n` +
+          `🎨 Adım Adım Site Kurulumu (2/5 — Sektör & Konsept Seçimi)\n\n` +
           `🏢 İşletme: ${info.n}\n` +
           `🌆 Şehir: ${chosenCity}\n` +
           `📸 Görsel: ${info.photos.length} Fotoğraf ${info.logo ? '+ Orijinal Logo ✅' : ''}\n` +
           `🔗 Link: ${targetUrl}\n\n` +
-          `❓ 2. SORU: Bu işletmenin tam sektörü, renk teması ve arka plan videosu hangisi olsun?\n` +
-          `(Otomatik algılanan: ${getShortSectorLabel(autoSector)})`;
+          `❓ 2. SORU: Bu işletmenin tam konsepti, renk teması ve arka plan videosu hangisi olsun?\n` +
+          `(İncelenip algılanan: ${getShortSectorLabel(autoSector)})`;
 
         await editTelegramMessage(chatId, messageId, step2Text, {
           reply_markup: {
             inline_keyboard: [
               [
                 {
-                  text: `✨ Otomatik: ${getShortSectorLabel(autoSector)}`,
+                  text: `✨ Algılanan: ${getShortSectorLabel(autoSector)}`,
                   callback_data: `w2:${chosenCity}:${autoSector}`,
                 },
               ],
               [
+                { text: '🍕 Pizza & İtalyan', callback_data: `w2:${chosenCity}:pizza_italian` },
+                { text: '🍔 Gurme Burger', callback_data: `w2:${chosenCity}:burger_streetfood` },
+              ],
+              [
                 {
-                  text: '🚘 Oto Detailing / Pasta Cila / Kaplama',
+                  text: '🍮 Tatlıcı / Baklava / Künefe',
+                  callback_data: `w2:${chosenCity}:traditional_dessert`,
+                },
+                { text: '☕ Kafe / Kahve / Patisserie', callback_data: `w2:${chosenCity}:cafe_dessert` },
+              ],
+              [
+                { text: '🥩 Kebap / Pide / Ocakbaşı', callback_data: `w2:${chosenCity}:grill_restaurant` },
+                { text: '🥙 Döner / İskender / Köfte', callback_data: `w2:${chosenCity}:doner_tantuni` },
+              ],
+              [
+                { text: '🥐 Börekçi / Fırın / Kahvaltı', callback_data: `w2:${chosenCity}:bakery_breakfast` },
+                { text: '🍲 Çorbacı / Ev Yemekleri', callback_data: `w2:${chosenCity}:soup_restaurant` },
+              ],
+              [
+                { text: '🐟 Balık Restoranı', callback_data: `w2:${chosenCity}:seafood_fish` },
+                {
+                  text: '🚘 Oto Detailing / Pasta Cila',
                   callback_data: `w2:${chosenCity}:auto_detailing`,
                 },
               ],
@@ -1597,25 +2078,22 @@ export default async function handler(req, res) {
               ],
               [
                 { text: '🚙 Volkswagen / VAG Servis', callback_data: `w2:${chosenCity}:vag_automotive` },
-                { text: '🏭 Sanayi / Üretim / Fabrika', callback_data: `w2:${chosenCity}:industrial_heating` },
+                { text: '💇‍♀️ Kuaför / Güzellik / Bakım', callback_data: `w2:${chosenCity}:beauty_hair` },
               ],
               [
-                { text: '☕ Kafe / Patisserie / Tatlı', callback_data: `w2:${chosenCity}:cafe_dessert` },
-                { text: '🥐 Börekçi / Fırın / Kahvaltı', callback_data: `w2:${chosenCity}:bakery_breakfast` },
-              ],
-              [
-                { text: '🥩 Restoran / Kebap / Izgara', callback_data: `w2:${chosenCity}:grill_restaurant` },
-                { text: '🍲 Çorbacı / Lokanta', callback_data: `w2:${chosenCity}:soup_restaurant` },
-              ],
-              [
-                { text: '📱 Telefon / Teknoloji / Tamir', callback_data: `w2:${chosenCity}:appliance_service` },
+                { text: '🏋️ Spor / Pilates / Fitness', callback_data: `w2:${chosenCity}:fitness_pilates` },
                 { text: '🦷 Diş Kliniği / Sağlık', callback_data: `w2:${chosenCity}:dental_medical` },
               ],
               [
                 {
-                  text: '🏢 Kurumsal İşletme / Mağaza / Ofis',
-                  callback_data: `w2:${chosenCity}:corporate_editorial`,
+                  text: '🏛️ Mimarlık / İnşaat / Emlak',
+                  callback_data: `w2:${chosenCity}:architecture_real_estate`,
                 },
+                { text: '📱 Telefon / Teknik Servis', callback_data: `w2:${chosenCity}:appliance_service` },
+              ],
+              [
+                { text: '🏭 Sanayi / Üretim / Fabrika', callback_data: `w2:${chosenCity}:industrial_heating` },
+                { text: '🏢 Kurumsal İşletme / Ofis', callback_data: `w2:${chosenCity}:corporate_editorial` },
               ],
             ],
           },
@@ -1630,7 +2108,7 @@ export default async function handler(req, res) {
         const chosenCity = parts[1] === 'Samsun' ? 'Samsun' : state.city || 'Ankara';
         const chosenSector = parts[2] || parts[1] || 'corporate_editorial';
 
-        await answerCallbackQuery(cb.id, `🎯 Sektör seçildi — Şimdi ilçe/konum seçin`);
+        await answerCallbackQuery(cb.id, `🎯 Konsept seçildi — Şimdi ilçe/konum seçin`);
 
         const info = await resolveBusinessInfo(state.url || cached.url || '');
         const currentAddr =
@@ -1835,8 +2313,13 @@ export default async function handler(req, res) {
               : `${chosenCity} Merkez`
             : `${chosenDistrict}, ${chosenCity}`;
 
+        const learnedList =
+          Array.isArray(info.items) && info.items.length > 0
+            ? info.items.map((it) => it.title).join(', ')
+            : info.c || 'Sektöre özel uzmanlık kartları';
+
         const step5Text =
-          `📞 Adım Adım Site Kurulumu (5/5 — Son Kontrol & Yayına Alma)\n\n` +
+          `📞 Adım Adım Site Kurulumu (5/5 — Derin Analiz & Son Kontrol)\n\n` +
           `🏢 İşletme: ${info.n}\n` +
           `🌆 Şehir: ${chosenCity}\n` +
           `🎯 Sektör: ${getShortSectorLabel(chosenSector)}\n` +
@@ -1844,7 +2327,8 @@ export default async function handler(req, res) {
           `📍 Bölge: ${chosenDistrict}\n` +
           `📍 Gösterilecek Adres: ${displayDistrict}\n` +
           `📞 Telefon: ${info.p}\n` +
-          `🏷️ Hizmetler: ${info.c || 'Sektörel standart hizmetler'}\n` +
+          (info.hr ? `🕒 Çalışma Saatleri: ${info.hr}\n` : '') +
+          `🧠 Öğrenilen Menü / Hizmetler: ${learnedList}\n` +
           `🖼️ Orijinal Logo: ${info.logo ? 'Eklendi ✅' : 'Kurumsal Monogram ✅'}\n` +
           `📸 GörselMod: ${chosenPhotoMode}\n` +
           `📸 Galeri: ${
@@ -1853,7 +2337,7 @@ export default async function handler(req, res) {
               : `${info.photos.length} İşletme Fotoğrafı + HD Tamamlama`
           }\n` +
           `🔗 Link: ${state.url || cached.url}\n\n` +
-          `❓ 5. SORU: Özel bir telefon numarası, tam açık adres veya ekstra hizmet eklemek ister misiniz, yoksa hemen yayına alalım mı?`;
+          `❓ 5. SORU: Öğrenilen menü/hizmetleri düzenlemek, özel telefon/adres yazmak ister misiniz, yoksa hemen yayına alalım mı?`;
 
         await editTelegramMessage(chatId, messageId, step5Text, {
           reply_markup: {
@@ -1866,7 +2350,13 @@ export default async function handler(req, res) {
               ],
               [
                 {
-                  text: '✍️ Telefon / Açık Adres / Özel Hizmet Yaz',
+                  text: '🧠 Menü / Hizmetleri Öğret & Düzenle',
+                  callback_data: 'w5:items',
+                },
+              ],
+              [
+                {
+                  text: '✍️ Telefon / Açık Adres Yaz',
                   callback_data: 'w5:custom',
                 },
               ],
@@ -1905,7 +2395,7 @@ export default async function handler(req, res) {
           await editTelegramMessage(
             chatId,
             messageId,
-            `⏳ Seçimleriniz onaylandı! İşletmenin orijinal logosu, fotoğrafları, sektörel videosu ve kurumsal web sitesi yayına alınıyor...\n\n🔗 Link: ${mergedState.url}`
+            `⏳ Seçimleriniz onaylandı! İşletmenin gerçek hikayesi, öğrenilen menü/hizmetleri, orijinal logosu ve fotoğraflarıyla kurumsal web sitesi yayına alınıyor...\n\n🔗 Link: ${mergedState.url}`
           );
         }
         const { liveUrl } = await finalizeAndSendWebsite(chatId, mergedState);
@@ -1919,13 +2409,14 @@ export default async function handler(req, res) {
           ...cached,
           ...state,
           url: state.url || cached.url,
+          teachingItems: false,
           ts: Date.now(),
         };
         LAST_WIZARD_STATE_BY_CHAT.set(chatId, mergedState);
         await sendTelegram(
           chatId,
           `✍️ Lütfen eklemek istediğiniz telefon numarasını, açık adresi veya özel hizmetleri bu mesaja yanıt olarak yazıp gönderin:\n` +
-            `(Örn: "0532 111 22 33, İvedik OSB 1354. Cad, Seramik Kaplama ve PPF")\n\n` +
+            `(Örn: "0532 111 22 33, İvedik OSB 1354. Cad, Seramik Kaplama, PPF")\n\n` +
             `🌆 Şehir: ${mergedState.city}\n` +
             `🎯 SektörKod: ${mergedState.sector}\n` +
             `📍 Bölge: ${mergedState.district}\n` +
@@ -2016,15 +2507,20 @@ export default async function handler(req, res) {
 
     const text = msg.text.trim();
 
-    // 6. Check if user is replying to Step 5 with custom phone / address / services!
+    // 6. Check if user is replying to Step 5 or "Bota Öğret" with custom items / phone / address!
     if (msg.reply_to_message?.text && msg.reply_to_message.text.includes('🔗 Link:')) {
       const replyState = parseEmbeddedWizardState(msg.reply_to_message.text);
+      const isTeachingItems = msg.reply_to_message.text.includes('🧠 Bota Öğret');
       if (replyState.url) {
         await sendTelegram(
           chatId,
-          `⏳ Yazdığınız özel bilgiler (${text}) eklendi! Kurumsal web sitesi hazırlanıyor...`
+          `⏳ Öğrettiğiniz bilgiler (${text}) kaydedildi! Kurumsal web sitesi güncelleniyor...`
         );
-        const { liveUrl } = await finalizeAndSendWebsite(chatId, replyState, text);
+        const { liveUrl } = await finalizeAndSendWebsite(
+          chatId,
+          { ...replyState, teachingItems: isTeachingItems },
+          text
+        );
         return res.status(200).json({ ok: true, liveUrl });
       }
     }
@@ -2032,7 +2528,7 @@ export default async function handler(req, res) {
     if (text === '/start' || text.toLowerCase() === 'merhaba') {
       await sendTelegram(
         chatId,
-        '⚡ 7/24 Akıllı Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; size adım adım:\n1️⃣ Şehir (Ankara / Samsun)\n2️⃣ Sektör & Arka Plan Videosu\n3️⃣ İlçe / Bölge\n4️⃣ Görsel & Galeri Modu (İşletme Fotoğrafları / 16:10 HD Stüdyo / Telegram Fotoğraf Yükleme)\n5️⃣ Telefon & Özel Hizmet detaylarını sorarak işletmenin orijinal logosu ve gerçek fotoğraflarıyla en doğru kurumsal web sitesini hazırlayayım.'
+        '⚡ 7/24 Akıllı & Öğrenen Kurumsal Web Sitesi Fabrikası Aktif!\n\nBana herhangi bir Google Maps, Instagram veya işletme linki gönderin; ezbere şablon basmak yerine önce işletmenin hikayesini, çalışma saatlerini, yorumlarını ve gerçek menü/hizmetlerini derinlemesine inceleyeyim, ardından adım adım onayınızı alarak en doğru kurumsal web sitesini hazırlayayım.'
       );
       return res.status(200).json({ ok: true });
     }
@@ -2042,7 +2538,7 @@ export default async function handler(req, res) {
       if (cachedState && cachedState.url && Date.now() - cachedState.ts < 30 * 60 * 1000) {
         await sendTelegram(
           chatId,
-          `⏳ Yazdığınız özel bilgiler (${text}) eklendi! Kurumsal web sitesi hazırlanıyor...`
+          `⏳ Öğrettiğiniz bilgiler (${text}) kaydedildi! Kurumsal web sitesi güncelleniyor...`
         );
         const { liveUrl } = await finalizeAndSendWebsite(chatId, cachedState, text);
         return res.status(200).json({ ok: true, liveUrl });
@@ -2055,7 +2551,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
-    // 7. New Link Received -> Pre-analyze & Start Step 1 of 5 Questionnaire
+    // 7. New Link Received -> Deeply Analyze Business & Show Inspection Report in Step 1 of 5
     const urlMatch = text.match(/https?:\/\/[^\s]+/i);
     const cleanUrl = urlMatch ? urlMatch[0] : text;
     const previewInfo = await resolveBusinessInfo(text);
@@ -2071,11 +2567,28 @@ export default async function handler(req, res) {
       ts: Date.now(),
     });
 
+    const learnedPreview =
+      Array.isArray(previewInfo.items) && previewInfo.items.length > 0
+        ? previewInfo.items.map((it) => it.title).join(', ')
+        : previewInfo.c || 'Sektörel uzmanlıklar';
+
+    const bioExcerpt = previewInfo.bio
+      ? previewInfo.bio.length > 140
+        ? previewInfo.bio.slice(0, 140) + '...'
+        : previewInfo.bio
+      : '';
+
     await sendTelegram(
       chatId,
-      `🔍 Link İncelendi — Adım Adım Site Kurulumu (1/5)\n\n` +
-        `🏢 Algılanan İşletme: ${previewInfo.n}\n` +
-        `🎯 Önerilen Sektör: ${getShortSectorLabel(previewInfo.s)}\n` +
+      `🔍 Derin İşletme Analizi Tamamlandı — Kurulum (1/5)\n\n` +
+        `🏢 İşletme: ${previewInfo.n}\n` +
+        `🎯 Algılanan Konsept: ${getShortSectorLabel(previewInfo.s)}\n` +
+        (previewInfo.rt
+          ? `⭐ Google Puanı: ${previewInfo.rt} / 5 (${previewInfo.rc || 'Onaylı'} Yorum)\n`
+          : '') +
+        (previewInfo.hr ? `🕒 Çalışma Saatleri: ${previewInfo.hr}\n` : '') +
+        (bioExcerpt ? `📖 İşletme Tanıtımı: "${bioExcerpt}"\n` : '') +
+        `🧠 Öğrenilen Menü / Hizmetler: ${learnedPreview}\n` +
         `🖼️ Orijinal Logo: ${previewInfo.logo ? 'Bulundu ✅' : 'Kurumsal Monogram ✅'}\n` +
         `📸 Çekilen Görsel: ${previewInfo.photos.length} Fotoğraf\n` +
         `🔗 Link: ${cleanUrl}\n\n` +

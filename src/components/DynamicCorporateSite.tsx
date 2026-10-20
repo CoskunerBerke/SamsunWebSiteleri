@@ -12,6 +12,12 @@ export interface DynamicSiteInfo {
   u: string; // Original URL
   l?: string; // Compact Logo URL
   logo?: string; // Real Business Logo URL
+  bio?: string; // Official Owner Description / Story (from Google Maps d[154] or IG)
+  hr?: string; // Official Working Hours (from Google Maps d[203])
+  rt?: string; // Official Google Star Rating (from d[4][7])
+  rc?: number; // Official Google Review Count (from d[4][8])
+  ci?: string[]; // Custom learned/taught offerings from Telegram user
+  items?: { num: string; title: string; desc: string; detail: string }[]; // Real extracted offerings
   pm?: 'auto' | 'studio'; // Photo mode: 'auto' (business photos + HD fill) or 'studio' (16:10 clean sector photos)
   ph?: string[]; // Compact Photos Array baked into URL
   photos?: string[]; // Real Google Maps / Instagram photos
@@ -111,10 +117,505 @@ const SmartBusinessImage: React.FC<{
   );
 };
 
-function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
+function buildBaseSectorConfig(info: DynamicSiteInfo): SectorConfig {
   const name = info.n;
   const catLabel = info.c ? info.c.toLocaleUpperCase('tr-TR') : '';
   const combinedText = `${info.n} ${info.c || ''} ${info.q}`.toLocaleLowerCase('tr-TR');
+
+  const isPizzaItalian =
+    info.s === 'pizza_italian' ||
+    /(pizza|pizzeria|margarita|margherita|calzone|trattoria|napoliten|italyan restoran)/i.test(combinedText);
+
+  const isTraditionalDessert =
+    !isPizzaItalian &&
+    (info.s === 'traditional_dessert' ||
+      /(tatlıcı|tatlici|bağdat tatlısı|bagdat tatlisi|baklava|künefe|kunefe|kadayıf|kadayif|şöbiyet|sobiyet|katmer|şerbetli tatlı)/i.test(
+        combinedText
+      ));
+
+  const isBurgerStreetFood =
+    !isPizzaItalian &&
+    !isTraditionalDessert &&
+    (info.s === 'burger_streetfood' ||
+      /(burger|hamburger|cheeseburger|smash burger|street food|hot dog|çıtır tavuk)/i.test(combinedText));
+
+  const isDonerTantuni =
+    !isPizzaItalian &&
+    !isTraditionalDessert &&
+    !isBurgerStreetFood &&
+    (info.s === 'doner_tantuni' ||
+      /(döner|doner|iskender|tantuni|köfte|kofte|kokoreç|kokorec|cağ kebabı|dürümcü)/i.test(combinedText));
+
+  const isSeafoodFish =
+    !isPizzaItalian &&
+    (info.s === 'seafood_fish' ||
+      /(balık|balik|deniz ürün|midye|kalamar|karides|hamsi|levrek|çupra)/i.test(combinedText));
+
+  const isBeautyHair =
+    info.s === 'beauty_hair' ||
+    /(kuaför|kuafor|berber|saç tasarım|sac tasarim|güzellik|guzellik|cilt bakım|lazer epilasyon|protez tırnak|nail art|ipek kirpik|makyaj)/i.test(
+      combinedText
+    );
+
+  const isFitnessPilates =
+    info.s === 'fitness_pilates' ||
+    /(spor salonu|fitness|gym|pilates|reformer|yoga|crossfit|boks|kickboks)/i.test(combinedText);
+
+  const isArchitectureRealEstate =
+    info.s === 'architecture_real_estate' ||
+    /(mimar|iç mimar|inşaat|insaat|müteahhit|gayrimenkul|emlak|konut|yapı|dekorasyon|avukat|hukuk|mali müşavir)/i.test(
+      combinedText
+    );
+
+  // 0A. PİZZA & İTALYAN MUTFAĞI (ÖRN: SWEDEN PİZZA) — ASLA KEBAP/LAHMACUN YAZMAZ!
+  if (isPizzaItalian) {
+    return {
+      eyebrow: catLabel || 'ARTİZAN PİZZA & İTALYAN MUTFAĞI',
+      navActionLabel: 'Sipariş & Rezervasyon',
+      servicesNavLabel: 'Menümüz',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak günlük dinlendirilmiş ince ve çıtır hamurumuz, kendi mutfağımızda hazırladığımız taze domates ve özel pizza soslarımız, özenle seçilmiş gerçek peynir ve şarküteri ürünlerimizle gerçek pizza deneyimi sunuyoruz.`,
+      aboutTitle: `${name} — Özgün Hamur, Taze Malzeme ve Gerçek Pizza Tutkusu`,
+      aboutP1:
+        info.bio ||
+        `${name}, dondurulmuş veya fabrikasyon ürün kullanmadan, her sabah taze yoğrulan ve ideal sürede dinlendirilen özel pizza hamurunu günlük seçilen taze sebzeler, gerçek mozzarella ve seçkin et ürünleriyle buluşturmaktadır.`,
+      aboutP2:
+        'Kendi mutfağımızda günlük hazırladığımız özgün pizza soslarımız, ince ve çıtır tabanımız, doyurucu porsiyonlarımız ve ev yapımı tatlılarımızla hem sıcak salonumuzda hem de paket servisimizde aynı lezzeti koruyoruz.',
+      hours: info.hr || 'Hafta İçi: 11:00 – 22:00 • Hafta Sonu: 12:00 – 22:00',
+      headerBg: 'bg-stone-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-stone-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-600 hover:bg-amber-500 text-white',
+      heroBg: 'bg-stone-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-700',
+      videoSrc: '/videos/bakery.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Günlük Dinlendirilmiş Hamur', desc: 'Her gün taze hazırlanan, ince ve çıtır dokusuyla mideyi yormayan özel reçete pizza hamuru.' },
+        { num: '02', title: 'Gerçek Peynir & Seçkin Malzeme', desc: 'Dondurulmuş ürün kullanmadan, günlük taze sebzeler, gerçek mozzarella ve seçkin şarküteri ürünleri.' },
+        { num: '03', title: 'Ev Yapımı Özgün Soslar', desc: 'Malzemelerin lezzetini öne çıkaran taze domates sosu, fesleğenli soslar ve ev yapımı özel acı sos.' },
+        { num: '04', title: 'Taze Fırından Sıcak Sunum', desc: 'Sipariş üzerine taş tabanda tam kıvamında fırınlanan 32 cm doyurucu pizzalar ve ev yapımı tiramisu.' },
+      ],
+      servicesSectionTitle: `${name} Öne Çıkan Pizza, Sos ve Tatlı Menümüz`,
+      services: [
+        { num: '01', title: 'Dört Peynirli Artizan Pizza', desc: 'İnce ve çıtır hamur üzerinde özenle dengelenmiş dört farklı gerçek peynir harmanıyla tam kıvamında fırınlanan imza lezzetimiz.', detail: 'İnce Çıtır Hamur • 4 Özel Peynir • Günlük Taze Hazırlık' },
+        { num: '02', title: 'Ege & Taze Sebzeli Pizzalar', desc: 'Günlük seçilen taze kabak, patlıcan, zeytin, biber ve mevsim sebzeleriyle hazırlanan, sebzeyi en lezzetli haliyle sunan özel reçetemiz.', detail: 'Günlük Taze Sebze • Ege Reçetesi • Doğal Malzeme' },
+        { num: '03', title: 'Klasik Margarita & Mozzarella', desc: 'Ev yapımı taze domates sosumuz, bol mozzarella peyniri ve taze fesleğen dokunuşuyla hazırlanan geleneksel İtalyan klasiği.', detail: 'Ev Yapımı Domates Sosu • Mozzarella • İnce Hamur' },
+        { num: '04', title: 'Seçkin Etli & Karışık Pizzalar', desc: 'Dondurulmuş ürün kullanılmadan, tek tek seçilen kaliteli sucuk, füme et ve şarküteri ürünleriyle hazırlanan 32 cm doyurucu pizzalarımız.', detail: 'Seçkin Et Ürünleri • 32 cm Doyurucu Porsiyon • Bol Malzeme' },
+        { num: '05', title: 'Ev Yapımı Özgün Soslar & Acı Sos', desc: 'Hamurun ve malzemelerin tadını bastırmadan yukarı taşıyan, kendi mutfağımızda günlük hazırladığımız özel pizza sosları ve ev yapımı acı sos.', detail: 'Kendi Üretimimiz • Dengeli & Taze • Özgün Reçete' },
+        { num: '06', title: 'Ev Yapımı İtalyan Tiramisu & İçecekler', desc: 'Pizza keyfinizi taçlandıran günlük taze hazırlanmış tam kıvamında ev yapımı tiramisu ve soğuk-sıcak içecek çeşitlerimiz.', detail: 'Günlük Taze Tiramisu • Samimi Ortam • Paket & Salon Servisi' },
+      ],
+      reviews: [
+        { author: 'Gökhan K.', role: 'Google Yorumu', group: 'Dört Peynirli & Ege Pizza', text: 'Hamuru incecik ve çıtır, malzemeleri son derece kaliteli ve taze. Özellikle dört peynirli ve sebzeli Ege pizzası Ankara’da yediğimiz en iyi pizzalardan.' },
+        { author: 'Selin T.', role: 'Google Yorumu', group: 'Ev Yapımı Soslar & Tiramisu', text: 'Kendi yaptıkları acı sos ve pizza sosları harika, üzerine yediğimiz ev yapımı tiramisu da tam kıvamındaydı.' },
+        { author: 'Mert Y.', role: 'Google Yorumu', group: 'Seçkin Etli Pizza', text: 'Fabrikasyon zincir pizzacılarla kıyaslanamayacak kadar doğal ve lezzetli. 32 cm porsiyonları oldukça doyurucu.' },
+        { author: 'Zeynep D.', role: 'Google Yorumu', group: 'Mekan & Misafirperverlik', text: 'Sıcak, samimi ve tertemiz bir işletme. İşlerini severek yaptıkları her dilimde belli oluyor.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=1000&q=85', title: `${name} Artizan Pizza Sunumu`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1000&q=85', title: `${name} İnce & Çıtır Hamur Ustalığı`, subtitle: 'Günlük dinlendirilmiş hamur ve taze malzeme' },
+        { src: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=1000&q=85', title: `${name} Özgün Soslar & Fırından Sıcak Lezzet`, subtitle: 'Ev yapımı soslar ve gerçek peynir kalitesi' },
+        { src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0B. GELENEKSEL TATLICI / BAKLAVA / KÜNEFE / BAĞDAT TATLISI & LOKANTA
+  if (isTraditionalDessert) {
+    return {
+      eyebrow: catLabel || 'GELENEKSEL TATLI, BAKLAVA & LEZZET MERKEZİ',
+      navActionLabel: 'Sipariş & İletişim',
+      servicesNavLabel: 'Tatlı & Lezzetler',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak yılların değişmeyen ustalığıyla günlük taze hazırlanan geleneksel şerbetli tatlılarımız, birinci sınıf Antep fıstıklı lezzetlerimiz ve özenli mutfağımızla misafirlerimizi ağırlıyoruz.`,
+      aboutTitle: `${name} — Yılların Değişmeyen Geleneksel Tatlı ve Lezzet Ustalığı`,
+      aboutP1:
+        info.bio ||
+        `${name}, doğal pancar şekeri, birinci sınıf tereyağı, bol Antep fıstığı ve incecik açılan çıtır hamur ustalığıyla her gün taze üretim yaparak geleneksel lezzet mirasını yaşatmaktadır.`,
+      aboutP2:
+        'İç baymayan dengeli şerbet kıvamımız, günlük taze üretimimiz ve güler yüzlü esnaflık anlayışımızla hem salonumuzda hem de kiloluk paket siparişlerinizde aynı yüksek kaliteyi sunuyoruz.',
+      hours: info.hr || 'Her Gün: 08:30 – 22:00',
+      headerBg: 'bg-stone-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-stone-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-600 hover:bg-amber-500 text-white',
+      heroBg: 'bg-stone-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-700',
+      videoSrc: '/videos/bakery.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Asırlık & Orijinal Tarif', desc: 'Nesilden nesile aktarılan ustalıkla her sabah günlük olarak hazırlanan çıtır ve taze tatlılar.' },
+        { num: '02', title: 'Doğal Şerbet & Gerçek Malzeme', desc: 'Glikoz içermeyen doğal pancar şekeri şerbeti, sade tereyağı ve birinci sınıf Antep fıstığı.' },
+        { num: '03', title: 'Günlük Sıcak Mutfak & İkram', desc: 'Tatlılarımızın yanı sıra günlük taze hazırlanan geleneksel lokanta ve mutfak spesiyallerimiz.' },
+        { num: '04', title: 'Kiloluk Kutu & Paket Servis', desc: 'Misafir ağırlamaları, bayramlar ve kurumsal davetler için özel kutusunda taze paket servis.' },
+      ],
+      servicesSectionTitle: `${name} Öne Çıkan Tatlı ve Mutfak Lezzetlerimiz`,
+      services: [
+        { num: '01', title: 'Meşhur Fıstıklı Bağdat Tatlısı & Özel Tatlılar', desc: 'İncecik çıtır hamuru, hafif doğal şerbeti ve bol Antep fıstığıyla lokmalık olarak hazırlanan tescilli imza tatlımız.', detail: 'Orijinal Tarif • İnce Çıtır Hamur • Doğal Şeker' },
+        { num: '02', title: 'Taş Fırın Baklava, Şöbiyet & Kadayıf', desc: 'El açması ince yufka, sade tereyağı ve bol fıstık-ceviz ile günlük üretilen geleneksel şerbetli tatlı çeşitlerimiz.', detail: 'El Açması Yufka • Sade Tereyağı • Günlük Taze' },
+        { num: '03', title: 'Geleneksel Yaprak Döner & Lokanta', desc: `${name} mutfağında günlük taze etten hazırlanan sıcak yaprak döner porsiyon ve geleneksel lokanta lezzetlerimiz.`, detail: 'Günlük Taze Et • Usta Pişirim • Sıcak Sunum' },
+        { num: '04', title: 'El Yapımı Günlük Çiğ Köfte & Spesiyaller', desc: 'Geleneksel usulde günlük olarak elde yoğrulan, taze yeşillik ve özel soslarla sunulan el yapımı lezzetlerimiz.', detail: 'El Yapımı • Günlük Yoğrulan • Doğal Baharat' },
+        { num: '05', title: 'Kiloluk Kutu & Özel Davet Siparişleri', desc: 'Ev ve iş yeri ziyaretleriniz, bayramlar ve özel davetleriniz için özenle paketlenen kiloluk tatlı kutularımız.', detail: 'Özel Kutu Ambalaj • Toptan & Perakende • Taze Teslimat' },
+        { num: '06', title: 'Salon İkramı & Hızlı Paket Servis', desc: 'Taze demleme çay eşliğinde nezih salon servisimiz ve bulunduğunuz konuma hızlı paket gönderimi.', detail: 'Nezih Aile Ortamı • Taze Çay • Hızlı Paket' },
+      ],
+      reviews: [
+        { author: 'Ahmet B.', role: 'Google Yorumu', group: 'İmza Tatlı & Lezzet', text: 'Tatlısı o kadar hafif ve çıtır ki yedikçe yiyesiniz geliyor, şerbeti asla iç baymıyor. Yıllardır kalitesini koruyan gerçek bir lezzet durağı.' },
+        { author: 'Meltem K.', role: 'Google Yorumu', group: 'Kiloluk Paket & Tazelik', text: 'Misafirliğe giderken sürekli kiloluk olarak alıyoruz. Her zaman günlük, taze ve bol fıstıklı.' },
+        { author: 'Serdar T.', role: 'Google Yorumu', group: 'Döner & Tatlı', text: 'Hem yemekleri hem de üzerine yediğimiz meşhur tatlısı 10 numara. Esnaflıkları ve temizliği örnek alınacak seviyede.' },
+        { author: 'Ayşe Y.', role: 'Google Yorumu', group: 'Geleneksel Tarif', text: 'Gerçek şekerle yapıldığı ilk lokmada anlaşılıyor, mideyi hiç rahatsız etmiyor. Herkese tavsiye ederim.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1519676867240-f03562e64548?auto=format&fit=crop&w=1000&q=85', title: `${name} Günlük Taze Tatlı Sunumu`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1579372786545-d24232daf58c?auto=format&fit=crop&w=1000&q=85', title: `${name} Fıstıklı & Çıtır Geleneksel Lezzetler`, subtitle: 'Doğal pancar şekeri ve birinci sınıf malzeme' },
+        { src: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=1000&q=85', title: `${name} Usta İşçilik & Günlük Üretim`, subtitle: 'Her sabah taze çıkan tepsi lezzetleri' },
+        { src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0C. GURME BURGER & STREET FOOD
+  if (isBurgerStreetFood) {
+    return {
+      eyebrow: catLabel || 'EL YAPIMI GURME BURGER & STREET FOOD',
+      navActionLabel: 'Sipariş & Konum',
+      servicesNavLabel: 'Menümüz',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak günlük çekilen %100 dana kaburga kıyması, her sabah fırından çıkan taze brioche burger ekmeklerimiz, özel reçete soslarımız ve çıtır atıştırmalıklarımızla gerçek gurme burger deneyimi sunuyoruz.`,
+      aboutTitle: `${name} — %100 Dana Eti, Günlük Brioche Ekmek ve İmza Soslar`,
+      aboutP1:
+        info.bio ||
+        `${name}, dondurulmuş köfte kullanmadan günlük olarak hazırlanan %100 dana burger köftelerini, el yapımı karamelize soğan, füme et ve kendi üretimi özel soslarla buluşturmaktadır.`,
+      aboutP2: 'Döküm ızgarada tam kıvamında mühürlenen sulu burgerlerimiz, kajun baharatlı çıtır patateslerimiz ve enerjik atmosferimizle lezzet tutkunlarını ağırlıyoruz.',
+      hours: info.hr || 'Her Gün: 11:30 – 23:30',
+      headerBg: 'bg-zinc-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/restaurant.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Günlük Çekim %100 Dana Eti', desc: 'Katkısız ve dondurulmamış dinlendirilmiş dana kaburga etinden günlük hazırlanan sulu burger köfteleri.' },
+        { num: '02', title: 'Taze Brioche Burger Ekmeği', desc: 'Her sabah günlük fırınlanan tereyağlı, yumuşacık el yapımı burger ekmekleri.' },
+        { num: '03', title: 'El Yapımı İmza Soslar', desc: 'Trüflü mayonez, özel burger sosu, barbekü ve acı soslarımızla katmanlı lezzet.' },
+        { num: '04', title: 'Sıcak & Çıtır Servis', desc: 'Kajun baharatlı patates kızartması ve çıtır tavuklarla doyurucu menüler.' },
+      ],
+      servicesSectionTitle: `${name} Gurme Burger ve Atıştırmalık Menümüz`,
+      services: [
+        { num: '01', title: 'Klasik & Double Cheeseburger', desc: '%100 dana burger köftesi, çift kat eritilmiş cheddar peyniri, karamelize soğan, turşu ve özel burger sosu.', detail: '%100 Dana Eti • Çift Cheddar • Brioche Ekmek' },
+        { num: '02', title: 'Smash Burger & Füme Etli Burgerler', desc: 'Döküm ızgarada çıtır karamelize kabuklu smash köfte, dana füme kaburga ve cheddar peyniri.', detail: 'Smash Tekniği • Dana Füme • Yoğun Lezzet' },
+        { num: '03', title: 'Mantarlı & Trüf Soslu Gurme Burger', desc: 'Sote kültür mantarı, karamelize soğan, eritilmiş peynir ve özel trüflü sos ile hazırlanan gurme lezzet.', detail: 'Sote Mantar • Özel Sos • Günlük Hazırlık' },
+        { num: '04', title: 'Çıtır Tavuk Burger & Tenders', desc: 'Özel baharatlı kaplamasıyla dışı çıtır, içi sulu tavuk göğsü dilimleri ve taze coleslaw salata.', detail: 'Özel Kaplama • Çıtır Tavuk • Taze Soslar' },
+        { num: '05', title: 'Kajun Baharatlı Patates & Yan Lezzetler', desc: 'Özel baharat harmanlı çıtır patates kızartması, cheddar soslu patates ve soğan halkaları.', detail: 'Kajun Baharatı • Cheddar Sos • Sıcak Sunum' },
+        { num: '06', title: 'Ev Yapımı Soslar & Soğuk İçecekler', desc: 'Burger keyfinizi tamamlayan el yapımı dip soslar, soğuk meşrubatlar ve hızlı paket servis.', detail: 'El Yapımı Dip Sos • Hızlı Paket • Doyurucu Menü' },
+      ],
+      reviews: [
+        { author: 'Caner K.', role: 'Google Yorumu', group: 'Smash Burger & Patates', text: 'Ekmeği yumuşacık, eti tam kıvamında sulu ve lezzetli. Kajun patatesleri ve kendi yaptıkları soslar harika.' },
+        { author: 'Ece T.', role: 'Google Yorumu', group: 'Cheeseburger Menüsü', text: 'Gerçek et tadı alabileceğiniz, porsiyonları gayet doyurucu ve tertemiz bir gurme burgerci.' },
+        { author: 'Burak M.', role: 'Google Yorumu', group: 'Füme Burger', text: 'Füme etli ve karamelize soğanlı burgeri favorimiz oldu. Paket serviste bile sıcacık geliyor.' },
+        { author: 'Emre S.', role: 'Google Yorumu', group: 'Lezzet & Servis', text: 'Malzeme kalitesinden hiç ödün vermiyorlar, çalışanlar çok ilgili ve servis çok hızlı.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1000&q=85', title: `${name} Gurme Burger Sunumu`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=85', title: `${name} %100 Dana Burger & Çıtır Patates`, subtitle: 'Günlük çekim et ve taze brioche ekmek' },
+        { src: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=1000&q=85', title: `${name} Döküm Izgara & Özel Soslar`, subtitle: 'Sipariş üzerine sıcak mühürlenen lezzetler' },
+        { src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0D. YAPRAK DÖNER / İSKENDER / KÖFTE / TANTUNİ
+  if (isDonerTantuni) {
+    return {
+      eyebrow: catLabel || 'YAPRAK DÖNER, İSKENDER & KÖFTE MERKEZİ',
+      navActionLabel: 'Sipariş & Rezervasyon',
+      servicesNavLabel: 'Menümüz',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak özel marine edilmiş sinirsiz etten ustalıkla hazırlanan gerçek yaprak dönerimiz, halis tereyağlı İskenderimiz, ızgara kasap köftemiz ve zengin ikramlarımızla hizmetinizdeyiz.`,
+      aboutTitle: `${name} — Gerçek Yaprak Döner ve Usta İşi Izgara Lezzetleri`,
+      aboutP1:
+        info.bio ||
+        `${name}, kıyma karıştırmadan %100 yaprak etten günlük olarak dizilen döneri ve doğal baharatlarla yoğrulan kasap köftesini geleneksel pişirme ustalığıyla sunmaktadır.`,
+      aboutP2: 'Sıcak tırnak pidemiz, halis tereyağımız, doğal tava yoğurdumuz ve bol köpüklü yayık ayranımızla hem aile salonumuzda hem de paket servisimizde doyurucu lezzetler hazırlıyoruz.',
+      hours: info.hr || 'Her Gün: 10:30 – 22:00',
+      headerBg: 'bg-stone-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-stone-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-600 hover:bg-amber-500 text-white',
+      heroBg: 'bg-stone-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-700',
+      videoSrc: '/videos/restaurant.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: '%100 Gerçek Yaprak Et', desc: 'Sinirlerinden arındırılmış seçkin dana ve kuzu etinden günlük dizilen katkısız yaprak döner.' },
+        { num: '02', title: 'Halis Tereyağı & Tırnak Pide', desc: 'Fırından sıcak çıkan tırnak pide ve lavaş üzerinde cızırdayan gerçek tereyağı lezzeti.' },
+        { num: '03', title: 'Izgara Köfte & Yöresel Tatlar', desc: 'Günlük taze çekilen kasap köfte, tantuni ve geleneksel sıcak başlangıçlar.' },
+        { num: '04', title: 'Hızlı Servis & Zengin İkram', desc: 'Mevsim salata, ezme, turşu ve yemek sonrası taze demleme çay ikramı.' },
+      ],
+      servicesSectionTitle: `${name} Öne Çıkan Döner, İskender ve Izgara Menümüz`,
+      services: [
+        { num: '01', title: 'Porsiyon & Pilav Üstü Yaprak Döner', desc: 'İncecik kesilen sıcak yaprak döner; tereyağlı pirinç pilavı, kızarmış patates, köz biber ve sıcak lavaş eşliğinde.', detail: '%100 Yaprak Döner • Bol Porsiyon • Sıcak Lavaş' },
+        { num: '02', title: 'Tereyağlı İskender Kebap', desc: 'Küp doğranmış sıcak tırnak pidesi üzerinde yaprak döner, özel domates sosu, kızgın tereyağı ve tava yoğurdu.', detail: 'Halis Tereyağı • Tırnak Pide • Tava Yoğurdu' },
+        { num: '03', title: 'Lavaş Dürüm, Gobit & Tombik Döner', desc: 'Fırından yeni çıkmış tombik pide veya sıcak lavaş arasında bol malzemeli yaprak döner lezzetleri.', detail: 'Sıcak Tombik Pide • Çift Lavaş • Hızlı Servis' },
+        { num: '04', title: 'Izgara Kasap Köfte & Piyaz', desc: 'Özel baharatlarla günlük hazırlanan sulu ızgara köfte, közlenmiş domates-biber ve geleneksel piyaz.', detail: 'Günlük Kasap Köfte • Köz Garnitür • Geleneksel Piyaz' },
+        { num: '05', title: 'Günün Sıcak Çorbası & Salata İkramları', desc: 'Yemek öncesi sıcak süzme mercimek çorbası ve masanıza ücretsiz sunulan taze meze-salata çeşitleri.', detail: 'Süzme Mercimek • Taze Yeşillik • Turşu & Ezme' },
+        { num: '06', title: 'Yayık Ayranı, Tatlılar & Paket Servis', desc: 'Bol köpüklü yayık ayranı, yemek sonrası fırın sütlaç-künefe ve adresinize sıcak paket servis.', detail: 'Bol Köpüklü Ayran • Fırın Sütlaç • Hızlı Paket' },
+      ],
+      reviews: [
+        { author: 'Murat K.', role: 'Google Yorumu', group: 'Yaprak Döner & İskender', text: 'Eti gerçekten sinirsiz ve tam kıvamında pişmiş gerçek yaprak döner. Tereyağlı İskenderi ve ikramları çok başarılı.' },
+        { author: 'Serkan Y.', role: 'Google Yorumu', group: 'Tombik Döner & Ayran', text: 'Sıcak tombik ekmek arası döneri ve köpüklü ayranı efsane. Öğle yemeklerinde tek adresimiz.' },
+        { author: 'Hakan T.', role: 'Google Yorumu', group: 'Izgara Köfte', text: 'Köftesi ve döneri çok lezzetli, porsiyonları doyurucu. Mekan tertemiz ve servis çok hızlı.' },
+        { author: 'Fatih D.', role: 'Google Yorumu', group: 'Aile Salonu & Hizmet', text: 'Güler yüzlü esnaflık, kaliteli et ve uygun fiyat. Ailecek güvenle yemek yediğimiz nezih bir yer.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85', title: `${name} Yaprak Döner & Sıcak Sunum`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1000&q=85', title: `${name} Salon & Misafir Alanı`, subtitle: 'Ferah ve hijyenik aile salonu' },
+        { src: 'https://images.unsplash.com/photo-1603105037880-880cd4edfb0d?auto=format&fit=crop&w=1000&q=85', title: `${name} Usta Pişirim & Zengin İkramlar`, subtitle: 'Günlük taze et ve sıcak pide' },
+        { src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=85', title: `${name} Misafir Ağırlama`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0E. BALIK & DENİZ ÜRÜNLERİ RESTORANI
+  if (isSeafoodFish) {
+    return {
+      eyebrow: catLabel || 'TAZE BALIK & DENİZ ÜRÜNLERİ RESTORANI',
+      navActionLabel: 'Rezervasyon & Sipariş',
+      servicesNavLabel: 'Deniz Menüsü',
+      galleryNavLabel: 'Mekanımız',
+      heroSubtitle: `${name} olarak günlük taze mevsim balıkları, usta ellerde hazırlanan deniz mahsulleri, zengin Ege mezeleri ve sıcak helva keyfiyle misafirlerimizi ağırlıyoruz.`,
+      aboutTitle: `${name} — Günlük Taze Mevsim Balıkları ve Usta Pişirim`,
+      aboutP1:
+        info.bio ||
+        `${name}, denizden sofranıza günlük ulaşan taze mevsim balıklarını ızgara, tava ve fırın pişirme teknikleriyle kılçıksız ve tam kıvamında hazırlamaktadır.`,
+      aboutP2: 'Günlük hazırlanan soğuk deniz mezelerimiz, kalamar ve karides güveçlerimiz, taze roka-mısır ekmeği ikramımız ve sıcak fırın helvamızla eksiksiz bir balık sofrası sunuyoruz.',
+      hours: info.hr || 'Her Gün: 11:00 – 23:00',
+      headerBg: 'bg-slate-950/95 border-sky-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-sky-400',
+      navLink: 'text-slate-300 hover:text-sky-400',
+      ctaBtn: 'bg-sky-600 hover:bg-sky-500 text-white',
+      heroBg: 'bg-slate-950',
+      heroLine: 'bg-sky-500',
+      heroEyebrow: 'text-sky-400',
+      accentText: 'text-sky-600',
+      videoSrc: '/videos/restaurant.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Günlük Taze Deniz Balıkları', desc: 'Her sabah halden özenle seçilen taze mevsim balıkları ve deniz ürünleri.' },
+        { num: '02', title: 'Izgara, Tava & Buğulama', desc: 'Balığın lezzetini ve suyunu koruyan usta işi ızgara, mısır unlu tava ve kiremitte fırın pişirim.' },
+        { num: '03', title: 'Zengin Salata & Mezeler', desc: 'Taze roka salatası, zeytinyağlı Ege mezeleri ve sıcak mısır ekmeği.' },
+        { num: '04', title: 'Fırında Sıcak Tahin Helvası', desc: 'Balık keyfinin ardından güveçte sıcak fırın helvası ve demleme çay ikramı.' },
+      ],
+      servicesSectionTitle: `${name} Günlük Taze Balık ve Deniz Ürünleri Menümüz`,
+      services: [
+        { num: '01', title: 'Izgara Levrek, Çupra & Somon', desc: 'Kömür ateşinde tam kıvamında pişirilen günlük taze levrek, çupra ve Norveç somon porsiyonlarımız.', detail: 'Kömür Izgara • Günlük Taze • Kılçıksız Fileto Seçeneği' },
+        { num: '02', title: 'Mısır Unlu Hamsi, İstavrit & Mezgit Tava', desc: 'Altın sarısı çıtırlıkta, hiç yağ çekmeden pişirilen günlük taze hamsi, mezgit, barbun ve istavrit tava.', detail: 'Çıtır Mısır Unu • Hafif Pişirim • Sıcak Sunum' },
+        { num: '03', title: 'Tereyağlı Karides Güveç & Kalamar Tava', desc: 'Sarımsak ve tereyağı ile güveçte fokurdayan karides ve özel tarator soslu yumuşacık kalamar tava.', detail: 'Güveçte Karides • Taratorlu Kalamar • Ara Sıcaklar' },
+        { num: '04', title: 'Balık Ekmek & Kılçıksız Dürüm', desc: 'Taze yeşillik, kırmızı soğan ve özel sosla hazırlanan doyurucu ızgara balık ekmek ve dürüm.', detail: 'Kılçıksız Fileto • Sıcak Ekmek • Hızlı Servis' },
+        { num: '05', title: 'Zeytinyağlı Mezeler & Roka Salatası', desc: 'Balığın yanına en çok yakışan taze roka-soğan salatası, deniz börülcesi, fava ve mısır ekmeği.', detail: 'Ege Mezeleri • Taze Roka • Mısır Ekmeği' },
+        { num: '06', title: 'Güveçte Sıcak Helva & Paket Servis', desc: 'Yemek sonrası fırından sıcak çıkan fındıklı tahin helvası ve evinize sıcak pişmiş balık servisi.', detail: 'Fırında Helva • Aile Salonu • Pişmiş Paket Servis' },
+      ],
+      reviews: [
+        { author: 'Kemal Y.', role: 'Google Yorumu', group: 'Izgara Levrek & Mezgit', text: 'Balıklar her zaman günlük ve çok taze. Pişirme kıvamı, yanındaki roka salatası ve sıcak mısır ekmeği harika.' },
+        { author: 'Deniz A.', role: 'Google Yorumu', group: 'Karides Güveç & Helva', text: 'Tereyağlı karides güveci ve yemek üstüne gelen fırında sıcak helvası tek kelimeyle mükemmel.' },
+        { author: 'Sinan K.', role: 'Google Yorumu', group: 'Hamsi Tava', text: 'Hiç yağ çekmeden çıtır çıtır pişiriyorlar, içeride ağır balık kokusu bile yok, çok temiz bir aile mekanı.' },
+        { author: 'Pınar T.', role: 'Google Yorumu', group: 'Aile Salonu & Hizmet', text: 'Güler yüzlü servis, taze balık ve makul fiyatlar. Ailecek balık yemek için tek tercihimiz.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=1000&q=85', title: `${name} Günlük Taze Balık Reyonu & Izgara`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?auto=format&fit=crop&w=1000&q=85', title: `${name} Deniz Ürünleri & Ara Sıcaklar`, subtitle: 'Usta ellerde hazırlanan taze deniz lezzetleri' },
+        { src: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=85', title: `${name} Zengin Salata & Meze Sofrası`, subtitle: 'Mevsim yeşillikleri ve sıcak fırın helvası' },
+        { src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1000&q=85', title: `${name} Aile Salonu`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0F. KUAFÖR / BERBER / GÜZELLİK & BAKIM STÜDYOSU
+  if (isBeautyHair) {
+    return {
+      eyebrow: catLabel || 'SAÇ TASARIM, GÜZELLİK & KİŞİSEL BAKIM STÜDYOSU',
+      navActionLabel: 'Randevu Al',
+      servicesNavLabel: 'Uygulamalar',
+      galleryNavLabel: 'Stüdyomuz',
+      heroSubtitle: `${name} olarak profesyonel saç kesim ve renklendirme, cilt bakımı, kalıcı oje & protez tırnak, ipek kirpik ve kişisel bakım uygulamalarını hijyenik stüdyomuzda uzman ekibimizle sunuyoruz.`,
+      aboutTitle: `${name} — Modern Saç Tasarım ve Kişisel Bakım Stüdyosu`,
+      aboutP1:
+        info.bio ||
+        `${name}, dünyaca ünlü profesyonel kozmetik ürünleri, kişiye özel anatomik saç-yüz analizi ve üst düzey hijyen standartlarıyla güzellik ve bakım hizmeti sunmaktadır.`,
+      aboutP2: 'Deneyimli uzman kadromuzla saç sağlığınızı ve doğal görünümünüzü koruyarak, tarzınıza en çok yakışan modern dokunuşları gerçekleştiriyoruz.',
+      hours: info.hr || 'Salı – Pazar: 09:00 – 20:00',
+      headerBg: 'bg-zinc-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/corporate.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Kişiye Özel Tasarım', desc: 'Yüz hatlarınıza ve yaşam tarzınıza en uygun saç kesim, renklendirme ve bakım analizi.' },
+        { num: '02', title: 'Birinci Sınıf Ürünler', desc: 'Saç ve cilt sağlığını koruyan orijinal, profesyonel dünya markası bakım serileri.' },
+        { num: '03', title: 'Steril & Hijyenik Ekipman', desc: 'Her misafirimiz öncesi UV ve otoklav ile sterilize edilen kişisel bakım ekipmanları.' },
+        { num: '04', title: 'Randevulu Konforlu Hizmet', desc: 'Beklemeden, size ayrılan özel zaman diliminde özenli ve keyifli bakım deneyimi.' },
+      ],
+      servicesSectionTitle: `${name} Saç Tasarım, Güzellik ve Bakım Hizmetlerimiz`,
+      services: [
+        { num: '01', title: 'Anatomik Saç Kesimi & Şekillendirme', desc: 'Yüz tipinize özel modern saç kesimi, fön, maşa, özel gün topuz ve profesyonel şekillendirme.', detail: 'Kişiye Özel Kesim • Modern Stil • Profesyonel Fön' },
+        { num: '02', title: 'Ombre, Sombre, Balyaj & Renklendirme', desc: 'Saç yıpranmasını önleyen koruyucu bakımlar eşliğinde doğal geçişli ombre, sombre ve dip boya işlemleri.', detail: 'Doğal Geçişler • Saç Koruma • Uzman Renk Analizi' },
+        { num: '03', title: 'Keratin Bakım & Saç Botoksu', desc: 'Yıpranmış ve nemini kaybetmiş saçları kökten uca onaran, parlaklık ve yumuşaklık kazandıran keratin bakımı.', detail: 'Yoğun Onarım • İpeksi Parlaklık • Uzun Süreli Etki' },
+        { num: '04', title: 'Protez Tırnak, Kalıcı Oje & Manikür', desc: 'Steril koşullarda medikal el-ayak bakımı, jel güçlendirme, protez tırnak ve nail art tasarımları.', detail: 'Steril Manikür • Kalıcı Oje • Nail Art' },
+        { num: '05', title: 'Cilt Bakımı, İpek Kirpik & Kaş Tasarımı', desc: 'Altın oran kaş alımı, kirpik lifting, ipek kirpik ve profesyonel nem-leke karşıtı cilt bakımı.', detail: 'Altın Oran Kaş • Kirpik Lifting • Hydrafacial Bakım' },
+        { num: '06', title: 'Gelin Saçı, Makyaj & VIP Paketler', desc: 'Düğün, nişan ve özel davetleriniz için profesyonel porselen makyaj ve özel gün saç tasarımı.', detail: 'Profesyonel Makyaj • Gelin Paketi • Özel Randevu' },
+      ],
+      reviews: [
+        { author: 'Büşra K.', role: 'Google Yorumu', group: 'Ombre & Saç Kesimi', text: 'Saçlarımı hiç yıpratmadan tam istediğim doğal tonda renklendirme yaptılar. Kesimi ve ilgileri gerçekten harika.' },
+        { author: 'Gizem T.', role: 'Google Yorumu', group: 'Keratin Bakım & Fön', text: 'İçeri girdiğiniz andan itibaren çok güler yüzlü ve profesyonel bir ekiple karşılaşıyorsunuz. Kullandıkları ürünler çok kaliteli.' },
+        { author: 'Seda Y.', role: 'Google Yorumu', group: 'Manikür & Kalıcı Oje', text: 'Hijyen konusunda çok titizler, tüm aletler steril paketinden açılıyor. Gönül rahatlığıyla tavsiye ederim.' },
+        { author: 'Ceren M.', role: 'Google Yorumu', group: 'Saç Tasarım', text: 'Yıllardır başka yere gitmiyorum, her seferinde salondan çok mutlu ayrılıyorum.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=1000&q=85', title: `${name} Saç Tasarım & Bakım Stüdyosu`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=1000&q=85', title: `${name} Profesyonel Renklendirme & Bakım`, subtitle: 'Dünya markası ürünlerle sağlıklı saçlar' },
+        { src: 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?auto=format&fit=crop&w=1000&q=85', title: `${name} Kişisel Bakım & Steril Uygulama`, subtitle: 'Kişiye özel randevulu hizmet' },
+        { src: 'https://images.unsplash.com/photo-1633681926022-84c23e8cb2d6?auto=format&fit=crop&w=1000&q=85', title: `${name} Konforlu Misafir Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0G. SPOR SALONU / PİLATES / FİTNESS STÜDYOSU
+  if (isFitnessPilates) {
+    return {
+      eyebrow: catLabel || 'SPOR SALONU, REFORMER PİLATES & FİTNESS MERKEZİ',
+      navActionLabel: 'Üyelik & Deneme Dersi',
+      servicesNavLabel: 'Programlar',
+      galleryNavLabel: 'Salonumuz',
+      heroSubtitle: `${name} olarak modern antrenman ekipmanlarımız, uzman eğitmen kadromuz, kişiye özel egzersiz programlarımız ve ferah stüdyomuzla sağlıklı ve güçlü bir yaşam için yanınızdayız.`,
+      aboutTitle: `${name} — Profesyonel Eğitmenler Eşliğinde Bilimsel Antrenman`,
+      aboutP1:
+        info.bio ||
+        `${name}, her seviyeden üyemizin hedeflerine güvenle ulaşması için vücut analizi, kişiye özel antrenman planlaması ve birebir eğitmen takibi sunmaktadır.`,
+      aboutP2: 'Yüksek tavanlı ferah çalışma alanlarımız, hijyenik soyunma odalarımız ve motivasyonu yüksek atmosferimizle sporu yaşam tarzınıza dönüştürüyoruz.',
+      hours: info.hr || 'Hafta İçi: 07:00 – 22:30 • Hafta Sonu: 09:00 – 20:00',
+      headerBg: 'bg-zinc-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-500 hover:bg-amber-400 text-zinc-950',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-600',
+      videoSrc: '/videos/corporate.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Uzman Antrenör Kadrosu', desc: 'Sertifikalı eğitmenlerle doğru form, sakatlık önleyici ve sonuç odaklı çalışma.' },
+        { num: '02', title: 'Modern Ekipman Parkuru', desc: 'Yeni nesil kardiyo, serbest ağırlık, fonksiyonel antrenman ve reformer pilates ekipmanları.' },
+        { num: '03', title: 'Vücut Analizi & Takip', desc: 'Düzenli kas-yağ ölçümü ve hedefe göre güncellenen kişisel antrenman programı.' },
+        { num: '04', title: 'Hijyenik & Ferah Stüdyo', desc: 'Güçlü havalandırma sistemi, tertemiz ekipmanlar ve konforlu dinlenme alanları.' },
+      ],
+      servicesSectionTitle: `${name} Antrenman ve Stüdyo Programlarımız`,
+      services: [
+        { num: '01', title: 'Fitness & Vücut Geliştirme', desc: 'Kas kütlesi artışı, sıkılaşma ve kondisyon gelişimi için modern makinelerle programlı antrenman.', detail: 'Kişisel Program • Modern Ekipman • Eğitmen Desteği' },
+        { num: '02', title: 'Aletli Pilates (Reformer & Cadillac)', desc: 'Duruş bozukluklarını düzelten, esneklik ve core kuvveti kazandıran birebir veya düet reformer pilates dersleri.', detail: 'Reformer Pilates • Postür Analizi • Birebir Ders' },
+        { num: '03', title: 'Personal Training (Birebir Özel Ders)', desc: 'Hedefinize en kısa ve güvenli yoldan ulaşmanız için antrenör eşliğinde birebir özel antrenman.', detail: '1-e-1 Koçluk • Vücut Analizi • Maksimum Verim' },
+        { num: '04', title: 'Fonksiyonel Antrenman & Kardiyo', desc: 'Yağ yakımını hızlandıran, dayanıklılık ve çeviklik geliştiren yüksek enerjili fonksiyonel egzersizler.', detail: 'Yağ Yakımı • Yüksek Kondisyon • Dinamik Parkur' },
+        { num: '05', title: 'Grup Dersleri & Esneklik Çalışmaları', desc: 'Motivasyonu artıran mat pilates, yoga, spinning ve grup kondisyon seansları.', detail: 'Grup Motivasyonu • Esneklik • Enerjik Atmosfer' },
+        { num: '06', title: 'Beslenme Yönlendirmesi & Ölçüm Takibi', desc: 'Aylık profesyonel vücut kompozisyonu ölçümü ve antrenmanınızı destekleyen beslenme rehberliği.', detail: 'Aylık Ölçüm • Gelişim Takibi • Sağlıklı Yaşam' },
+      ],
+      reviews: [
+        { author: 'Mert A.', role: 'Google Yorumu', group: 'Fitness & Personal Training', text: 'Ekipmanlar çok yeni ve salon her zaman tertemiz. Hocalar her hareketin doğru formunu gösteriyor, çok ilgili bir ekip.' },
+        { author: 'Zeynep K.', role: 'Google Yorumu', group: 'Reformer Pilates', text: 'Sırt ve bel ağrılarım için başladığım reformer derslerinden inanılmaz memnun kaldım. Stüdyo çok ferah.' },
+        { author: 'Can B.', role: 'Google Yorumu', group: 'Salon & Atmosfer', text: 'Havalandırması, soyunma odalarının temizliği ve nezih ortamıyla bölgedeki en kaliteli spor salonu.' },
+        { author: 'Elif T.', role: 'Google Yorumu', group: 'Birebir Antrenman', text: 'Düzenli ölçüm ve program takibi sayesinde 3 ayda hedefime ulaştım. Tüm hocalara teşekkürler.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1000&q=85', title: `${name} Antrenman & Fitness Alanı`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=1000&q=85', title: `${name} Reformer Pilates & Stüdyo`, subtitle: 'Uzman eğitmenlerle birebir ve grup dersleri' },
+        { src: 'https://images.unsplash.com/photo-1540497077202-7c8a3999166f?auto=format&fit=crop&w=1000&q=85', title: `${name} Modern Ekipman Parkuru`, subtitle: 'Hijyenik ve ferah spor ortamı' },
+        { src: 'https://images.unsplash.com/photo-1571902943202-507ec2618e8f?auto=format&fit=crop&w=1000&q=85', title: `${name} Fonksiyonel Çalışma Alanı`, subtitle: info.a },
+      ],
+    };
+  }
+
+  // 0H. MİMARLIK / İNŞAAT / GAYRİMENKUL / HUKUK / DANIŞMANLIK
+  if (isArchitectureRealEstate) {
+    return {
+      eyebrow: catLabel || 'MİMARLIK, İNŞAAT & GAYRİMENKUL DANIŞMANLIĞI',
+      navActionLabel: 'Randevu & Teklif',
+      servicesNavLabel: 'Hizmetlerimiz',
+      galleryNavLabel: 'Projelerimiz',
+      heroSubtitle: `${name} olarak mimari tasarım, anahtar teslim inşaat ve tadilat uygulamaları, profesyonel gayrimenkul yatırım danışmanlığı ve kurumsal proje yönetiminde güvenilir çözümler sunuyoruz.`,
+      aboutTitle: `${name} — Güven, Estetik ve Profesyonel Proje Yönetimi`,
+      aboutP1:
+        info.bio ||
+        `${name}, mühendislik ve mimari standartları şeffaf iş yönetimiyle birleştirerek konut, ticari alan, dekorasyon ve gayrimenkul süreçlerinde yüksek katma değer üretmektedir.`,
+      aboutP2: 'Sözleşmeli, zamanında teslim ve doğru bütçe planlaması ilkelerimizle tüm yatırımlarınızda ve yaşam alanı projelerinizde yanınızdayız.',
+      hours: info.hr || 'Pazartesi – Cumartesi: 09:00 – 19:00',
+      headerBg: 'bg-zinc-950/95 border-amber-500/20',
+      headerText: 'text-white',
+      headerSub: 'text-amber-400',
+      navLink: 'text-zinc-300 hover:text-amber-400',
+      ctaBtn: 'bg-amber-600 hover:bg-amber-500 text-white',
+      heroBg: 'bg-zinc-950',
+      heroLine: 'bg-amber-500',
+      heroEyebrow: 'text-amber-400',
+      accentText: 'text-amber-700',
+      videoSrc: '/videos/corporate.mp4',
+      posterSrc: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1400&q=85',
+      aboutImgSrc: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=85',
+      pillars: [
+        { num: '01', title: 'Uzman Proje & Danışmanlık', desc: 'Mimari, teknik ve hukuki süreçlerde deneyimli kadro ile eksiksiz planlama.' },
+        { num: '02', title: 'Şeffaf Sözleşme & Bütçe', desc: 'Başlangıçtan teslimata kadar sürpriz maliyetlere yer vermeyen net ve yazılı süreç yönetimi.' },
+        { num: '03', title: 'Birinci Sınıf İşçilik', desc: 'Standartlara uygun malzeme seçimi ve titiz saha denetimi ile uzun ömürlü uygulamalar.' },
+        { num: '04', title: 'Doğru Yatırım & Değerleme', desc: 'Bölge hakimiyeti ve gerçek piyasa verileriyle yüksek kazançlı gayrimenkul ve proje çözümleri.' },
+      ],
+      servicesSectionTitle: `${name} Proje, Uygulama ve Danışmanlık Hizmetlerimiz`,
+      services: [
+        { num: '01', title: 'Mimari Tasarım & İç Mimarlık', desc: 'Konut, ofis ve ticari mekanlar için 3D görselleştirme, fonksiyonel yerleşim ve modern iç mimari projelendirme.', detail: '3D Tasarım • İç Mimari • Fonksiyonel Planlama' },
+        { num: '02', title: 'Anahtar Teslim İnşaat & Tadilat', desc: 'Mutfak, banyo ve komple daire/iş yeri yenileme işlemlerinin sözleşmeli ve anahtar teslim uygulanması.', detail: 'Anahtar Teslim • Garantili İşçilik • Zamanında Teslim' },
+        { num: '03', title: 'Gayrimenkul Alım, Satım & Kiralama', desc: 'Konut, ticari mülk ve arsa yatırımlarınızda doğru ekspertiz, profesyonel sunum ve güvenli tapu süreci.', detail: 'Ekspertiz • Güvenli Tapu • Geniş Portföy' },
+        { num: '04', title: 'Kurumsal Proje & Yatırım Danışmanlığı', desc: 'Yatırımcılar ve işletmeler için fizibilite analizi, değerleme ve stratejik süreç danışmanlığı.', detail: 'Fizibilite • Değerleme • Kurumsal Çözüm' },
+        { num: '05', title: 'Özel Mobilya & Dekorasyon Uygulamaları', desc: 'Mekana özel ölçü mutfak dolabı, vestiyer, banyo ve ticari teşhir üniteleri tasarımı ve montajı.', detail: 'Özel Ölçü Üretim • Birinci Sınıf Malzeme • Montaj' },
+        { num: '06', title: 'Süreç Takibi & Resmi İşlemler', desc: 'Ruhsat, abonelik, tapu ve uygulama denetim süreçlerinin uzman ekibimizce baştan sona yürütülmesi.', detail: 'Resmi Süreç Takibi • Şeffaf Raporlama • Tam Güvence' },
+      ],
+      reviews: [
+        { author: 'Serhat K.', role: 'Google Yorumu', group: 'Tadilat & İç Mimari', text: 'Evimizin komple tadilatını söz verdikleri tarihte ve çok temiz bir işçilikle teslim ettiler. Süreç boyunca her aşamayı paylaştılar.' },
+        { author: 'Onur T.', role: 'Google Yorumu', group: 'Gayrimenkul & Danışmanlık', text: 'Dürüst, şeffaf ve bölgeye çok hakim bir ekip. Yatırım sürecimizde tüm detaylarla profesyonelce ilgilendiler.' },
+        { author: 'Neslihan Y.', role: 'Google Yorumu', group: 'Proje & Tasarım', text: 'Hem tasarım vizyonları hem de malzeme kaliteleri çok üst düzeyde. Gönül rahatlığıyla tavsiye ederim.' },
+        { author: 'Ahmet M.', role: 'Google Yorumu', group: 'Kurumsal Hizmet', text: 'Güvenilir yaklaşımları ve çözüm odaklı çalışmaları için tüm ekibe teşekkür ederiz.' },
+      ],
+      gallery: [
+        { src: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85', title: `${name} Mimari & Kurumsal Projeler`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1000&q=85', title: `${name} İç Mimari & Ofis Tasarımı`, subtitle: 'Estetik ve fonksiyonel yaşam alanları' },
+        { src: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1000&q=85', title: `${name} Konut & Anahtar Teslim Uygulama`, subtitle: 'Birinci sınıf malzeme ve garantili işçilik' },
+        { src: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1000&q=85', title: `${name} Danışmanlık & Merkez Ofis`, subtitle: info.a },
+      ],
+    };
+  }
 
   const isAutoDetailing =
     info.s === 'auto_detailing' ||
@@ -812,6 +1313,73 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   };
 }
 
+function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
+  const base = buildBaseSectorConfig(info);
+
+  // 1. Overlay real Owner Bio (Hakkında / İşletme Sahibinden) from Google Maps / Instagram
+  if (info.bio && info.bio.trim().length > 20) {
+    base.aboutP1 = info.bio.trim();
+  }
+
+  // 2. Overlay real Working Hours from Google Maps
+  if (info.hr && info.hr.trim()) {
+    base.hours = info.hr.trim();
+  }
+
+  // 3. Overlay real Google Star Rating & Review Count onto Pillar 04
+  if (info.rt && base.pillars.length >= 4) {
+    base.pillars = [
+      ...base.pillars.slice(0, 3),
+      {
+        num: '04',
+        title: `${info.rt} ★ Google Memnuniyeti`,
+        desc: `${
+          info.rc ? `${info.rc}+ gerçek müşteri değerlendirmesi` : 'Yüksek müşteri memnuniyeti'
+        } ile onaylanmış güvenilir kalite ve hizmet standardı.`,
+      },
+    ];
+  }
+
+  // 4. Overlay real learned or user-taught offerings (info.ci or info.items) onto Services 01–06
+  const customCards =
+    Array.isArray(info.ci) && info.ci.length > 0
+      ? info.ci.slice(0, 6).map((rawTitle, idx) => {
+          const cleanTitle = String(rawTitle).trim();
+          return {
+            num: String(idx + 1).padStart(2, '0'),
+            title: cleanTitle,
+            desc: `${info.n} bünyesinde birinci sınıf malzemeler ve usta işçilikle sunulan ${cleanTitle.toLocaleLowerCase(
+              'tr-TR'
+            )} uzmanlığımız.`,
+            detail: `${info.n} Kalitesi • Özenli Hazırlık • Tam Memnuniyet`,
+          };
+        })
+      : Array.isArray(info.items) && info.items.length > 0
+      ? info.items
+      : [];
+
+  if (customCards.length > 0) {
+    const merged = [...customCards];
+    for (const defCard of base.services) {
+      if (merged.length >= 6) break;
+      const isDuplicate = merged.some(
+        (m) =>
+          m.title.toLocaleLowerCase('tr-TR') === defCard.title.toLocaleLowerCase('tr-TR') ||
+          m.title.toLocaleLowerCase('tr-TR').includes(defCard.title.toLocaleLowerCase('tr-TR').slice(0, 10))
+      );
+      if (!isDuplicate) {
+        merged.push(defCard);
+      }
+    }
+    base.services = merged.slice(0, 6).map((card, idx) => ({
+      ...card,
+      num: String(idx + 1).padStart(2, '0'),
+    }));
+  }
+
+  return base;
+}
+
 function getKnownLocalPhotos(name: string, url: string): string[] {
   const combined = `${name} ${url}`.toLocaleLowerCase('tr-TR');
   if (combined.includes('diestro')) {
@@ -861,6 +1429,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
       ...info,
       photos: info.photos && info.photos.length > 0 ? info.photos : prev.photos,
       reviews: info.reviews && info.reviews.length > 0 ? info.reviews : prev.reviews,
+      items: info.items && info.items.length > 0 ? info.items : prev.items,
     }));
   }, [info]);
 
@@ -870,7 +1439,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
     }
   }, [liveInfo.n]);
 
-  // Fetch real Google Maps / Instagram photos, logo, phone, address, categories, and reviews on mount
+  // Fetch real Google Maps / Instagram photos, logo, phone, address, categories, bio, hours, rating, learned items, and reviews on mount
   useEffect(() => {
     let cancelled = false;
     if (info.u && /^https?:\/\//i.test(info.u)) {
@@ -900,8 +1469,21 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 a: !isGenericPrevAddr ? prev.a : !isGenericApiAddr ? data.info.a : prev.a || data.info.a,
                 p: prev.p && prev.p !== '0544 477 56 57' ? prev.p : data.info.p || prev.p,
                 c: prev.c || data.info.c,
-                s: prev.s && prev.s !== 'corporate_editorial' ? prev.s : data.info.s || prev.s,
+                s:
+                  prev.s && prev.s !== 'corporate_editorial' && prev.s !== 'grill_restaurant'
+                    ? prev.s
+                    : data.info.s || prev.s,
                 q: prev.q || data.info.q,
+                bio: prev.bio || data.info.bio,
+                hr: prev.hr || data.info.hr,
+                rt: prev.rt || data.info.rt,
+                rc: prev.rc || data.info.rc,
+                items:
+                  prev.items && prev.items.length > 0
+                    ? prev.items
+                    : Array.isArray(data.info.items) && data.info.items.length > 0
+                    ? data.info.items
+                    : prev.items,
                 logo: prev.logo || prev.l || data.info.logo || data.info.l,
                 photos:
                   prev.ph && prev.ph.length > 0
