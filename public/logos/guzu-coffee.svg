@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="26" fill="#090D16"/>
+  <rect x="6" y="6" width="108" height="108" rx="20" stroke="#38BDF8" stroke-width="2.5"/>
+  <rect x="10" y="10" width="100" height="100" rx="17" stroke="#7DD3FC" stroke-width="1" stroke-opacity="0.4"/>
+  <!-- Neon Double-Line Style GUZU -->
+  <text x="60" y="62" text-anchor="middle" fill="none" stroke="#38BDF8" stroke-width="2.2" font-family="'Outfit', sans-serif" font-weight="800" font-size="31" letter-spacing="3">GUZU</text>
+  <text x="60" y="62" text-anchor="middle" fill="#E0F2FE" fill-opacity="0.9" font-family="'Outfit', sans-serif" font-weight="800" font-size="31" letter-spacing="3">GUZU</text>
+  <text x="60" y="89" text-anchor="middle" fill="#38BDF8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="15" letter-spacing="2.5">Coffee</text>
+</svg>

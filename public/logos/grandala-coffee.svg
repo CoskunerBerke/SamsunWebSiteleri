@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="28" fill="#181824"/>
+  <circle cx="60" cy="60" r="53" stroke="#F59E0B" stroke-width="2.4"/>
+  <!-- Stylized Grandala Bird Silhouette -->
+  <path d="M38 45C45 32 58 28 70 35C75 31 81 31 85 34C79 37 77 41 75 46C70 55 56 57 44 52L33 56L38 45Z" fill="#38BDF8"/>
+  <circle cx="74" cy="36" r="1.8" fill="#181824"/>
+  <text x="60" y="80" text-anchor="middle" fill="#FFFFFF" font-family="'Outfit', sans-serif" font-weight="800" font-size="17.5" letter-spacing="2">GRANDALA</text>
+  <text x="60" y="95" text-anchor="middle" fill="#F59E0B" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="8.5" letter-spacing="3">COFFEE</text>
+</svg>

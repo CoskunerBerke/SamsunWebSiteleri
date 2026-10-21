@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#1D5B4F"/>
+  <rect x="7" y="7" width="106" height="106" rx="18" stroke="#E2CEA5" stroke-width="2.5"/>
+  <circle cx="15" cy="15" r="2.5" fill="#E2CEA5"/>
+  <circle cx="105" cy="15" r="2.5" fill="#E2CEA5"/>
+  <circle cx="15" cy="105" r="2.5" fill="#E2CEA5"/>
+  <circle cx="105" cy="105" r="2.5" fill="#E2CEA5"/>
+  <!-- Coffee Bean & Roast Crest -->
+  <ellipse cx="60" cy="36" rx="12" ry="9" transform="rotate(-20 60 36)" stroke="#E2CEA5" stroke-width="2.2"/>
+  <path d="M51 39C57 33 63 39 69 33" stroke="#E2CEA5" stroke-width="2" stroke-linecap="round"/>
+  <text x="60" y="72" text-anchor="middle" fill="#E2CEA5" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="20" letter-spacing="2">• KVASSİR •</text>
+  <text x="60" y="91" text-anchor="middle" fill="#F5EBE0" font-family="Georgia, serif" font-size="8" letter-spacing="1.4">COFFEE &amp; CHOCOLATE</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <circle cx="60" cy="60" r="58" fill="#09090B"/>
+  <circle cx="60" cy="60" r="51" stroke="#FFFFFF" stroke-width="3.5"/>
+  <!-- Top arched ". c a f f e ." text -->
+  <text x="60" y="29" text-anchor="middle" fill="#FFFFFF" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="10.5" letter-spacing="4">.caffe.</text>
+  <!-- Connected "nx" forming a coffee cup & handle -->
+  <path d="M30 76V55C30 47 36 42 43 42C50 42 55 47 55 55V74C55 83 62 89 71 89C80 89 87 83 87 74V46" stroke="#FFFFFF" stroke-width="6.5" stroke-linecap="round"/>
+  <path d="M74 52L94 74M94 52L74 74" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round"/>
+  <path d="M88 57H95C99 57 102 60 102 64C102 68 99 71 95 71H88" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
+  <!-- Steam wisp -->
+  <path d="M71 42C69 37 74 34 72 29" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
+</svg>

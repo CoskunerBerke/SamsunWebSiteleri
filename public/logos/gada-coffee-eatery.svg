@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="26" fill="#231712"/>
+  <rect x="6" y="6" width="108" height="108" rx="21" stroke="#E05A47" stroke-width="2.5"/>
+  <rect x="11" y="11" width="98" height="98" rx="17" stroke="#F4D3B2" stroke-width="1" stroke-opacity="0.35"/>
+  <!-- V60 Pour Over & Vegan Leaf Icon -->
+  <path d="M42 26H78L66 48H54L42 26Z" stroke="#E05A47" stroke-width="3" stroke-linejoin="round" fill="#E05A47" fill-opacity="0.15"/>
+  <path d="M75 30C82 30 84 37 78 41C74 43 69 42 69 42" stroke="#F4D3B2" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M48 52H72" stroke="#F4D3B2" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M60 17C60 17 66 20 64 25C62 21 57 22 60 17Z" fill="#84A98C"/>
+  <text x="60" y="79" text-anchor="middle" fill="#FFF8F0" font-family="'Outfit', 'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="25" letter-spacing="3">GADA</text>
+  <text x="60" y="96" text-anchor="middle" fill="#E05A47" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="8.5" letter-spacing="2.2">COFFEE &amp; EATERY</text>
+</svg>

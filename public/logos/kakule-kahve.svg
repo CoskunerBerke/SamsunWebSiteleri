@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="26" fill="#1B3B2B"/>
+  <path d="M24 104V52C24 32.1177 40.1177 16 60 16C79.8823 16 96 32.1177 96 52V104H24Z" stroke="#A3C9A8" stroke-width="2.5" fill="#244B38"/>
+  <!-- Arched Window & Cardamom Botanical Icon -->
+  <path d="M46 56V39C46 31.268 52.268 25 60 25C67.732 25 74 31.268 74 39V56H46Z" stroke="#EAE4D3" stroke-width="2"/>
+  <line x1="60" y1="25" x2="60" y2="56" stroke="#EAE4D3" stroke-width="1.8"/>
+  <line x1="46" y1="41" x2="74" y2="41" stroke="#EAE4D3" stroke-width="1.8"/>
+  <text x="60" y="79" text-anchor="middle" fill="#FFFDF9" font-family="Georgia, serif" font-weight="700" font-size="19" letter-spacing="3.5">KAKULE</text>
+  <text x="60" y="94" text-anchor="middle" fill="#A3C9A8" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="9" letter-spacing="4">KAHVE</text>
+</svg>

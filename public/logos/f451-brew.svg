@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#141417"/>
+  <rect x="6" y="6" width="108" height="108" rx="19" stroke="#EAB308" stroke-width="2.8"/>
+  <!-- Degree Circle + 451 Typography -->
+  <circle cx="30" cy="40" r="6" stroke="#EAB308" stroke-width="3"/>
+  <text x="67" y="64" text-anchor="middle" fill="#EAB308" font-family="'Outfit', sans-serif" font-weight="800" font-size="40" letter-spacing="1">451</text>
+  <line x1="28" y1="74" x2="92" y2="74" stroke="#EAB308" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="60" y="94" text-anchor="middle" fill="#FEF08A" font-family="'Outfit', sans-serif" font-weight="600" font-size="18" letter-spacing="5">brew.</text>
+</svg>

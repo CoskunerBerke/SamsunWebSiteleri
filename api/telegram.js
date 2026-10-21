@@ -113,6 +113,8 @@ const GLOBAL_SLUG_CACHE = new Map();
 
 const SEED_SITES = {
   'sweden-pizza': {
+    l: '/logos/sweden-pizza.svg',
+    logo: '/logos/sweden-pizza.svg',
     n: 'Sweden Pizza',
     a: 'Etlik, Etlik Cd No:128/D, 06010 Keçiören/Ankara, Türkiye',
     p: '+90 312 326 43 63',
@@ -128,6 +130,8 @@ const SEED_SITES = {
     rc: 227,
   },
   'bagdat-tatlisi-lokantasi': {
+    l: '/logos/bagdat-tatlisi.svg',
+    logo: '/logos/bagdat-tatlisi.svg',
     n: 'Bağdat Tatlısı Bağdat Lokantası',
     a: 'G.M.K Bulvarı, Şht. Danış Tunalıgil Sk. No:6/B, 06570 Çankaya/Ankara, Türkiye',
     p: '+90 312 229 63 18',
@@ -199,6 +203,8 @@ const SEED_SITES = {
     pm: 'auto',
   },
   'gada-coffee-eatery': {
+    l: '/logos/gada-coffee-eatery.svg',
+    logo: '/logos/gada-coffee-eatery.svg',
     n: 'GADA Coffee & Eatery',
     a: 'Güvenevler, Kıbrıs Sk. 29-B, 06690 Çankaya/Ankara',
     p: '0506 844 79 76',
@@ -294,6 +300,8 @@ const SEED_SITES = {
     ],
   },
   'koala-coffee-shop': {
+    l: '/logos/koala-coffee-shop.svg',
+    logo: '/logos/koala-coffee-shop.svg',
     n: 'Koala Coffee Shop',
     a: 'Barbaros, Bülten Sk. No:21-C, 06660 Çankaya/Ankara',
     p: '0542 151 65 06',
@@ -389,6 +397,8 @@ const SEED_SITES = {
     ],
   },
   'sloth-coffee-shop': {
+    l: '/logos/sloth-coffee-shop.svg',
+    logo: '/logos/sloth-coffee-shop.svg',
     n: 'Sloth Coffee Shop',
     a: 'Ayrancı, Güvenlik Cd. 36/A, 06540 Çankaya/Ankara',
     p: '0538 417 56 84',
@@ -484,6 +494,8 @@ const SEED_SITES = {
     ],
   },
   'padam-coffee-shop': {
+    l: '/logos/padam-coffee-shop.svg',
+    logo: '/logos/padam-coffee-shop.svg',
     n: 'Padam Coffee Shop',
     a: 'Remzi Oğuz Arık Mah., Atatürk Blv. No:237 D:16, 06680 Çankaya/Ankara',
     p: '0312 426 77 26',
@@ -579,6 +591,8 @@ const SEED_SITES = {
     ],
   },
   'f451-brew': {
+    l: '/logos/f451-brew.svg',
+    logo: '/logos/f451-brew.svg',
     n: 'F451 Brew.',
     a: 'Kavaklıdere, John F. Kennedy Cd. No:31 D:C, 06680 Çankaya/Ankara',
     p: '0312 425 83 16',
@@ -674,6 +688,8 @@ const SEED_SITES = {
     ],
   },
   'kakule-kahve': {
+    l: '/logos/kakule-kahve.svg',
+    logo: '/logos/kakule-kahve.svg',
     n: 'Kakule Kahve',
     a: 'Kavaklıdere, Kızılırmak Cd. No:17, 06680 Çankaya/Ankara',
     p: '0544 477 56 57',
@@ -769,6 +785,8 @@ const SEED_SITES = {
     ],
   },
   'kanta-coffee-shop': {
+    l: '/logos/kanta-coffee-shop.svg',
+    logo: '/logos/kanta-coffee-shop.svg',
     n: 'KANTA Coffee Shop',
     a: 'Yukarı Bahçelievler, 65. Sk. No:4, 06490 Çankaya/Ankara',
     p: '0533 416 17 18',
@@ -864,6 +882,8 @@ const SEED_SITES = {
     ],
   },
   'kvassir': {
+    l: '/logos/kvassir.svg',
+    logo: '/logos/kvassir.svg',
     n: 'Kvassir',
     a: 'Emek, Bişkek Cd. 25/A, 06510 Çankaya/Ankara',
     p: '0530 583 71 23',
@@ -959,6 +979,8 @@ const SEED_SITES = {
     ],
   },
   'guzu-coffee': {
+    l: '/logos/guzu-coffee.svg',
+    logo: '/logos/guzu-coffee.svg',
     n: 'Guzu Coffee',
     a: 'Barbaros, Bülten Sk. No:26, 06680 Çankaya/Ankara',
     p: '0544 477 56 57',
@@ -1054,6 +1076,8 @@ const SEED_SITES = {
     ],
   },
   'grandala-coffee': {
+    l: '/logos/grandala-coffee.svg',
+    logo: '/logos/grandala-coffee.svg',
     n: 'Grandala Coffee',
     a: 'Remzi Oğuz Arık Mah., Bestekar Cd. No:35/D, 06540 Çankaya/Ankara',
     p: '0544 477 56 57',
@@ -1149,6 +1173,8 @@ const SEED_SITES = {
     ],
   },
   'caffenux': {
+    l: '/logos/caffenux.svg',
+    logo: '/logos/caffenux.svg',
     n: 'CaffeNux',
     a: 'Güvenevler, Kıbrıs Sk. No:13, 06105 Çankaya/Ankara',
     p: '0530 977 09 58',

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="60" fill="#0B5340"/>
+  <circle cx="60" cy="60" r="53" stroke="#E6F4EA" stroke-width="2.5"/>
+  <circle cx="60" cy="60" r="48" stroke="#A7F3D0" stroke-width="1" stroke-dasharray="4 3" stroke-opacity="0.6"/>
+  <!-- Minimalist Koala Silhouette -->
+  <circle cx="38" cy="36" r="10" fill="#E6F4EA"/>
+  <circle cx="38" cy="36" r="5.5" fill="#0B5340"/>
+  <circle cx="82" cy="36" r="10" fill="#E6F4EA"/>
+  <circle cx="82" cy="36" r="5.5" fill="#0B5340"/>
+  <circle cx="60" cy="43" r="17" fill="#E6F4EA"/>
+  <ellipse cx="60" cy="46" rx="5.5" ry="7.5" fill="#1F2937"/>
+  <circle cx="51" cy="40" r="2.3" fill="#0B5340"/>
+  <circle cx="69" cy="40" r="2.3" fill="#0B5340"/>
+  <text x="60" y="82" text-anchor="middle" fill="#FFFFFF" font-family="'Outfit', sans-serif" font-weight="800" font-size="22" letter-spacing="2.5">KOALA</text>
+  <text x="60" y="96" text-anchor="middle" fill="#A7F3D0" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="8.5" letter-spacing="2">COFFEE SHOP</text>
+</svg>

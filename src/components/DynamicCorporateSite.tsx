@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Phone, MapPin, Menu, X, Star, ExternalLink } from 'lucide-react';
-import BrandLogo from './BrandLogo';
+import BrandLogo, { getBusinessFaviconHref } from './BrandLogo';
 
 export interface DynamicSiteInfo {
   n: string; // Business Name
@@ -1470,8 +1470,25 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
   useEffect(() => {
     if (liveInfo.n) {
       document.title = `${liveInfo.n} | Kurumsal Web Sitesi`;
+      const favHref = getBusinessFaviconHref(
+        liveInfo.n,
+        liveInfo.s,
+        liveInfo.c,
+        liveInfo.logo || liveInfo.l
+      );
+      const iconLinks = document.querySelectorAll<HTMLLinkElement>(
+        "link[rel='icon'], link[rel='shortcut icon'], link[rel='apple-touch-icon']"
+      );
+      iconLinks.forEach((link) => {
+        link.href = favHref;
+        if (favHref.startsWith('data:image/svg+xml') || favHref.endsWith('.svg')) {
+          link.type = 'image/svg+xml';
+        } else {
+          link.type = 'image/jpeg';
+        }
+      });
     }
-  }, [liveInfo.n]);
+  }, [liveInfo.n, liveInfo.s, liveInfo.c, liveInfo.logo, liveInfo.l]);
 
   // Fetch real Google Maps / Instagram photos, logo, phone, address, categories, bio, hours, rating, learned items, and reviews on mount
   useEffect(() => {

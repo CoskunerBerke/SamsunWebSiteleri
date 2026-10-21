@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="28" fill="#451A03"/>
+  <circle cx="60" cy="60" r="52" stroke="#F59E0B" stroke-width="2.5"/>
+  <circle cx="60" cy="60" r="47" stroke="#FDE68A" stroke-width="1" stroke-dasharray="3 2"/>
+  <path d="M44 38L52 28L60 36L68 28L76 38H44Z" stroke="#FBBF24" stroke-width="2.2" fill="#F59E0B" fill-opacity="0.3"/>
+  <text x="60" y="73" text-anchor="middle" fill="#FFFBEB" font-family="Georgia, serif" font-weight="700" font-size="20" letter-spacing="2">BAĞDAT</text>
+  <text x="60" y="91" text-anchor="middle" fill="#FBBF24" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="8.5" letter-spacing="2">TATLISI • 1979</text>
+</svg>

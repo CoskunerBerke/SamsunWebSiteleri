@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <rect width="120" height="120" rx="24" fill="#121212"/>
+  <rect x="6" y="6" width="108" height="108" rx="19" stroke="#F5F5F4" stroke-width="2" stroke-opacity="0.85"/>
+  <!-- Minimalist Espresso Cup & Star -->
+  <path d="M47 28H73V39C73 46.1797 67.1797 52 60 52C52.8203 52 47 46.1797 47 39V28Z" stroke="#FBBF24" stroke-width="2.5" fill="#FBBF24" fill-opacity="0.12"/>
+  <path d="M73 31H78C80.5 31 82 33 82 35.5C82 38 80.5 40 78 40H73" stroke="#FBBF24" stroke-width="2.5" stroke-linecap="round"/>
+  <text x="60" y="76" text-anchor="middle" fill="#FFFFFF" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="27" letter-spacing="0.5">Padam</text>
+  <line x1="26" y1="84" x2="94" y2="84" stroke="#FBBF24" stroke-width="2"/>
+  <text x="60" y="97" text-anchor="middle" fill="#E7E5E4" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="8.5" letter-spacing="3.2">COFFEE SHOP</text>
+</svg>
