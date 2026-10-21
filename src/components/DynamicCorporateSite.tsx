@@ -69,7 +69,7 @@ const SmartBusinessImage: React.FC<{
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
-    if (img.naturalWidth > 0 && img.naturalHeight / img.naturalWidth > 0.88) {
+    if (img.naturalWidth > 0 && img.naturalHeight / img.naturalWidth > 1.35) {
       setIsPortraitOrSquare(true);
     } else {
       setIsPortraitOrSquare(false);
@@ -766,7 +766,7 @@ function buildBaseSectorConfig(info: DynamicSiteInfo): SectorConfig {
     const isMultiConceptCafe = /(bazlama|tavuklu pilav|çiğ köfte|cig kofte|cofferoz)/i.test(combinedText);
     return {
       eyebrow: catLabel || (isMultiConceptCafe ? 'KAFE, PATISSERIE & SOKAK LEZZETLERİ' : 'KAFE, KAHVE & TATLI MERKEZİ'),
-      navActionLabel: 'Sipariş & Konum',
+      navActionLabel: 'İletişim',
       servicesNavLabel: 'Menümüz',
       galleryNavLabel: 'Mekanımız',
       heroSubtitle: isMultiConceptCafe
@@ -841,10 +841,10 @@ function buildBaseSectorConfig(info: DynamicSiteInfo): SectorConfig {
             { author: 'Caner T.', role: 'Google Yorumu', group: 'Soğuk İçecekler & Servis', text: 'Yaz kış uğradığımız, kalitesini hiç bozmayan harika bir işletme.' },
           ],
       gallery: [
-        { src: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=85', title: `${name} Mekan & Atmosfer`, subtitle: info.a },
-        { src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=85', title: `${name} Nitelikli Kahve Sunumu`, subtitle: 'Taze öğütülmüş kahve çeşitlerimiz' },
-        { src: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1000&q=85', title: `${name} Günlük Taze Tatlılar`, subtitle: 'Özel tariflerle hazırlanan tatlı ve pastalar' },
-        { src: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1000&q=85', title: `${name} Misafir ağırlama Alanı`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=85', title: `${name} — Mekan & Atmosfer`, subtitle: info.a },
+        { src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1000&q=85', title: `${name} — Nitelikli Kahve & İçecek Sunumu`, subtitle: 'Taze kavrulmuş kahve çekirdekleri ve imza içecekler' },
+        { src: 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=1000&q=85', title: `${name} — Günlük Taze Lezzetler`, subtitle: 'Özel reçetelerle günlük hazırlanan tatlı ve mutfak ürünleri' },
+        { src: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=1000&q=85', title: `${name} — İç & Dış Mekan Deneyimi`, subtitle: info.a },
       ],
     };
   }
@@ -1319,6 +1319,19 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
   // 1. Overlay real Owner Bio (Hakkında / İşletme Sahibinden) from Google Maps / Instagram
   if (info.bio && info.bio.trim().length > 20) {
     base.aboutP1 = info.bio.trim();
+    base.heroSubtitle = info.bio.trim();
+  }
+
+  if (info.c && info.c.includes('•')) {
+    const topCats = info.c
+      .split('•')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 2)
+      .join(' & ');
+    if (topCats) {
+      base.aboutTitle = `${info.n} — ${topCats}`;
+    }
   }
 
   // 2. Overlay real Working Hours from Google Maps
@@ -1326,7 +1339,28 @@ function getSectorConfig(info: DynamicSiteInfo): SectorConfig {
     base.hours = info.hr.trim();
   }
 
-  // 3. Overlay real Google Star Rating & Review Count onto Pillar 04
+  // 3. Overlay real learned items onto Pillars 01–03 and Google Star Rating onto Pillar 04
+  if (Array.isArray(info.items) && info.items.length >= 3 && base.pillars.length >= 4) {
+    base.pillars = [
+      {
+        num: '01',
+        title: info.items[0].title,
+        desc: info.items[0].desc,
+      },
+      {
+        num: '02',
+        title: info.items[1].title,
+        desc: info.items[1].desc,
+      },
+      {
+        num: '03',
+        title: info.items[2].title,
+        desc: info.items[2].desc,
+      },
+      base.pillars[3],
+    ];
+  }
+
   if (info.rt && base.pillars.length >= 4) {
     base.pillars = [
       ...base.pillars.slice(0, 3),
@@ -1608,11 +1642,11 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
                 logo={liveInfo.logo || liveInfo.l}
                 size="md"
               />
-              <div className="whitespace-nowrap">
-                <span className={`block ${cfg.headerText} font-bold text-base tracking-tight leading-none`}>
+              <div className="whitespace-nowrap min-w-0">
+                <span className={`block ${cfg.headerText} font-bold text-base tracking-tight leading-none max-w-[200px] sm:max-w-[280px] xl:max-w-[360px] truncate`}>
                   {liveInfo.n.toLocaleUpperCase('tr-TR')}
                 </span>
-                <span className={`block ${cfg.headerSub} text-[11px] font-medium tracking-widest uppercase mt-1 max-w-[230px] sm:max-w-[340px] truncate`}>
+                <span className={`block ${cfg.headerSub} text-[11px] font-medium tracking-widest uppercase mt-1 max-w-[200px] sm:max-w-[280px] xl:max-w-[360px] truncate`}>
                   {cfg.eyebrow}
                 </span>
               </div>
@@ -1702,7 +1736,7 @@ export const DynamicCorporateSite: React.FC<{ info: DynamicSiteInfo }> = ({ info
               muted
               playsInline
               preload="auto"
-              poster={cfg.posterSrc}
+              poster={realPhotos[5] || realPhotos[0] || cfg.posterSrc}
               className="w-full h-full object-cover object-center"
             >
               <source src={cfg.videoSrc} type="video/mp4" />
