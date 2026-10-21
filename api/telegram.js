@@ -1393,6 +1393,21 @@ async function loadSiteBySlug(slug, host = '') {
     foundRecord = {
       ...seedRecord,
       ...kvRecord,
+      l: kvRecord.l || seedRecord.l || seedRecord.logo || '',
+      logo: kvRecord.logo || kvRecord.l || seedRecord.logo || seedRecord.l || '',
+      ph: Array.isArray(kvRecord.ph) && kvRecord.ph.length > 0 ? kvRecord.ph : seedRecord.ph,
+      photos:
+        Array.isArray(kvRecord.photos) && kvRecord.photos.length > 0
+          ? kvRecord.photos
+          : seedRecord.photos,
+      items:
+        Array.isArray(kvRecord.items) && kvRecord.items.length > 0
+          ? kvRecord.items
+          : seedRecord.items,
+      reviews:
+        Array.isArray(kvRecord.reviews) && kvRecord.reviews.length > 0
+          ? kvRecord.reviews
+          : seedRecord.reviews,
       // Fix legacy generic sector if seed has a more specific one
       s:
         kvRecord.s === 'grill_restaurant' && seedRecord.s === 'pizza_italian'
@@ -2590,10 +2605,22 @@ async function resolveBusinessInfo(rawText) {
   }
 
   if (website && (!logo || photos.length < 4)) {
-    const webMedia = await extractWebsiteLogoAndPhotos(website);
-    if (webMedia.logo && !logo) logo = webMedia.logo;
-    for (const wp of webMedia.photos) {
-      if (!photos.includes(wp)) photos.push(wp);
+    if (/instagram\.com/i.test(website)) {
+      const igFromWeb = await extractInstagramProfileData(website);
+      if (igFromWeb) {
+        if (igFromWeb.logo && !logo) logo = igFromWeb.logo;
+        if (igFromWeb.photos?.length) {
+          for (const ip of igFromWeb.photos) {
+            if (!photos.includes(ip)) photos.push(ip);
+          }
+        }
+      }
+    } else {
+      const webMedia = await extractWebsiteLogoAndPhotos(website);
+      if (webMedia.logo && !logo) logo = webMedia.logo;
+      for (const wp of webMedia.photos) {
+        if (!photos.includes(wp)) photos.push(wp);
+      }
     }
   }
 
@@ -2678,11 +2705,29 @@ async function resolveBusinessInfo(rawText) {
     sector,
   });
 
+  // Try discovering Instagram profile logo if no logo was found yet
+  if (!logo && businessName && businessName !== 'Kurumsal İşletme Merkezi') {
+    const baseSlug = slugify(businessName);
+    const candidateHandles = [
+      baseSlug.replace(/-/g, ''),
+      baseSlug.replace(/-/g, '.'),
+    ].filter((h) => h.length >= 4);
+    for (const h of candidateHandles) {
+      try {
+        const igTry = await extractInstagramProfileData(`https://www.instagram.com/${h}/`);
+        if (igTry?.logo) {
+          logo = igTry.logo;
+          break;
+        }
+      } catch (_) {}
+    }
+  }
+
   const proxiedLogo = logo
     ? logo.startsWith('/')
       ? logo
       : `/api/telegram?img=${encodeURIComponent(logo)}`
-    : '';
+    : `/api/telegram?svglogo=1&n=${encodeURIComponent(formatBusinessTitle(businessName))}&s=${encodeURIComponent(sector)}`;
 
   const proxiedPhotos = photos
     .filter((pUrl) => pUrl && pUrl !== logo)
@@ -2941,8 +2986,72 @@ async function finalizeAndSendWebsite(chatId, wizardState, customNotes = '') {
   return { liveUrl, fullInfo };
 }
 
+function generateBespokeSvgLogo(rawName = 'Kurumsal', sector = 'corporate_editorial') {
+  const clean = String(rawName || 'Kurumsal')
+    .replace(/[<>&"']/g, '')
+    .trim();
+  const words = clean.split(/\s+/).filter(Boolean);
+  const mainTitle = (words[0] || 'MARKA').slice(0, 10).toLocaleUpperCase('tr-TR');
+  const subTitle = (
+    words.length > 1 ? words.slice(1).join(' ') : getShortSectorLabel(sector)
+  )
+    .slice(0, 18)
+    .toLocaleUpperCase('tr-TR');
+
+  let h = 2166136261;
+  for (let i = 0; i < clean.length; i++) {
+    h ^= clean.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+
+  const palettes = [
+    { bg: '#141417', primary: '#EAB308', secondary: '#FEF08A', text: '#EAB308' },
+    { bg: '#0B5340', primary: '#A7F3D0', secondary: '#E6F4EA', text: '#FFFFFF' },
+    { bg: '#231712', primary: '#E05A47', secondary: '#F4D3B2', text: '#FFF8F0' },
+    { bg: '#1D5B4F', primary: '#E2CEA5', secondary: '#F5EBE0', text: '#E2CEA5' },
+    { bg: '#6B1D24', primary: '#FDE68A', secondary: '#FFFBEB', text: '#FFFBEB' },
+    { bg: '#090D16', primary: '#38BDF8', secondary: '#BAE6FD', text: '#E0F2FE' },
+    { bg: '#181824', primary: '#F59E0B', secondary: '#FDE68A', text: '#FFFFFF' },
+    { bg: '#1C1917', primary: '#FB923C', secondary: '#FED7AA', text: '#FFFFFF' },
+  ];
+
+  let pal = palettes[h % palettes.length];
+  if (sector === 'dental_medical') {
+    pal = { bg: '#0F172A', primary: '#14B8A6', secondary: '#99F6E4', text: '#FFFFFF' };
+  } else if (sector === 'mercedes_luxury' || sector === 'auto_detailing') {
+    pal = { bg: '#09090B', primary: '#E4E4E7', secondary: '#A1A1AA', text: '#FFFFFF' };
+  } else if (sector === 'industrial_heating' || sector === 'pizza_italian') {
+    pal = { bg: '#7F1D1D', primary: '#FBBF24', secondary: '#FDE68A', text: '#FFFFFF' };
+  }
+
+  const fontSize = mainTitle.length <= 4 ? 32 : mainTitle.length <= 6 ? 24 : 18;
+  const variant = h % 3;
+  const frame =
+    variant === 0
+      ? `<rect width="120" height="120" rx="26" fill="${pal.bg}"/><rect x="6" y="6" width="108" height="108" rx="20" stroke="${pal.primary}" stroke-width="2.6"/>`
+      : variant === 1
+      ? `<rect width="120" height="120" rx="60" fill="${pal.bg}"/><circle cx="60" cy="60" r="53" stroke="${pal.primary}" stroke-width="2.6"/><circle cx="60" cy="60" r="48" stroke="${pal.secondary}" stroke-width="1" stroke-dasharray="4 3" stroke-opacity="0.5"/>`
+      : `<rect width="120" height="120" rx="26" fill="${pal.bg}"/><path d="M18 104V50C18 27.9086 36.804 10 60 10C83.196 10 102 27.9086 102 50V104H18Z" stroke="${pal.primary}" stroke-width="2.5" fill="none"/>`;
+
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  ${frame}
+  <circle cx="60" cy="26" r="3.5" fill="${pal.primary}"/>
+  <text x="60" y="63" text-anchor="middle" fill="${pal.text}" font-family="'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif" font-weight="800" font-size="${fontSize}" letter-spacing="1.8">${mainTitle}</text>
+  <line x1="26" y1="74" x2="94" y2="74" stroke="${pal.primary}" stroke-width="1.5" stroke-opacity="0.55"/>
+  <text x="60" y="92" text-anchor="middle" fill="${pal.secondary}" font-family="'Plus Jakarta Sans', system-ui, sans-serif" font-weight="700" font-size="9" letter-spacing="2.2">${subTitle}</text>
+</svg>`;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // 0A. Bespoke Dynamic SVG Logo Generator (GET /api/telegram?svglogo=1&n=<name>&s=<sector>)
+  if (req.method === 'GET' && req.query?.svglogo) {
+    const svg = generateBespokeSvgLogo(req.query.n || 'Kurumsal', req.query.s || 'corporate_editorial');
+    res.setHeader('Content-Type', 'image/svg+xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+    return res.status(200).send(svg);
+  }
 
   // 0. Clean Slug Site Resolver (GET /api/telegram?slug=<slug>&host=<host>)
   if (req.method === 'GET' && req.query?.slug) {
